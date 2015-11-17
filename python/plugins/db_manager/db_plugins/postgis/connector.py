@@ -56,7 +56,7 @@ class PostGisDBConnector(DBConnector):
         except self.connection_error_types() as e:
             err = unicode(e)
             uri = self.uri()
-            conninfo = uri.connectionInfo(True)
+            conninfo = uri.connectionInfo(False)
 
             for i in range(3):
                 (ok, username, password) = QgsCredentials.instance().get(conninfo, username, password, err)

@@ -292,7 +292,7 @@ class PGRasterTable(PGTable, RasterTable):
         if not rl.isValid():
             err = rl.error().summary()
             uri = QgsDataSourceURI(self.database().uri())
-            conninfo = uri.connectionInfo(True)
+            conninfo = uri.connectionInfo(False)
             username = uri.username()
             password = uri.password()
 
