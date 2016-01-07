@@ -38,7 +38,7 @@ QgsAuthPkcs12Method::QgsAuthPkcs12Method()
     : QgsAuthMethod()
 {
   setVersion( 2 );
-  setExpansions( QgsAuthMethod::NetworkRequest );
+  setExpansions( QgsAuthMethod::NetworkRequest | QgsAuthMethod::DataSourceURI );
   setDataProviders( QStringList()
                     << "ows"
                     << "wfs"  // convert to lowercase
