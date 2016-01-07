@@ -36,7 +36,8 @@ QgsAuthBasicMethod::QgsAuthBasicMethod()
                     << "ows"
                     << "wfs"  // convert to lowercase
                     << "wcs"
-                    << "wms" );
+                    << "wms"
+                    << "postgres" );
 }
 
 QgsAuthBasicMethod::~QgsAuthBasicMethod()

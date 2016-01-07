@@ -43,7 +43,8 @@ QgsAuthPkcs12Method::QgsAuthPkcs12Method()
                     << "ows"
                     << "wfs"  // convert to lowercase
                     << "wcs"
-                    << "wms" );
+                    << "wms"
+                    << "postgres" );
 }
 
 QgsAuthPkcs12Method::~QgsAuthPkcs12Method()

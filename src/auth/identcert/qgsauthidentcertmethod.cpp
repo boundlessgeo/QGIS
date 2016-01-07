@@ -43,7 +43,8 @@ QgsAuthIdentCertMethod::QgsAuthIdentCertMethod()
                     << "ows"
                     << "wfs"  // convert to lowercase
                     << "wcs"
-                    << "wms" );
+                    << "wms"
+                    << "postgres" );
 }
 
 QgsAuthIdentCertMethod::~QgsAuthIdentCertMethod()

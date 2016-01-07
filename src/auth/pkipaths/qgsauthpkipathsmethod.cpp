@@ -43,7 +43,8 @@ QgsAuthPkiPathsMethod::QgsAuthPkiPathsMethod()
                     << "ows"
                     << "wfs"  // convert to lowercase
                     << "wcs"
-                    << "wms" );
+                    << "wms"
+                    << "postgres" );
 }
 
 QgsAuthPkiPathsMethod::~QgsAuthPkiPathsMethod()
