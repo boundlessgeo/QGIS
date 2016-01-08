@@ -44,7 +44,7 @@ void QgsGeomColumnTypeThread::stop()
 void QgsGeomColumnTypeThread::run()
 {
   QgsDataSourceURI uri = QgsPostgresConn::connUri( mName );
-  mConn = QgsPostgresConn::connectDb( uri.connectionInfo(), true );
+  mConn = QgsPostgresConn::connectDb( uri.connectionInfo(true), true );
   if ( !mConn )
   {
     QgsDebugMsg( "Connection failed - " + uri.connectionInfo() );
