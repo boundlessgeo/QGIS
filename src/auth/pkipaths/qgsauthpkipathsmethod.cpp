@@ -132,7 +132,7 @@ bool QgsAuthPkiPathsMethod::updateDataSourceUriItems( QStringList &connectionIte
   QSslKey clientKey = QgsAuthManager::instance()->getCertIdentityBundle( amConfig.config( "certid" ) ).second;
 
   // get common name of the client certificate
-  QString commonName = clientCert.subjectInfo( QSslCertificate::CommonName );
+  QString commonName = QgsAuthCertUtils::resolvedCertName( clientCert, false);
 
   // get CA
   QByteArray caCert = QgsAuthManager::instance()->getTrustedCaCertsPemText();
