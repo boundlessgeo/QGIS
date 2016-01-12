@@ -52,11 +52,11 @@ QVector<QgsDataItem*> QgsPGConnectionItem::createChildren()
 
   QgsDataSourceURI uri = QgsPostgresConn::connUri( mName );
   // TODO: wee need to cancel somehow acquireConnection() if deleteLater() was called on this item to avoid later credential dialog if connection failed
-  QgsPostgresConn *conn = QgsPostgresConnPool::instance()->acquireConnection( uri.connectionInfo(true) );
+  QgsPostgresConn *conn = QgsPostgresConnPool::instance()->acquireConnection( uri.connectionInfo(false) );
   if ( !conn )
   {
     items.append( new QgsErrorItem( this, tr( "Connection failed" ), mPath + "/error" ) );
-    QgsDebugMsg( "Connection failed - " + uri.connectionInfo() );
+    QgsDebugMsg( "Connection failed - " + uri.connectionInfo(false) );
     return items;
   }
 
@@ -162,7 +162,7 @@ void QgsPGConnectionItem::createSchema()
     return;
 
   QgsDataSourceURI uri = QgsPostgresConn::connUri( mName );
-  QgsPostgresConn *conn = QgsPostgresConn::connectDb( uri.connectionInfo(true), false );
+  QgsPostgresConn *conn = QgsPostgresConn::connectDb( uri.connectionInfo(false), false );
   if ( !conn )
   {
     QMessageBox::warning( nullptr, tr( "Create Schema" ), tr( "Unable to create schema." ) );
@@ -355,7 +355,7 @@ void QgsPGLayerItem::renameLayer()
   QString newName = QgsPostgresConn::quotedIdentifier( dlg.name() );
 
   QgsDataSourceURI dsUri( mUri );
-  QgsPostgresConn *conn = QgsPostgresConn::connectDb( dsUri.connectionInfo(true), false );
+  QgsPostgresConn *conn = QgsPostgresConn::connectDb( dsUri.connectionInfo(false), false );
   if ( !conn )
   {
     QMessageBox::warning( nullptr, tr( "Rename %1" ).arg( typeName ), tr( "Unable to rename %1." ).arg( lowerTypeName ) );
@@ -396,7 +396,7 @@ void QgsPGLayerItem::truncateTable()
     return;
 
   QgsDataSourceURI dsUri( mUri );
-  QgsPostgresConn *conn = QgsPostgresConn::connectDb( dsUri.connectionInfo(true), false );
+  QgsPostgresConn *conn = QgsPostgresConn::connectDb( dsUri.connectionInfo(false), false );
   if ( !conn )
   {
     QMessageBox::warning( nullptr, tr( "Truncate Table" ), tr( "Unable to truncate table." ) );
@@ -466,11 +466,11 @@ QVector<QgsDataItem*> QgsPGSchemaItem::createChildren()
   QVector<QgsDataItem*>items;
 
   QgsDataSourceURI uri = QgsPostgresConn::connUri( mConnectionName );
-  QgsPostgresConn *conn = QgsPostgresConnPool::instance()->acquireConnection( uri.connectionInfo(true) );
+  QgsPostgresConn *conn = QgsPostgresConnPool::instance()->acquireConnection( uri.connectionInfo(false) );
   if ( !conn )
   {
     items.append( new QgsErrorItem( this, tr( "Connection failed" ), mPath + "/error" ) );
-    QgsDebugMsg( "Connection failed - " + uri.connectionInfo() );
+    QgsDebugMsg( "Connection failed - " + uri.connectionInfo(false) );
     return items;
   }
 
@@ -545,7 +545,7 @@ void QgsPGSchemaItem::deleteSchema()
 {
   // check if schema contains tables/views
   QgsDataSourceURI uri = QgsPostgresConn::connUri( mConnectionName );
-  QgsPostgresConn *conn = QgsPostgresConn::connectDb( uri.connectionInfo(true), false );
+  QgsPostgresConn *conn = QgsPostgresConn::connectDb( uri.connectionInfo(false), false );
   if ( !conn )
   {
     QMessageBox::warning( nullptr, tr( "Delete Schema" ), tr( "Unable to delete schema." ) );
@@ -618,7 +618,7 @@ void QgsPGSchemaItem::renameSchema()
 
   QString schemaName = QgsPostgresConn::quotedIdentifier( mName );
   QgsDataSourceURI uri = QgsPostgresConn::connUri( mConnectionName );
-  QgsPostgresConn *conn = QgsPostgresConn::connectDb( uri.connectionInfo(true), false );
+  QgsPostgresConn *conn = QgsPostgresConn::connectDb( uri.connectionInfo(false), false );
   if ( !conn )
   {
     QMessageBox::warning( nullptr, tr( "Rename Schema" ), tr( "Unable to rename schema." ) );
