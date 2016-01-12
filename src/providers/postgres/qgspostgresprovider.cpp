@@ -3319,7 +3319,7 @@ QgsVectorLayerImport::ImportError QgsPostgresProvider::createEmptyLayer(
 
   // use the provider to edit the table
   dsUri.setDataSource( schemaName, tableName, geometryColumn, QString(), primaryKey );
-  QgsPostgresProvider *provider = new QgsPostgresProvider( dsUri.uri() );
+  QgsPostgresProvider *provider = new QgsPostgresProvider( dsUri.uri(false) );
   if ( !provider->isValid() )
   {
     if ( errorMessage )
