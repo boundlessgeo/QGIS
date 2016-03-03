@@ -11,5 +11,9 @@ WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "fTools" "true
 WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "GdalTools" "true"
 WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "db_manager" "true"
 WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "processing" "true"
+WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "opengeo" "true"
+WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "mgrstools" "true"
+WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\PythonPlugins" "webappbuilder" "true"
+WriteRegStr HKEY_CURRENT_USER "Software\QGIS\QGIS2\Qgis\plugin-repos\Boundless Plugin Repository" "url" "http://qgis.boundlessgeo.com/plugins.xml"
 
 ###############################  reg2nsis end  #################################

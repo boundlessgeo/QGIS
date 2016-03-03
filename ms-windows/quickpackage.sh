@@ -26,15 +26,19 @@
 #
 # Tim Sutton November 2010
 
-makensis \
--DVERSION_NUMBER='1.7.0' \
--DVERSION_NAME='Wroclaw' \
--DSVN_REVISION='0' \
--DQGIS_BASE='QGIS' \
--DINSTALLER_NAME='QGIS-1-7-0-Setup.exe' \
--DDISPLAYED_NAME='QGIS 1.7.0' \
+export PATH=/cygdrive/z/DevTools/NSIS:$PATH
+
+makensis -V3 \
+-DVERSION_NAME='Wien' \
+-DVERSION_NUMBER='2.8.3' \
 -DBINARY_REVISION=1 \
+-DVERSION_INT='2080301' \
+-DQGIS_BASE='QGIS Wien' \
+-DINSTALLER_NAME='QGIS-wPKI-2.8.3-1-x86.exe' \
+-DDISPLAYED_NAME='QGIS 'Wien' (2.8.3)' \
+-DSHORTNAME='qgis-ltr' \
 -DINSTALLER_TYPE=OSGeo4W \
--DPACKAGE_FOLDER=osgeo4w/unpacked \
--DSHORTNAME=qgis \
+-DPACKAGE_FOLDER=osgeo4w/unpacked-x86 \
+-DLICENSE_FILE='osgeo4w/unpacked-x86/apps/qgis-ltr/doc/LICENSE' \
+-DARCH='x86' \
 QGIS-Installer.nsi
