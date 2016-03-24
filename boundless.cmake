@@ -315,7 +315,20 @@ MESSAGE (STATUS "${grass_start} -> ${grass_end}")
 MESSAGE (STATUS "Re-linking libs to grass...")
 STRING (TIMESTAMP lib2grass_start)
 # now for bundled basic libs
-FOREACH (blib "libpng16.16" "libproj.9" "libgdal.1" "libtiff.3")
+FOREACH (blib
+  "libcairo.2"
+  "libfreetype.6"
+  "libgdal.1"
+  "libgdal.20"
+  "libgeos-3.4.2"
+  "libgeos_c.1"
+  "libhistory.6"
+  "libintl.8"
+  "libpng16.16"
+  "libproj.9"
+  "libreadline.6"
+  "libtiff.3"
+)
   MESSAGE (STATUS "  ${blib}.dylib...")
   GET_INSTALL_NAME ("${BUILD_LIB_PATH}/${blib}.dylib" "${blib}" blib_id)
 
