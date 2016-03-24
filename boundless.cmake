@@ -519,11 +519,18 @@ INSTALLNAMETOOL_CHANGE("${libpq_id}" "${ATLOADER}/${psy_libpq_relpath}" "${BUNDL
 MESSAGE (STATUS "Setting up osgeo...")
 EXECUTE_PROCESS (COMMAND cp -a "${BUILD_SITE_PKGS}/osgeo" "${BUNDLE_PYTHON}/.")
 FILE (GLOB osgeo_libs "${BUNDLE_PYTHON}/osgeo/*.so")
-GET_INSTALL_NAME ("${BUILD_LIB_PATH}/libgdal.1.dylib" "libgdal" libgdal_id)
-FILE (RELATIVE_PATH libgdal_relpath "${BUNDLE_PYTHON}/osgeo" "${BUNDLE_LIB}/libgdal.1.dylib")
-FOREACH (lib ${osgeo_libs})
-  INSTALLNAMETOOL_CHANGE("${libgdal_id}" "${ATLOADER}/${libgdal_relpath}" "${lib}")
-ENDFOREACH ()
+# For GDAL 1.x and GDL 2.x
+FOREACH (osglib
+  "libgdal.1"
+  "libgdal.20"
+  "libsqlite3.0"
+)
+  GET_INSTALL_NAME ("${BUILD_LIB_PATH}/${osglib}.dylib" "${osglib}" osglib_id)
+  FILE (RELATIVE_PATH osglib_relpath "${BUNDLE_PYTHON}/osgeo" "${BUNDLE_LIB}/${osglib}.dylib")
+  FOREACH (lib ${osgeo_libs})
+    INSTALLNAMETOOL_CHANGE("${osglib_id}" "${ATLOADER}/${osglib_relpath}" "${lib}")
+  ENDFOREACH ()
+ENDFOREACH()
 
 ######### Fixups for codesigning #########
 
