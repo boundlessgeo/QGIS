@@ -270,8 +270,6 @@ FOREACH (glib ${g6_libs})
     ENDIF ()
     INSTALLNAMETOOL_SET_ID ("@rpath/${ver_dylib}" "${G6_PREFIX}/lib/${glib}.dylib")
 
-    UPDATEQGISPATHS ("${glib_id}" "${ver_dylib}")
-
     FOREACH (dlib ${g6_dyliblist})
       IF (dlib)
         INSTALLNAMETOOL_CHANGE ("${glib_id}" "${ATLOADER}/${ver_dylib}" "${G6_PREFIX}/lib/${dlib}")
@@ -294,9 +292,9 @@ FOREACH (glib ${g6_libs})
       INSTALLNAMETOOL_CHANGE ("${glib_id}" "${ATLOADER}/${etc_relpath}" "${etc}")
     ENDFOREACH ()
 
-    # QGIS's grass framework and plugins, which, as of 2.8.2, only work with GRASS6
-    FILE (RELATIVE_PATH qg_fwk_relpath "${BUNDLE_FW}/qgisgrass.framework" "${G6_PREFIX}/lib/${ver_dylib}")
-    INSTALLNAMETOOL_CHANGE ("${glib_id}" "${ATLOADER}/${qg_fwk_relpath}" "${BUNDLE_FW}/qgisgrass.framework/qgisgrass")
+    # QGIS's grass6 framework and plugins
+    FILE (RELATIVE_PATH qg_fwk_relpath "${BUNDLE_FW}/qgisgrass6.framework" "${G6_PREFIX}/lib/${ver_dylib}")
+    INSTALLNAMETOOL_CHANGE ("${glib_id}" "${ATLOADER}/${qg_fwk_relpath}" "${BUNDLE_FW}/qgisgrass6.framework/qgisgrass")
 
     FILE (GLOB plugins "${BUNDLE_PLUGINS}/qgis/libgrass*.so")
     FOREACH (plugin ${plugins})
