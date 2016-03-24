@@ -270,6 +270,8 @@ FOREACH (glib ${g6_libs})
     ENDIF ()
     INSTALLNAMETOOL_SET_ID ("@rpath/${ver_dylib}" "${G6_PREFIX}/lib/${glib}.dylib")
 
+    UPDATEQGISPATHS ("${glib_id}" "${ver_dylib}")
+
     FOREACH (dlib ${g6_dyliblist})
       IF (dlib)
         INSTALLNAMETOOL_CHANGE ("${glib_id}" "${ATLOADER}/${ver_dylib}" "${G6_PREFIX}/lib/${dlib}")
