@@ -508,13 +508,13 @@ FILE (RELATIVE_PATH psy_libpq_relpath "${BUNDLE_PYTHON}/psycopg2" "${BUNDLE_LIB}
 INSTALLNAMETOOL_CHANGE("${libpq_id}" "${ATLOADER}/${psy_libpq_relpath}" "${BUNDLE_PYTHON}/psycopg2/_psycopg.so")
 
 # # Until pyspatialite works with libspatialite 4.2.x, or DB Manager works with mod_spatialite
-# MESSAGE (STATUS "Setting up pyspatialite...")
-# EXECUTE_PROCESS (COMMAND cp -a "${BUILD_SITE_PKGS}/pyspatialite" "${BUNDLE_PYTHON}/.")
-# FOREACH (lib "libgeos-3.4.2" "libgeos_c.1" "libproj.9" "libspatialite.7" "libsqlite3.0")
-#   GET_INSTALL_NAME ("${BUILD_LIB_PATH}/${lib}.dylib" "${lib}" lib_id)
-#   FILE (RELATIVE_PATH pysp_lib_relpath "${BUNDLE_PYTHON}/pyspatialite" "${BUNDLE_LIB}/${lib}.dylib")
-#   INSTALLNAMETOOL_CHANGE("${lib_id}" "${ATLOADER}/${pysp_lib_relpath}" "${BUNDLE_PYTHON}/pyspatialite/_spatialite.so")
-# ENDFOREACH ()
+MESSAGE (STATUS "Setting up pyspatialite...")
+EXECUTE_PROCESS (COMMAND cp -a "${BUILD_SITE_PKGS}/pyspatialite" "${BUNDLE_PYTHON}/.")
+FOREACH (lib "libgeos-3.4.2" "libgeos_c.1" "libproj.9" "libspatialite.7" "libsqlite3.0")
+  GET_INSTALL_NAME ("${BUILD_LIB_PATH}/${lib}.dylib" "${lib}" lib_id)
+  FILE (RELATIVE_PATH pysp_lib_relpath "${BUNDLE_PYTHON}/pyspatialite" "${BUNDLE_LIB}/${lib}.dylib")
+  INSTALLNAMETOOL_CHANGE("${lib_id}" "${ATLOADER}/${pysp_lib_relpath}" "${BUNDLE_PYTHON}/pyspatialite/_spatialite.so")
+ENDFOREACH ()
 
 MESSAGE (STATUS "Setting up osgeo...")
 EXECUTE_PROCESS (COMMAND cp -a "${BUILD_SITE_PKGS}/osgeo" "${BUNDLE_PYTHON}/.")
