@@ -28,7 +28,7 @@ QgsVersionInfo::QgsVersionInfo( QObject *parent )
 
 void QgsVersionInfo::checkVersion()
 {
-  QNetworkReply *reply = QgsNetworkAccessManager::instance()->get( QNetworkRequest( QUrl( "https://ubuntu.qgis.org/version.txt" ) ) );
+  QNetworkReply *reply = QgsNetworkAccessManager::instance()->get( QNetworkRequest( QUrl( "https://qgis.boundlessgeo.com/version.txt" ) ) );
   connect( reply, SIGNAL( finished() ), this, SLOT( versionReplyFinished() ) );
 }
 
