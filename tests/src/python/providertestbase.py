@@ -14,12 +14,60 @@ __revision__ = '$Format:%H$'
 
 from qgis.core import QgsRectangle, QgsFeatureRequest, QgsFeature, QgsGeometry, NULL
 
+from utilities import(
+    compareWkt
+)
+
 
 class ProviderTestCase(object):
+
+    def testGetFeatures(self):
+        """ Test that expected results are returned when fetching all features """
+
+        # IMPORTANT - we do not use `for f in provider.getFeatures()` as we are also
+        # testing that existing attributes & geometry in f are overwritten correctly
+        # (for f in ... uses a new QgsFeature for every iteration)
+
+        it = self.provider.getFeatures()
+        f = QgsFeature()
+        attributes = {}
+        geometries = {}
+        while it.nextFeature(f):
+            # split off the first 5 attributes only - some provider test datasets will include
+            # additional attributes which we ignore
+            attrs = f.attributes()[0:5]
+            # force the num_char attribute to be text - some providers (eg delimited text) will
+            # automatically detect that this attribute contains numbers and set it as a numeric
+            # field
+            attrs[4] = str(attrs[4])
+            attributes[f['pk']] = attrs
+            geometries[f['pk']] = f.constGeometry() and f.constGeometry().exportToWkt()
+
+        expected_attributes = {5: [5, -200, NULL, 'NuLl', '5'],
+                               3: [3, 300, 'Pear', 'PEaR', '3'],
+                               1: [1, 100, 'Orange', 'oranGe', '1'],
+                               2: [2, 200, 'Apple', 'Apple', '2'],
+                               4: [4, 400, 'Honey', 'Honey', '4']}
+        self.assertEqual(attributes, expected_attributes, 'Expected {}, got {}'.format(expected_attributes, attributes))
+
+        expected_geometries = {1: 'Point (-70.332 66.33)',
+                               2: 'Point (-68.2 70.8)',
+                               3: None,
+                               4: 'Point(-65.32 78.3)',
+                               5: 'Point(-71.123 78.23)'}
+        for pk, geom in expected_geometries.iteritems():
+            if geom:
+                assert compareWkt(geom, geometries[pk]), "Geometry {} mismatch Expected:\n{}\nGot:\n{}\n".format(pk, geom, geometries[pk].exportToWkt())
+            else:
+                self.assertFalse(geometries[pk], 'Expected null geometry for {}'.format(pk))
 
     def assert_query(self, provider, expression, expected):
         result = set([f['pk'] for f in provider.getFeatures(QgsFeatureRequest().setFilterExpression(expression))])
         assert set(expected) == result, 'Expected {} and got {} when testing expression "{}"'.format(set(expected), result, expression)
+
+        # Also check that filter works when referenced fields are not being retrieved by request
+        result = set([f['pk'] for f in provider.getFeatures(QgsFeatureRequest().setFilterExpression(expression).setSubsetOfAttributes([0]))])
+        assert set(expected) == result, 'Expected {} and got {} when testing expression "{}" using empty attribute subset'.format(set(expected), result, expression)
 
     '''
         This is a collection of tests for vector data providers and kept generic.
@@ -160,6 +208,10 @@ class ProviderTestCase(object):
     def getSubsetString(self):
         """Individual providers may need to override this depending on their subset string formats"""
         return '"cnt" > 100 and "cnt" < 410'
+
+    def getSubsetString2(self):
+        """Individual providers may need to override this depending on their subset string formats"""
+        return '"cnt" > 100 and "cnt" < 400'
 
     def testOrderByUncompiled(self):
         try:
@@ -345,9 +397,21 @@ class ProviderTestCase(object):
         self.assertEqual(self.provider.minimumValue(1), -200)
         self.assertEqual(self.provider.minimumValue(2), 'Apple')
 
+        subset = self.getSubsetString()
+        self.provider.setSubsetString(subset)
+        min_value = self.provider.minimumValue(1)
+        self.provider.setSubsetString(None)
+        self.assertEqual(min_value, 200)
+
     def testMaxValue(self):
         self.assertEqual(self.provider.maximumValue(1), 400)
         self.assertEqual(self.provider.maximumValue(2), 'Pear')
+
+        subset = self.getSubsetString2()
+        self.provider.setSubsetString(subset)
+        max_value = self.provider.maximumValue(1)
+        self.provider.setSubsetString(None)
+        self.assertEqual(max_value, 300)
 
     def testExtent(self):
         reference = QgsGeometry.fromRect(
@@ -359,6 +423,12 @@ class ProviderTestCase(object):
     def testUnique(self):
         self.assertEqual(set(self.provider.uniqueValues(1)), set([-200, 100, 200, 300, 400]))
         assert set([u'Apple', u'Honey', u'Orange', u'Pear', NULL]) == set(self.provider.uniqueValues(2)), 'Got {}'.format(set(self.provider.uniqueValues(2)))
+
+        subset = self.getSubsetString2()
+        self.provider.setSubsetString(subset)
+        values = self.provider.uniqueValues(1)
+        self.provider.setSubsetString(None)
+        self.assertEqual(set(values), set([200, 300]))
 
     def testFeatureCount(self):
         assert self.provider.featureCount() == 5, 'Got {}'.format(self.provider.featureCount())

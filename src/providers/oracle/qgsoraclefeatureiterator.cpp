@@ -44,9 +44,22 @@ QgsOracleFeatureIterator::QgsOracleFeatureIterator( QgsOracleFeatureSource* sour
     mAttributeList = mRequest.subsetOfAttributes();
     if ( mAttributeList.isEmpty() )
       mAttributeList = mSource->mFields.allAttributesList();
+
+    // ensure that all attributes required for expression filter are being fetched
+    if ( mRequest.filterType() == QgsFeatureRequest::FilterExpression )
+    {
+      Q_FOREACH ( const QString& field, mRequest.filterExpression()->referencedColumns() )
+      {
+        int attrIdx = mSource->mFields.fieldNameIndex( field );
+        if ( !mAttributeList.contains( attrIdx ) )
+          mAttributeList << attrIdx;
+      }
+    }
+
   }
   else
     mAttributeList = mSource->mFields.allAttributesList();
+
 
   QString whereClause;
 
@@ -177,12 +190,19 @@ bool QgsOracleFeatureIterator::fetchFeature( QgsFeature& feature )
         (( mRequest.flags() & QgsFeatureRequest::ExactIntersect ) != 0 && ( !mConnection->hasSpatial() || !mSource->mHasSpatialIndex ) ) )
     {
       QByteArray *ba = static_cast<QByteArray*>( mQry.value( col++ ).data() );
-      unsigned char *copy = new unsigned char[ba->size()];
-      memcpy( copy, ba->constData(), ba->size() );
+      if ( ba->size() > 0 )
+      {
+        unsigned char *copy = new unsigned char[ba->size()];
+        memcpy( copy, ba->constData(), ba->size() );
 
-      QgsGeometry *g = new QgsGeometry();
-      g->fromWkb( copy, ba->size() );
-      feature.setGeometry( g );
+        QgsGeometry *g = new QgsGeometry();
+        g->fromWkb( copy, ba->size() );
+        feature.setGeometry( g );
+      }
+      else
+      {
+        feature.setGeometry( 0 );
+      }
 
       if (( mRequest.flags() & QgsFeatureRequest::ExactIntersect ) != 0 && ( !mConnection->hasSpatial() || !mSource->mHasSpatialIndex ) &&
           mRequest.filterType() == QgsFeatureRequest::FilterRect &&
@@ -262,13 +282,20 @@ bool QgsOracleFeatureIterator::fetchFeature( QgsFeature& feature )
       if ( fld.type() == QVariant::ByteArray && fld.typeName().endsWith( ".SDO_GEOMETRY" ) )
       {
         QByteArray *ba = static_cast<QByteArray*>( v.data() );
-        unsigned char *copy = new unsigned char[ba->size()];
-        memcpy( copy, ba->constData(), ba->size() );
+        if ( ba->size() > 0 )
+        {
+          unsigned char *copy = new unsigned char[ba->size()];
+          memcpy( copy, ba->constData(), ba->size() );
 
-        QgsGeometry *g = new QgsGeometry();
-        g->fromWkb( copy, ba->size() );
-        v = g->exportToWkt();
-        delete g;
+          QgsGeometry *g = new QgsGeometry();
+          g->fromWkb( copy, ba->size() );
+          v = g->exportToWkt();
+          delete g;
+        }
+        else
+        {
+          v = QVariant( QVariant::String );
+        }
       }
       else if ( v.type() != fld.type() )
         v = QgsVectorDataProvider::convertValue( fld.type(), v.toString() );

@@ -65,6 +65,17 @@ QgsOfflineEditing::~QgsOfflineEditing()
 /**
  * convert current project to offline project
  * returns offline project file path
+ *
+ * Workflow:
+ *  - copy layers to spatialite
+ *  - create spatialite db at offlineDataPath
+ *  - create table for each layer
+ *  - add new spatialite layer
+ *  - copy features
+ *  - save as offline project
+ *  - mark offline layers
+ *  - remove remote layers
+ *  - mark as offline project
  */
 bool QgsOfflineEditing::convertToOfflineProject( const QString& offlineDataPath, const QString& offlineDbFile, const QStringList& layerIds )
 {
@@ -129,6 +140,9 @@ bool QgsOfflineEditing::convertToOfflineProject( const QString& offlineDataPath,
         if ( newLayer )
         {
           layerIdMapping.insert( origLayerId, newLayer );
+          // remove remote layer
+          QgsMapLayerRegistry::instance()->removeMapLayers(
+            QStringList() << origLayerId );
         }
       }
 
@@ -172,19 +186,7 @@ bool QgsOfflineEditing::convertToOfflineProject( const QString& offlineDataPath,
       return true;
     }
   }
-
   return false;
-
-  // Workflow:
-  // copy layers to spatialite
-  // create spatialite db at offlineDataPath
-  // create table for each layer
-  // add new spatialite layer
-  // copy features
-  // save as offline project
-  // mark offline layers
-  // remove remote layers
-  // mark as offline project
 }
 
 bool QgsOfflineEditing::isOfflineProject()
@@ -285,10 +287,13 @@ void QgsOfflineEditing::synchronize()
           showWarning( remoteLayer->commitErrors().join( "\n" ) );
         }
       }
-
+      // Invalidate the connection to force a reload if the project is put offline
+      // again with the same path
+      offlineLayer->dataProvider()->invalidateConnections( QgsDataSourceURI( offlineLayer->source() ).database() );
       // remove offline layer
       QgsMapLayerRegistry::instance()->removeMapLayers(
         ( QStringList() << qgisLayerId ) );
+
 
       // disable offline project
       QString projectTitle = QgsProject::instance()->title();
@@ -457,6 +462,7 @@ QgsVectorLayer* QgsOfflineEditing::copyVectorLayer( QgsVectorLayer* layer, sqlit
     return nullptr;
 
   QString tableName = layer->id();
+  QgsDebugMsg( QString( "Creating offline table %1 ..." ).arg( tableName ) );
 
   // create table
   QString sql = QString( "CREATE TABLE '%1' (" ).arg( tableName );
@@ -539,9 +545,10 @@ QgsVectorLayer* QgsOfflineEditing::copyVectorLayer( QgsVectorLayer* layer, sqlit
   if ( rc == SQLITE_OK )
   {
     // add new layer
-    QgsVectorLayer* newLayer = new QgsVectorLayer( QString( "dbname='%1' table='%2'%3 sql=" )
-        .arg( offlineDbPath,
-              tableName, layer->hasGeometryType() ? "(Geometry)" : "" ),
+    QString connectionString = QString( "dbname='%1' table='%2'%3 sql=" )
+                               .arg( offlineDbPath,
+                                     tableName, layer->hasGeometryType() ? "(Geometry)" : "" );
+    QgsVectorLayer* newLayer = new QgsVectorLayer( connectionString,
         layer->name() + " (offline)", "spatialite" );
     if ( newLayer->isValid() )
     {
@@ -646,7 +653,16 @@ QgsVectorLayer* QgsOfflineEditing::copyVectorLayer( QgsVectorLayer* layer, sqlit
         int remoteCount = remoteFeatureIds.size();
         for ( int i = 0; i < remoteCount; i++ )
         {
-          addFidLookup( db, layerId, offlineFeatureIds.at( i ), remoteFeatureIds.at( remoteCount - ( i + 1 ) ) );
+          // Check if the online feature has been fetched (WFS download aborted for some reason)
+          if ( i < offlineFeatureIds.count() )
+          {
+            addFidLookup( db, layerId, offlineFeatureIds.at( i ), remoteFeatureIds.at( remoteCount - ( i + 1 ) ) );
+          }
+          else
+          {
+            showWarning( QString( "Feature cannot be copied to the offline layer, please check if the online layer '%1' is sill accessible." ).arg( layer->name() ) );
+            return nullptr;
+          }
           emit progressUpdated( featureCount++ );
         }
         sqlExec( db, "COMMIT" );
@@ -655,10 +671,6 @@ QgsVectorLayer* QgsOfflineEditing::copyVectorLayer( QgsVectorLayer* layer, sqlit
       {
         showWarning( newLayer->commitErrors().join( "\n" ) );
       }
-
-      // remove remote layer
-      QgsMapLayerRegistry::instance()->removeMapLayers(
-        QStringList() << layer->id() );
     }
     return newLayer;
   }
@@ -1289,33 +1301,39 @@ void QgsOfflineEditing::committedGeometriesChanges( const QString& qgisLayerId, 
 void QgsOfflineEditing::startListenFeatureChanges()
 {
   QgsVectorLayer* vLayer = qobject_cast<QgsVectorLayer *>( sender() );
-  // enable logging
-  connect( vLayer->editBuffer(), SIGNAL( committedAttributesAdded( const QString&, const QList<QgsField>& ) ),
-           this, SLOT( committedAttributesAdded( const QString&, const QList<QgsField>& ) ) );
+  // enable logging, check if editBuffer is not null
+  if ( vLayer->editBuffer() )
+  {
+    connect( vLayer->editBuffer(), SIGNAL( committedAttributesAdded( const QString&, const QList<QgsField>& ) ),
+             this, SLOT( committedAttributesAdded( const QString&, const QList<QgsField>& ) ) );
+    connect( vLayer->editBuffer(), SIGNAL( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ),
+             this, SLOT( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ) );
+    connect( vLayer->editBuffer(), SIGNAL( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ),
+             this, SLOT( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ) );
+  }
   connect( vLayer, SIGNAL( committedFeaturesAdded( const QString&, const QgsFeatureList& ) ),
            this, SLOT( committedFeaturesAdded( const QString&, const QgsFeatureList& ) ) );
   connect( vLayer, SIGNAL( committedFeaturesRemoved( const QString&, const QgsFeatureIds& ) ),
            this, SLOT( committedFeaturesRemoved( const QString&, const QgsFeatureIds& ) ) );
-  connect( vLayer->editBuffer(), SIGNAL( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ),
-           this, SLOT( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ) );
-  connect( vLayer->editBuffer(), SIGNAL( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ),
-           this, SLOT( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ) );
 }
 
 void QgsOfflineEditing::stopListenFeatureChanges()
 {
   QgsVectorLayer* vLayer = qobject_cast<QgsVectorLayer *>( sender() );
-  // disable logging
-  disconnect( vLayer->editBuffer(), SIGNAL( committedAttributesAdded( const QString&, const QList<QgsField>& ) ),
-              this, SLOT( committedAttributesAdded( const QString&, const QList<QgsField>& ) ) );
+  // disable logging, check if editBuffer is not null
+  if ( vLayer->editBuffer() )
+  {
+    disconnect( vLayer->editBuffer(), SIGNAL( committedAttributesAdded( const QString&, const QList<QgsField>& ) ),
+                this, SLOT( committedAttributesAdded( const QString&, const QList<QgsField>& ) ) );
+    disconnect( vLayer->editBuffer(), SIGNAL( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ),
+                this, SLOT( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ) );
+    disconnect( vLayer->editBuffer(), SIGNAL( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ),
+                this, SLOT( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ) );
+  }
   disconnect( vLayer, SIGNAL( committedFeaturesAdded( const QString&, const QgsFeatureList& ) ),
               this, SLOT( committedFeaturesAdded( const QString&, const QgsFeatureList& ) ) );
   disconnect( vLayer, SIGNAL( committedFeaturesRemoved( const QString&, const QgsFeatureIds& ) ),
               this, SLOT( committedFeaturesRemoved( const QString&, const QgsFeatureIds& ) ) );
-  disconnect( vLayer->editBuffer(), SIGNAL( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ),
-              this, SLOT( committedAttributeValuesChanges( const QString&, const QgsChangedAttributesMap& ) ) );
-  disconnect( vLayer->editBuffer(), SIGNAL( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ),
-              this, SLOT( committedGeometriesChanges( const QString&, const QgsGeometryMap& ) ) );
 }
 
 void QgsOfflineEditing::layerAdded( QgsMapLayer* layer )
