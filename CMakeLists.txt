@@ -1,6 +1,6 @@
 SET(CPACK_PACKAGE_VERSION_MAJOR "2")
 SET(CPACK_PACKAGE_VERSION_MINOR "14")
-SET(CPACK_PACKAGE_VERSION_PATCH "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "3")
 SET(COMPLETE_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH})
 SET(RELEASE_NAME "Essen")
 IF (POLICY CMP0048) # in CMake 3.0.0+
@@ -149,6 +149,11 @@ IF (MSVC AND CMAKE_GENERATOR MATCHES "NMake")
   # following variable is also used in qgsconfig.h
   SET (USING_NMAKE TRUE)
 ENDIF (MSVC AND CMAKE_GENERATOR MATCHES "NMake")
+
+IF (CMAKE_GENERATOR MATCHES "Ninja")
+  # following variable is also used in qgsconfig.h
+  SET (USING_NINJA TRUE)
+ENDIF (CMAKE_GENERATOR MATCHES "Ninja")
 
 #############################################################
 # check if lexer and parser are not missing
@@ -393,9 +398,9 @@ IF (PEDANTIC)
   MESSAGE (STATUS "Pedantic compiler settings enabled")
   IF(MSVC)
     SET(_warnings "")
-    IF (NOT USING_NMAKE)
+    IF (NOT USING_NMAKE AND NOT USING_NINJA)
       SET(_warnings "${_warnings} /W4" )
-    ENDIF (NOT USING_NMAKE)
+    ENDIF (NOT USING_NMAKE AND NOT USING_NINJA)
 
     # disable warnings
     SET(_warnings "${_warnings} /wd4100 ")  # unused formal parameters
@@ -502,10 +507,10 @@ IF (WIN32)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_WARNINGS)
 
     IF (CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-      IF (NOT USING_NMAKE)
+      IF (NOT USING_NMAKE AND NOT USING_NINJA)
         MESSAGE (STATUS "Generating browse files")
         ADD_DEFINITIONS( /FR )
-      ENDIF (NOT USING_NMAKE)
+      ENDIF (NOT USING_NMAKE AND NOT USING_NINJA)
     ENDIF (CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
 
     IF (INSTALL_DEPS)
@@ -740,9 +745,15 @@ IF (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
   FIND_PROGRAM(GITCOMMAND git PATHS c:/cygwin/bin)
   IF(GITCOMMAND)
     IF(WIN32)
+      IF(USING_NINJA)
+       SET(ARG %a)
+      ELSE(USING_NINJA)
+       SET(ARG %%a)
+      ENDIF(USING_NINJA)
       ADD_CUSTOM_COMMAND(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"%%a\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc
+        COMMAND for /f \"usebackq tokens=1\" ${ARG} in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"${ARG}\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND for /f \"usebackq tokens=1\" ${ARG} in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo PROJECT_NUMBER = \"${COMPLETE_VERSION}-${RELEASE_NAME} \(${ARG}\)\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc
         COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/.git/index
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

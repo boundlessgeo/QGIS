@@ -27,6 +27,8 @@ __revision__ = '$Format:%H$'
 
 import os
 from PyQt4 import QtGui
+import re
+import json
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.gui.Help2Html import getHtmlFromHelpFile
 from processing.core.parameters import ParameterRaster
@@ -330,3 +332,33 @@ class ScriptAlgorithm(GeoAlgorithm):
             return True, getHtmlFromHelpFile(self, helpfile)
         else:
             return False, None
+
+    def shortHelp(self):
+        if self.descriptionFile is None:
+            return None
+        helpFile = unicode(self.descriptionFile) + '.help'
+        if os.path.exists(helpFile):
+            with open(helpFile) as f:
+                try:
+                    descriptions = json.load(f)
+                    if 'ALG_DESC' in descriptions:
+                        return self._formatHelp(unicode(descriptions['ALG_DESC']))
+                except:
+                    return None
+        return None
+
+    def getParameterDescriptions(self):
+        descs = {}
+        if self.descriptionFile is None:
+            return descs
+        helpFile = unicode(self.descriptionFile) + '.help'
+        if os.path.exists(helpFile):
+            with open(helpFile) as f:
+                try:
+                    descriptions = json.load(f)
+                    for param in self.parameters:
+                        if param.name in descriptions:
+                            descs[param.name] = unicode(descriptions[param.name])
+                except:
+                    return descs
+        return descs

@@ -38,6 +38,16 @@ Qgs25DRendererWidget::Qgs25DRendererWidget( QgsVectorLayer* layer, QgsStyleV2* s
 
   setupUi( this );
 
+  mWallColorButton->setColorDialogTitle( tr( "Select wall color" ) );
+  mWallColorButton->setAllowAlpha( true );
+  mWallColorButton->setContext( "symbology" );
+  mRoofColorButton->setColorDialogTitle( tr( "Select roof color" ) );
+  mRoofColorButton->setAllowAlpha( true );
+  mRoofColorButton->setContext( "symbology" );
+  mShadowColorButton->setColorDialogTitle( tr( "Select shadow color" ) );
+  mShadowColorButton->setAllowAlpha( true );
+  mShadowColorButton->setContext( "symbology" );
+
   if ( renderer )
   {
     mRenderer = Qgs25DRenderer::convertFromRenderer( renderer );
@@ -86,10 +96,13 @@ void Qgs25DRendererWidget::updateRenderer()
 
 void Qgs25DRendererWidget::apply()
 {
-  QgsExpressionContextUtils::setLayerVariable( mLayer, "qgis_25d_height", mHeightWidget->currentText() );
-  QgsExpressionContextUtils::setLayerVariable( mLayer, "qgis_25d_angle", mAngleWidget->value() );
+  if ( mHeightWidget )
+  {
+    QgsExpressionContextUtils::setLayerVariable( mLayer, "qgis_25d_height", mHeightWidget->currentText() );
+    QgsExpressionContextUtils::setLayerVariable( mLayer, "qgis_25d_angle", mAngleWidget->value() );
 
-  emit layerVariablesChanged();
+    emit layerVariablesChanged();
+  }
 }
 
 QgsRendererV2Widget* Qgs25DRendererWidget::create( QgsVectorLayer* layer, QgsStyleV2* style, QgsFeatureRendererV2* renderer )
