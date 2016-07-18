@@ -41,6 +41,8 @@ ADD_LIBRARY (keystoreauthmethod MODULE ${AUTH_KEYSTORE_SRCS} ${AUTH_KEYSTORE_HDR
 TARGET_LINK_LIBRARIES (keystoreauthmethod
   qgis_core
   qgis_gui
+  advapi32
+  crypt32
 )
 
 INSTALL(TARGETS keystoreauthmethod
