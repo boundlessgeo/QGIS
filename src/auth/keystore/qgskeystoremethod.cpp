@@ -14,7 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef Q_OS_WIN
+//#ifdef Q_OS_WIN
 
 #include "qgskeystoremethod.h"
 #include "qgskeystoreedit.h"
@@ -352,4 +352,4 @@ QGISEXTERN void cleanupAuthMethod() // pass QgsAuthMethod *method, then delete m
 {
 }
 
-#endif // Q_OS_WIN
+//#endif // Q_OS_WIN

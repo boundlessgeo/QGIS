@@ -14,7 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef Q_OS_WIN
+//#ifdef Q_OS_WIN
 
 #include "qgskeystoreedit.h"
 #include "ui_qgskeystoreedit.h"
@@ -114,4 +114,4 @@ void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
   validateConfig();
 }
 
-#endif // Q_OS_WIN
+//#endif // Q_OS_WIN

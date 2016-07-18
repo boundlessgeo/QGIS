@@ -17,7 +17,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef Q_OS_WIN
+//#ifdef Q_OS_WIN
 
 //#include "qca_systemstore.h"
 #ifndef QT_NO_OPENSSL
@@ -76,4 +76,4 @@ QList<QSslCertificate> get_systemstore(const QString &provider, const QString &s
     return col;
 }
 
-#endif // Q_OS_WIN
+//#endif // Q_OS_WIN

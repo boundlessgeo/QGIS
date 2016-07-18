@@ -17,7 +17,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef Q_OS_WIN
+//#ifdef Q_OS_WIN
 
 #ifndef QGSKEYSTOREUTILS_H
 #define QGSKEYSTOREUTILS_H
@@ -29,4 +29,4 @@ QList<QSslCertificate> get_systemstore(const QString &provider, const QString &s
 
 #endif // QGSKEYSTOREUTILS_H
 
-#endif // Q_OS_WIN
+//#endif // Q_OS_WIN
