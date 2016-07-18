@@ -25,7 +25,7 @@
 // #include "qca_cert.h"
 
 bool have_systemstore(const QString &storeName = "ROOT");
-QList<QSslCertificate> get_systemstore(const QString &provider, const QString &storeName = "ROOT");
+QList<QSslCertificate> get_systemstore(const QString &storeName = "ROOT");
 
 #endif // QGSKEYSTOREUTILS_H
 

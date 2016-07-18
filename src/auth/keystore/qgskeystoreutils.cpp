@@ -34,20 +34,29 @@ bool have_systemstore(const QString &storeName)
 {
     bool ok = false;
     HCERTSTORE hSystemStore;
+
+    // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(hSystemStore)
         ok = true;
+
+    // close it
     CertCloseStore(hSystemStore, 0);
+
     return ok;
 }
 
-QList<QSslCertificate> get_systemstore(const QString &provider, const QString &storeName)
+QList<QSslCertificate> get_systemstore(const QString &storeName)
 {
     QList<QSslCertificate> col;
     HCERTSTORE hSystemStore;
+
+    // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
         return col;
+
+    // load certs
     PCCERT_CONTEXT pc = NULL;
     while(1)
     {
@@ -65,14 +74,16 @@ QList<QSslCertificate> get_systemstore(const QString &provider, const QString &s
         memcpy(der.data(), pc->pbCertEncoded, size);
 
         QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
-        //Certificate cert = Certificate::fromDER(der, 0, provider);
         if( !certs.isEmpty() )
             Q_FOREACH ( const QSslCertificate& cert, certs )
             {
                 col.append(cert);
             }
     }
+
+    // close store
     CertCloseStore(hSystemStore, 0);
+
     return col;
 }
 
