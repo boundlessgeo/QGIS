@@ -34,7 +34,7 @@ bool have_systemstore(const QString &storeName)
 {
     bool ok = false;
     HCERTSTORE hSystemStore;
-    hSystemStore = CertOpenSystemStoreA(0, storeName);
+    hSystemStore = CertOpenSystemStoreA(0, storeName.c_str());
     if(hSystemStore)
         ok = true;
     CertCloseStore(hSystemStore, 0);
@@ -45,7 +45,7 @@ QList<QSslCertificate> get_systemstore(const QString &provider, const QString &s
 {
     QList<QSslCertificate> col;
     HCERTSTORE hSystemStore;
-    hSystemStore = CertOpenSystemStoreA(0, storeName);
+    hSystemStore = CertOpenSystemStoreA(0, storeName.c_str());
     if(!hSystemStore)
         return col;
     PCCERT_CONTEXT pc = NULL;
