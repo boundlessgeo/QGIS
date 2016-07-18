@@ -69,7 +69,7 @@ QList<QSslCertificate> get_systemstore(const QString &provider, const QString &s
         if( !certs.isEmpty() )
             Q_FOREACH ( const QSslCertificate& cert, certs )
             {
-                col.addCertificate(cert);
+                col.append(cert);
             }
     }
     CertCloseStore(hSystemStore, 0);
