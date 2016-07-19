@@ -71,7 +71,7 @@ QString QgsKeyStoreMethod::description() const
 
 QString QgsKeyStoreMethod::displayDescription() const
 {
-  return tr( "KeyStore stored identity certificate" );
+  return tr( "System key store identity" );
 }
 
 bool QgsKeyStoreMethod::updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
