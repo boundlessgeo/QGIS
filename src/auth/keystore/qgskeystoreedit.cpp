@@ -82,11 +82,8 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
 {
   cmbIdentityCert->addItem( tr( "Select identity..." ), "" );
 
-  // TODO: get the list of certs stored in KeyStore with hash/id, symbole name and type
-  QList<QSslCertificate> certs;
-  certs = get_systemstore("MY");
-
-  //QList<QSslCertificate> certs( QgsAuthManager::instance()->getCertIdentities() );
+  // get the list of certs stored in KeyStore
+  QList<QSslCertificate> certs( get_systemstore("MY") );
   if ( !certs.isEmpty() )
   {
     cmbIdentityCert->setIconSize( QSize( 26, 22 ) );
@@ -97,7 +94,7 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
       if ( org.isEmpty() )
         org = tr( "Organization not defined" );
       idents.insert( QString( "%1 (%2)" ).arg( QgsAuthCertUtils::resolvedCertName( cert ), org ),
-                     QgsAuthCertUtils::shaHexForCert( cert ) );
+                     QString( cert.digest(QCryptographicHash::Sha1) ) );
     }
     QgsStringMap::const_iterator it = idents.constBegin();
     for ( ; it != idents.constEnd(); ++it )

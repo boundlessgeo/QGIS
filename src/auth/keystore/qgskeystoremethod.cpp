@@ -246,14 +246,40 @@ QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcf
     return bundle;
   }
 
+  // get cert stored in the keystore and check if more than one is available
+  QList<QSslCertificate> certs( get_systemstore_cert(mconfig.config( "certid" ), "MY") );
+  if ( certs.isEmpty() )
+  {
+    QgsDebugMsg( QString( "PKI bundle for authcfg %1: cert not found in keystore with hash %2" ).arg( authcfg ).arg( mconfig.config( "certid" ) ) );
+    return bundle;
+  }
 
+  // check if more than a cert has been found and warn
+  if ( certs.size() > 1 )
+  {
+      QgsDebugMsg( QString( "PKI bundle for authcfg %1: more than one cert not found in keystore with hash %2" ).arg( authcfg ).arg( mconfig.config( "certid" ) ) );
+  }
 
-  // TODO: use the mconfig.config( "keystore cert id/hash" ) to get the boundle from keystore
+  // get selected cert
+  QSslCertificate cert( certs[0] );
+
+  // TODO: check if private key si exportable
+  // Ensure that the certificate's private key is available
   /*
-  QList<QSslCertificate> certs;
-  certs = qca_get_systemstore("MY");
+  DWORD dwKeySpec;
+  DWORD dwKeySpecSize = sizeof(dwKeySpec);
+  if (!CertGetCertificateContextProperty(
+        pCertContext,
+        CERT_KEY_SPEC_PROP_ID,
+        &dwKeySpec,
+        &dwKeySpecSize))
+  {
+  continue;
+  }
   */
 
+
+  // TODO: get key from keystore
 
   // get identity from database
   QPair<QSslCertificate, QSslKey> cibundle( QgsAuthManager::instance()->getCertIdentityBundle( mconfig.config( "certid" ) ) );

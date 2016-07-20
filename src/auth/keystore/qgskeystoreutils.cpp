@@ -87,4 +87,53 @@ QList<QSslCertificate> get_systemstore(const QString &storeName)
     return col;
 }
 
+QList<QSslCertificate> get_systemstore_cert(const QString &certHash, const QString &storeName)
+{
+    QList<QSslCertificate> col;
+    HCERTSTORE hSystemStore;
+
+    // open store
+    hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
+    if(!hSystemStore)
+        return col;
+
+    // hash blob
+    CRYPT_HASH_BLOB blob;
+    blob.cbData = certHash.toStdString().size();
+    blob.pbData = certHash.toStdString().c_str();
+
+    // load certs
+    // can be available more than one cert with the same hash due to
+    // multiple import and different name
+    PCCERT_CONTEXT pc = NULL;
+    while(1)
+    {
+        pc = CertFindCertificateInStore(
+            hSystemStore,
+            X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
+            0,
+            CERT_FIND_HASH,
+            blob,
+            pc);
+        if(!pc)
+            break;
+
+        int size = pc->cbCertEncoded;
+        QByteArray der(size, 0);
+        memcpy(der.data(), pc->pbCertEncoded, size);
+
+        QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
+        if( !certs.isEmpty() )
+            Q_FOREACH ( const QSslCertificate& cert, certs )
+            {
+                col.append(cert);
+            }
+    }
+
+    // close store
+    CertCloseStore(hSystemStore, 0);
+
+    return col;
+}
+
 //#endif // Q_OS_WIN
