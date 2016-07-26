@@ -26,6 +26,7 @@
 #include <QtCrypto>
 #include <QSslConfiguration>
 #include <QSslError>
+#include <QSslKey>
 #endif
 
 #include "qgsauthcertutils.h"
@@ -225,6 +226,7 @@ void QgsKeyStoreMethod::updateMethodConfig( QgsAuthMethodConfig &mconfig )
 QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcfg )
 {
   QgsPkiConfigBundle * bundle = nullptr;
+  QPair<QSslCertificate, QSslKey> cibundle;
 
   // check if it is cached
   if ( mPkiConfigBundleCache.contains( authcfg ) )
@@ -238,6 +240,8 @@ QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcf
   }
 
   // else build PKI bundle
+  // bundle will be created using pub and priv cert get from certstore. Cert in certstore will be
+  // pointed with cert hash stored in mconfig.config( "certid" ) stored in qgis authdb
   QgsAuthMethodConfig mconfig;
 
   if ( !QgsAuthManager::instance()->loadAuthenticationConfig( authcfg, mconfig, true ) )
@@ -246,62 +250,24 @@ QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcf
     return bundle;
   }
 
-  // get cert stored in the keystore and check if more than one is available
-  QList<QSslCertificate> certs( get_systemstore_cert(mconfig.config( "certid" ), "MY") );
-  if ( certs.isEmpty() )
+  // mconfig does not contain PKI cert, but only reference to stored cert in keystore
+  // reference is managed using the cert hash and wincrypt find utilities
+
+  // check if cert has private key. Private key is necessary to setup
+  // SSL connection using QSslConfiguration => if no PrivateKey no SSL handshake
+  if ( !systemstore_cert_privatekey_available(mconfig.config( "certid" ), "MY") )
   {
-    QgsDebugMsg( QString( "PKI bundle for authcfg %1: cert not found in keystore with hash %2" ).arg( authcfg ).arg( mconfig.config( "certid" ) ) );
     return bundle;
   }
 
-  // check if more than a cert has been found and warn
-  if ( certs.size() > 1 )
+  // get public/private key for the cert (also if it is not exportable)
+  cibundle = get_systemstore_cert_with_privatekey(mconfig.config( "certid" ), "MY");
+  if ( cibundle.first.isNull() || cibundle.second.isNull() )
   {
-      QgsDebugMsg( QString( "PKI bundle for authcfg %1: more than one cert not found in keystore with hash %2" ).arg( authcfg ).arg( mconfig.config( "certid" ) ) );
-  }
-
-  // get selected cert
-  QSslCertificate cert( certs[0] );
-
-  // TODO: check if private key si exportable
-  // Ensure that the certificate's private key is available
-  /*
-  DWORD dwKeySpec;
-  DWORD dwKeySpecSize = sizeof(dwKeySpec);
-  if (!CertGetCertificateContextProperty(
-        pCertContext,
-        CERT_KEY_SPEC_PROP_ID,
-        &dwKeySpec,
-        &dwKeySpecSize))
-  {
-  continue;
-  }
-  */
-
-
-  // TODO: get key from keystore
-
-  // get identity from database
-  QPair<QSslCertificate, QSslKey> cibundle( QgsAuthManager::instance()->getCertIdentityBundle( mconfig.config( "certid" ) ) );
-
-  // init client cert
-  // Note: if this is not valid, no sense continuing
-  QSslCertificate clientcert( cibundle.first );
-  if ( !clientcert.isValid() )
-  {
-    QgsDebugMsg( QString( "PKI bundle for authcfg %1: insert FAILED, client cert is not valid" ).arg( authcfg ) );
     return bundle;
   }
 
-  // init key
-  QSslKey clientkey( cibundle.second );
-  if ( clientkey.isNull() )
-  {
-    QgsDebugMsg( QString( "PKI bundle for authcfg %1: insert FAILED, PEM cert key could not be created" ).arg( authcfg ) );
-    return bundle;
-  }
-
-  bundle = new QgsPkiConfigBundle( mconfig, clientcert, clientkey );
+  bundle = new QgsPkiConfigBundle( mconfig, cibundle.first, cibundle.second );
 
   // cache bundle
   putPkiConfigBundle( authcfg, bundle );
