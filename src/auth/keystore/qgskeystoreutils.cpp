@@ -101,7 +101,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     // hash blob
     CRYPT_HASH_BLOB blob;
     blob.cbData = certHash.toStdString().size();
-    blob.pbData = certHash.toStdString().c_str();
+    blob.pbData = (BYTE*) certHash.toStdString().c_str();
 
     // load certs
     // can be available more than one cert with the same hash due to
@@ -112,13 +112,13 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_HASH,
-                            blob,
+                            (void*) blob,
                             nullptr);
     if ( pCertContext )
     {
         int size = pCertContext->cbCertEncoded;
         QByteArray der(size, 0);
-        memcpy(der.data(), pc->pbCertEncoded, size);
+        memcpy(der.data(), pCertContext->pbCertEncoded, size);
 
         QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
         if( !certs.isEmpty() )
@@ -133,7 +133,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     return cert;
 }
 
-bool systemstore_cert_privatekey_available(const QString &certHash, const QString &storeName = "ROOT");
+bool systemstore_cert_privatekey_available(const QString &certHash, const QString &storeName);
 {
     bool isAvailable = false;
     HCERTSTORE hSystemStore;
@@ -194,7 +194,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     return isAvailable;
 }
 
-QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName = "ROOT");
+QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName);
 {
     QSslKey privateKey;
     QSslCertificate localCertificate;
@@ -331,17 +331,18 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                 {
                                 #ifndef USE_SSL
                                     QString password("password");
-                                    QByteArray dataArray(pbData, cbData);
+                                    QByteArray der(cbData, 0);
+                                    memcpy(der.data(), pbData, cbData);
 
                                     // get pub key
-                                    QList<QSslCertificate> certs = QSslCertificate::fromData(dataArray, QSsl::Der);
+                                    QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
                                     if ( certs.size() != 0 )
                                     {
                                         localCertificate = certs.first();
                                     }
 
                                     // get private key
-                                    privateKey = QSslKey(dataArray, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
+                                    privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
 
                                 #else
                                     // now I've public/private key in pbData that is a char string with cbData lenght
