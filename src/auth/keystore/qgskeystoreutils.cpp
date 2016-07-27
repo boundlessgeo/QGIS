@@ -128,7 +128,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     return cert;
 }
 
-bool systemstore_cert_privatekey_available(const QString &certHash, const QString &storeName);
+bool systemstore_cert_privatekey_available(const QString &certHash, const QString &storeName)
 {
     bool isAvailable = false;
     HCERTSTORE hSystemStore;
@@ -184,7 +184,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     return isAvailable;
 }
 
-QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName);
+QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName)
 {
     QSslKey privateKey;
     QSslCertificate localCertificate;
