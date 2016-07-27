@@ -24,9 +24,6 @@
 #include <QSslCertificate>
 #include <QSslKey>
 #include <QSsl>
-#include <ssl.h>
-#include <x509.h>
-#include <pem.h>
 #endif
 
 #include "qgskeystoreutils.h"
