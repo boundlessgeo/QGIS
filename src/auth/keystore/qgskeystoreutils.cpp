@@ -337,6 +337,21 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                           pbData,
                                           &cbData))
                                 {
+                                #ifndef USE_SSL
+                                    QString password("password");
+                                    QByteArray dataArray(pbData, cbData);
+
+                                    // get pub key
+                                    QList<QSslCertificate> certs = QSslCertificate::fromData(dataArray, QSsl::Der);
+                                    if ( certs.size() != 0 )
+                                    {
+                                        localCertificate = certs.first();
+                                    }
+
+                                    // get private key
+                                    privateKey = QSslKey(dataArray, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
+
+                                #else
                                     // now I've public/private key in pbData that is a char string with cbData lenght
                                     // try to export in QSsl pubic/private cert using example as in:
                                     // http://stackoverflow.com/questions/13885932/converting-windows-privatekeyblob-to-qts-qsslkey
@@ -344,7 +359,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                     X509 *cert;
                                     STACK_OF(X509) *ca = NULL;
                                     PKCS12 *p12;
-                                    QString password("");  // TODO: check if necessary
 
                                     // parse PKCS12 cert from memory buffer
                                     BIO* input = BIO_new_mem_buf((void*)pbData, cbData);
@@ -386,6 +400,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                         privateKey = QSslKey(QByteArray::fromRawData(p, len), QSsl::Rsa);
                                         BIO_free_all(bo);
                                     }
+                                #endif //USE_SSL
                                 }
                                 else
                                 {
