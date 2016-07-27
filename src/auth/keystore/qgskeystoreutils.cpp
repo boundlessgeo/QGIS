@@ -123,12 +123,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
         QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
         if( !certs.isEmpty() )
         {
-            Q_FOREACH ( const QSslCertificate& foundCert, certs )
-            {
-                // return first cert found
-                cert = foundCert;
-                break;
-            }
+            cert = certs.first();
         }
     }
 
