@@ -98,11 +98,6 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     if(!hSystemStore)
         return cert;
 
-    // hash blob
-    CRYPT_HASH_BLOB blob;
-    blob.cbData = certHash.toStdString().size();
-    blob.pbData = (BYTE*) certHash.toStdString().c_str();
-
     // load certs
     // can be available more than one cert with the same hash due to
     // multiple import and different name
@@ -112,8 +107,8 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_HASH,
-                            (void*) blob,
-                            nullptr);
+                            (void*) certHash.toStdString().c_str(),
+                            NULL);
     if ( pCertContext )
     {
         int size = pCertContext->cbCertEncoded;
@@ -143,11 +138,6 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     if(!hSystemStore)
         return isAvailable;
 
-    // hash blob
-    CRYPT_HASH_BLOB blob;
-    blob.cbData = certHash.toStdString().size();
-    blob.pbData = certHash.toStdString().c_str();
-
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
     // multiple import and different name
@@ -157,8 +147,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_HASH,
-                            blob,
-                            nullptr);
+                            (void *) certHash.toStdString().c_str(),
+                            NULL);
     if ( pCertContext )
     {
         // check if cert is RSA
@@ -210,17 +200,13 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
     // multiple import and different name
-    CRYPT_HASH_BLOB blob;
-    blob.cbData = certHash.toStdString().size();
-    blob.pbData = certHash.toStdString().c_str();
-
     pCertContext = CertFindCertificateInStore(
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_HASH,
-                            blob,
-                            nullptr);
+                            (void *) certHash.toStdString().c_str(),
+                            NULL);
     if ( pCertContext )
     {
         // check if cert is RSA
