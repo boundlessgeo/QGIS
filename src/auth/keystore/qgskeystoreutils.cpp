@@ -229,9 +229,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 // Retrieve a handle to the certificate's private key's CSP key
                 // container
                 HCRYPTPROV hProv;
-                HCRYPTPROV hProvTemp;
                 HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
-                NCRYPT_KEY_HANDLE hNKey;
                 BOOL fCallerFreeProvOrNCryptKey;
 
                 if (CryptAcquireCertificatePrivateKey(
@@ -244,10 +242,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 {
                     // export keys
                     hProv = hCryptProvOrNCryptKey;
-                    hNKey = hCryptProvOrNCryptKey;
                     HCRYPTKEY hKey;
                     BYTE* pbData = NULL;
                     DWORD cbData = 0;
+
                     if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
                     {
                         // enetering here means that key can be:
