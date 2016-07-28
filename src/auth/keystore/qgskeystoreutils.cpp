@@ -330,6 +330,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                 {
                                     QgsDebugMsg( QString( "Cannot export private key fo cert with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError() ) );
                                 }
+
+                                // free allocated mem
+                                free(pbData);
                             }
                             else
                             {
