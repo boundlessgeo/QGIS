@@ -230,20 +230,13 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 // container
                 HCRYPTPROV hProv;
                 HCRYPTPROV hProvTemp;
-            #ifdef WINCE
-                HCRYPTPROV hCryptProvOrNCryptKey;
-            #else
                 HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
                 NCRYPT_KEY_HANDLE hNKey;
-            #endif
                 BOOL fCallerFreeProvOrNCryptKey;
+
                 if (CryptAcquireCertificatePrivateKey(
                             pCertContext,
-                        #ifdef WINCE
-                            0,
-                        #else
                             CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
-                        #endif
                             NULL,
                             &hCryptProvOrNCryptKey,
                             &dwKeySpec,
@@ -251,9 +244,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 {
                     // export keys
                     hProv = hCryptProvOrNCryptKey;
-                #ifndef WINCE
                     hNKey = hCryptProvOrNCryptKey;
-                #endif
                     HCRYPTKEY hKey;
                     BYTE* pbData = NULL;
                     DWORD cbData = 0;
@@ -319,7 +310,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                           pbData,
                                           &cbData))
                                 {
-                                #ifndef USE_SSL
                                     QString password("password");
                                     QByteArray der(cbData, 0);
                                     memcpy(der.data(), pbData, cbData);
@@ -337,56 +327,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                     // set result
                                     result.first = localCertificate;
                                     result.second = privateKey;
-                                #else
-                                    // now I've public/private key in pbData that is a char string with cbData lenght
-                                    // try to export in QSsl pubic/private cert using example as in:
-                                    // http://stackoverflow.com/questions/13885932/converting-windows-privatekeyblob-to-qts-qsslkey
-                                    EVP_PKEY *pkey;
-                                    X509 *cert;
-                                    STACK_OF(X509) *ca = NULL;
-                                    PKCS12 *p12;
-
-                                    // parse PKCS12 cert from memory buffer
-                                    BIO* input = BIO_new_mem_buf((void*)pbData, cbData);
-                                    p12 = d2i_PKCS12_bio(input, NULL);
-
-                                    PKCS12_parse(p12, password.toStdString().c_str(), &pkey, &cert, &ca);
-                                    PKCS12_free(p12);
-
-                                    // generate QSslCertificate from PublicKey cert
-                                    if (cert)
-                                    {
-                                        BIO *boCert = BIO_new( BIO_s_mem() );
-                                        PEM_write_bio_X509(boCert, cert);
-
-                                        if (ca && sk_X509_num(ca))
-                                        {
-                                            for (int i = 0; i < sk_X509_num(ca); i++)
-                                            {
-                                                PEM_write_bio_X509(boCert, sk_X509_value(ca, i));
-                                            }
-                                        }
-                                        char *certStr;
-                                        long len = BIO_get_mem_data(boCert, &certStr);
-
-                                        localCertificate = QSslCertificate( QByteArray::fromRawData(certStr, len) );
-
-                                        BIO_free_all(boCert);
-                                    }
-
-                                    // generate QSslKey from PrivateKey pkey
-                                    if (pkey)
-                                    {
-                                        BIO *bo = BIO_new( BIO_s_mem() );
-                                        PEM_write_bio_PrivateKey(bo, pkey, NULL, (unsigned char*)(password.toStdString().c_str()), password.length(), NULL, (char*)(password.toStdString().c_str()));
-
-                                        char *p;
-                                        long len = BIO_get_mem_data(bo, &p);
-
-                                        privateKey = QSslKey(QByteArray::fromRawData(p, len), QSsl::Rsa);
-                                        BIO_free_all(bo);
-                                    }
-                                #endif //USE_SSL
                                 }
                                 else
                                 {
@@ -404,13 +344,11 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                         }
 
                     }
-                #ifndef WINCE
                     else
                     {
                         // TODO porting of exportrsa in case of win CE
-                        QgsDebugMsg( QString( "Windows CE still not supported to export keystore cert") );
+                        QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1").arg( certHash ) );
                     }
-                #endif
                 }
                 else
                 {
