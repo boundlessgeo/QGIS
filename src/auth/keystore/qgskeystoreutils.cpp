@@ -19,13 +19,14 @@
 
 //#ifdef Q_OS_WIN
 
-//#include "qca_systemstore.h"
 #ifndef QT_NO_OPENSSL
 #include <QSslCertificate>
 #include <QSslKey>
 #include <QSsl>
 #endif
+#include <QPair>
 
+#include "qgslogger.h"
 #include "qgskeystoreutils.h"
 
 #include <windows.h>
@@ -272,7 +273,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                                     hKey,
                                                     NULL,
                                                     PRIVATEKEYBLOB,
-                                                    0,1
+                                                    0,
                                                     NULL,
                                                     &cbData)
                             if (!hasExported)
@@ -299,7 +300,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                                   hKey,
                                                   NULL,
                                                   PRIVATEKEYBLOB,
-                                                  0,1
+                                                  0,
                                                   NULL,
                                                   &cbData)
                             }
