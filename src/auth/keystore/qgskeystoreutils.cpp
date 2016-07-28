@@ -189,6 +189,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 {
     QSslKey privateKey;
     QSslCertificate localCertificate;
+    QPair<QSslCertificate, QSslKey> result;
+    result.first = localCertificate;
+    result.second = privateKey;
 
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext;
@@ -196,7 +199,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
-        return QPair(localCertificate, privateKey);
+        return result;
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -331,6 +334,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                     // get private key
                                     privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
 
+                                    // set result
+                                    result.first = localCertificate;
+                                    result.second = privateKey;
                                 #else
                                     // now I've public/private key in pbData that is a char string with cbData lenght
                                     // try to export in QSsl pubic/private cert using example as in:
@@ -429,7 +435,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // close store
     CertCloseStore(hSystemStore, 0);
 
-    return QPair(localCertificate, privateKey);
+    return result;
 }
 
 
