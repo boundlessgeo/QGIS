@@ -275,7 +275,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                                     PRIVATEKEYBLOB,
                                                     0,
                                                     NULL,
-                                                    &cbData)
+                                                    &cbData);
                             if (!hasExported)
                             {
                                 //
@@ -302,7 +302,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                                   PRIVATEKEYBLOB,
                                                   0,
                                                   NULL,
-                                                  &cbData)
+                                                  &cbData);
                             }
                             if (hasExported)
                             {
