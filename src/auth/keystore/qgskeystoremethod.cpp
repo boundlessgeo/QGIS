@@ -257,6 +257,7 @@ QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcf
   // SSL connection using QSslConfiguration => if no PrivateKey no SSL handshake
   if ( !systemstore_cert_privatekey_available(mconfig.config( "certid" ), "MY") )
   {
+    QgsDebugMsg( QString( "KeyStore bundle unavailable for cert with hash: %S" ).arg( mconfig.config( "certid"  ) );
     return bundle;
   }
 
@@ -264,6 +265,7 @@ QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcf
   cibundle = get_systemstore_cert_with_privatekey(mconfig.config( "certid" ), "MY");
   if ( cibundle.first.isNull() || cibundle.second.isNull() )
   {
+    QgsDebugMsg( QString( "KeyStore bundle uncomplete for cert with hash: %S" ).arg( mconfig.config( "certid"  ) );
     return bundle;
   }
 
