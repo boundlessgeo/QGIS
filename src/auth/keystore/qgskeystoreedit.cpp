@@ -53,7 +53,7 @@ QgsStringMap QgsKeyStoreEdit::configMap() const
 {
   QgsStringMap config;
   config.insert( "certid", cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() ).toString() );
-  QgsDebugMsg( QString( "Cert hash link to the KeyStore: %1" ).arg( config( "certid" ) ) );
+  QgsDebugMsg( QString( "Cert hash link to the KeyStore: %1" ).arg( config.value( "certid" ) ) );
 
   return config;
 }
