@@ -113,7 +113,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_SHA1_HASH,
-                            &hashBlob,
+                            (const void *) &hashBlob,
                             NULL);
     if ( pCertContext )
     {
@@ -158,7 +158,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_SHA1_HASH,
-                            &hashBlob,
+                            (const void *) &hashBlob,
                             NULL);
     if ( pCertContext )
     {
@@ -224,7 +224,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
                             CERT_FIND_SHA1_HASH,
-                            &hashBlob,
+                            (const void *) &hashBlob,
                             NULL);
     if ( pCertContext )
     {
