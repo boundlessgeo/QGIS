@@ -102,7 +102,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = (BYTE*) calloc (certHash.length());
+    hashBlob.pbData = (BYTE*) malloc (certHash.length());
     memcpy(hashBlob.pbData, certHash.toStdString().c_str(), hashBlob.cbData);
 
     // load certs
@@ -153,7 +153,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = (BYTE*) calloc (certHash.length());
+    hashBlob.pbData = (BYTE*) malloc (certHash.length());
     memcpy(hashBlob.pbData, certHash.toStdString().c_str(), hashBlob.cbData);
 
     // load cert related with the hash
@@ -223,7 +223,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = (BYTE*) calloc (certHash.length());
+    hashBlob.pbData = (BYTE*) malloc (certHash.length());
     memcpy(hashBlob.pbData, certHash.toStdString().c_str(), hashBlob.cbData);
 
     // load cert related with the hash
