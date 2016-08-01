@@ -102,7 +102,7 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = certHash.toStdString().c_str();
+    hashBlob.pbData = (BYTE*) certHash.toStdString().c_str();
 
     // load certs
     // can be available more than one cert with the same hash due to
@@ -147,7 +147,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = certHash.toStdString().c_str();
+    hashBlob.pbData = (BYTE*) certHash.toStdString().c_str();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -214,7 +214,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = certHash.toStdString().c_str();
+    hashBlob.pbData = (BYTE*) certHash.toStdString().c_str();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
