@@ -96,6 +96,7 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
         org = tr( "Organization not defined" );
       idents.insert( QString( "%1 (%2)" ).arg( QgsAuthCertUtils::resolvedCertName( cert ), org ),
                      QgsAuthCertUtils::shaHexForCert(cert) );
+      QgsDebugMsg( QString( "Add certid = %1" ).arg( QgsAuthCertUtils::shaHexForCert(cert) ) );
     }
     QgsStringMap::const_iterator it = idents.constBegin();
     for ( ; it != idents.constEnd(); ++it )
