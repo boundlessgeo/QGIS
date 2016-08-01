@@ -93,11 +93,16 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
 {
     QSslCertificate cert;
     HCERTSTORE hSystemStore;
+    CRYPT_HASH_BLOB hashBlob;
 
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
         return cert;
+
+    // fill the CRYPT_HASH_BLOB struct
+    hashBlob.cbData = (DWORD) certHash.length();
+    hashBlob.pbData = certHash.toStdString().c_str();
 
     // load certs
     // can be available more than one cert with the same hash due to
@@ -107,8 +112,8 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
-                            CERT_FIND_HASH,
-                            (void*) certHash.toStdString().c_str(),
+                            CERT_FIND_SHA1_HASH,
+                            (void*) hashBlob,
                             NULL);
     if ( pCertContext )
     {
@@ -133,11 +138,16 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 {
     bool isAvailable = false;
     HCERTSTORE hSystemStore;
+    CRYPT_HASH_BLOB hashBlob;
 
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
         return isAvailable;
+
+    // fill the CRYPT_HASH_BLOB struct
+    hashBlob.cbData = (DWORD) certHash.length();
+    hashBlob.pbData = certHash.toStdString().c_str();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -147,8 +157,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
-                            CERT_FIND_HASH,
-                            (void *) certHash.toStdString().c_str(),
+                            CERT_FIND_SHA1_HASH,
+                            (void *) hashBlob,
                             NULL);
     if ( pCertContext )
     {
@@ -192,6 +202,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QPair<QSslCertificate, QSslKey> result;
     result.first = localCertificate;
     result.second = privateKey;
+    CRYPT_HASH_BLOB hashBlob;
 
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext;
@@ -201,6 +212,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     if(!hSystemStore)
         return result;
 
+    // fill the CRYPT_HASH_BLOB struct
+    hashBlob.cbData = (DWORD) certHash.length();
+    hashBlob.pbData = certHash.toStdString().c_str();
+
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
     // multiple import and different name
@@ -208,8 +223,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
-                            CERT_FIND_HASH,
-                            (void *) certHash.toStdString().c_str(),
+                            CERT_FIND_SHA1_HASH,
+                            (void *) hashBlob,
                             NULL);
     if ( pCertContext )
     {
