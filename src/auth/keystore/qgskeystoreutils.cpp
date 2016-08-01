@@ -107,12 +107,12 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     // load certs
     // can be available more than one cert with the same hash due to
     // multiple import and different name
-    PCCERT_CONTEXT pCertContext = nullptr;
+    PCCERT_CONTEXT pCertContext = NULL;
     pCertContext = CertFindCertificateInStore(
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
-                            CERT_FIND_SHA1_HASH,
+                            CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
     if ( pCertContext )
@@ -129,6 +129,8 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     }
 
     // close store
+    if(pCertContext)
+        CertFreeCertificateContext(pCertContext);
     CertCloseStore(hSystemStore, 0);
 
     return cert;
@@ -143,7 +145,10 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
+    {
+        QgsDebugMsg( QString( "Cannot open KeyStore %1" ).arg( storeName ) );
         return isAvailable;
+    }
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = (DWORD) certHash.length();
@@ -152,12 +157,12 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
     // multiple import and different name
-    PCCERT_CONTEXT pCertContext = nullptr;
+    PCCERT_CONTEXT pCertContext = NULL;
     pCertContext = CertFindCertificateInStore(
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
-                            CERT_FIND_SHA1_HASH,
+                            CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
     if ( pCertContext )
@@ -190,6 +195,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     }
 
     // close store
+    if(pCertContext)
+        CertFreeCertificateContext(pCertContext);
     CertCloseStore(hSystemStore, 0);
 
     return isAvailable;
@@ -205,7 +212,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     CRYPT_HASH_BLOB hashBlob;
 
     HCERTSTORE hSystemStore;
-    PCCERT_CONTEXT pCertContext;
+    PCCERT_CONTEXT pCertContext = NULL;
 
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
@@ -223,7 +230,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
                             0,
-                            CERT_FIND_SHA1_HASH,
+                            CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
     if ( pCertContext )
@@ -387,6 +394,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     }
 
     // close store
+    if(pCertContext)
+        CertFreeCertificateContext(pCertContext);
     CertCloseStore(hSystemStore, 0);
 
     return result;
