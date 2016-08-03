@@ -151,10 +151,39 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
         return isAvailable;
     }
 
+    // convert hash in binary hash useful to find certificate
+    LPCTSTR pszString = certHash.toLatin1().data();
+    cout << "Hash is: -" << certHash.toLatin1().data() << "-"<< endl;
+    cout << "Length: " << certHash.toLatin1().size() << endl;
+    DWORD pcchString = certHash.toLatin1().size();
+    DWORD pcbBinary;
+    if ( !CryptStringToBinary(
+            pszString,
+            pcchString,
+            CRYPT_STRING_HEX,
+            NULL,
+            &pcbBinary,
+            NULL,
+            NULL))
+    {
+        QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
+        return isAvailable;
+    }
+    fprintf(stderr, "Hex Converted length: %d\n", pcbBinary );
+    BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
+    CryptStringToBinary(
+                pszString,
+                pcchString,
+                CRYPT_STRING_HEX,
+                pbBinary,
+                &pcbBinary,
+                NULL,
+                NULL);
+
+
     // fill the CRYPT_HASH_BLOB struct
-    hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = (BYTE*) malloc (certHash.length());
-    memcpy(hashBlob.pbData, certHash.toStdString().c_str(), hashBlob.cbData);
+    hashBlob.cbData = pcbBinary;
+    hashBlob.pbData = pbBinary;
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -167,6 +196,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
                             CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
+    free(pbBinary);
     if ( pCertContext )
     {
         // check if cert is RSA
@@ -221,10 +251,39 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     if(!hSystemStore)
         return result;
 
+    // convert hash in binary hash useful to find certificate
+    LPCTSTR pszString = certHash.toLatin1().data();
+    cout << "Hash is: -" << certHash.toLatin1().data() << "-"<< endl;
+    cout << "Length: " << certHash.toLatin1().size() << endl;
+    DWORD pcchString = certHash.toLatin1().size();
+    DWORD pcbBinary;
+    if ( !CryptStringToBinary(
+            pszString,
+            pcchString,
+            CRYPT_STRING_HEX,
+            NULL,
+            &pcbBinary,
+            NULL,
+            NULL))
+    {
+        QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
+        return result;
+    }
+    fprintf(stderr, "Hex Converted length: %d\n", pcbBinary );
+    BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
+    CryptStringToBinary(
+                pszString,
+                pcchString,
+                CRYPT_STRING_HEX,
+                pbBinary,
+                &pcbBinary,
+                NULL,
+                NULL);
+
+
     // fill the CRYPT_HASH_BLOB struct
-    hashBlob.cbData = (DWORD) certHash.length();
-    hashBlob.pbData = (BYTE*) malloc (certHash.length());
-    memcpy(hashBlob.pbData, certHash.toStdString().c_str(), hashBlob.cbData);
+    hashBlob.cbData = pcbBinary;
+    hashBlob.pbData = pbBinary;
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -236,6 +295,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
+    free(pbBinary);
     if ( pCertContext )
     {
         // check if cert is RSA
