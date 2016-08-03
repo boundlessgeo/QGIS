@@ -153,8 +153,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
-    cout << "Hash is: -" << certHash.toLatin1().data() << "-"<< endl;
-    cout << "Length: " << certHash.toLatin1().size() << endl;
+    fprintf(stderr, "Hash is: -%1-\n").arg( certHash.toLatin1().data() );
+    fprintf(stderr, "Length is: -%1-\n").arg( certHash.toLatin1().size() );
     DWORD pcchString = certHash.toLatin1().size();
     DWORD pcbBinary;
     if ( !CryptStringToBinary(
@@ -253,8 +253,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
-    cout << "Hash is: -" << certHash.toLatin1().data() << "-"<< endl;
-    cout << "Length: " << certHash.toLatin1().size() << endl;
+    fprintf(stderr, "Hash is: -%1-\n").arg( certHash.toLatin1().data() );
+    fprintf(stderr, "Length is: -%1-\n").arg( certHash.toLatin1().size() );
     DWORD pcchString = certHash.toLatin1().size();
     DWORD pcbBinary;
     if ( !CryptStringToBinary(
