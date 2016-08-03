@@ -152,7 +152,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     }
 
     // convert hash in binary hash useful to find certificate
-    LPCTSTR pszString = certHash.toLatin1().data();
+    /*LPCTSTR pszString = certHash.toLatin1().data();
     QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
     QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
@@ -184,6 +184,9 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
+    */
+    hashBlob.cbData = certHash.toLatin1().data();
+    hashBlob.pbData = certHash.toLatin1().size();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -196,7 +199,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
                             CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
-    free(pbBinary);
+    //free(pbBinary);
     if ( pCertContext )
     {
         // check if cert is RSA
@@ -252,7 +255,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         return result;
 
     // convert hash in binary hash useful to find certificate
-    LPCTSTR pszString = certHash.toLatin1().data();
+    /*LPCTSTR pszString = certHash.toLatin1().data();
     QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
     QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
@@ -284,6 +287,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
+    */
+    hashBlob.cbData = certHash.toLatin1().data();
+    hashBlob.pbData = certHash.toLatin1().size();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
