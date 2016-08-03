@@ -185,8 +185,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
     */
-    hashBlob.cbData = certHash.toLatin1().data();
-    hashBlob.pbData = certHash.toLatin1().size();
+    hashBlob.cbData = certHash.toLatin1().size();
+    hashBlob.pbData = certHash.toLatin1().data();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -288,8 +288,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
     */
-    hashBlob.cbData = certHash.toLatin1().data();
-    hashBlob.pbData = certHash.toLatin1().size();
+    hashBlob.cbData = certHash.toLatin1().size();
+    hashBlob.pbData = certHash.toLatin1().data();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
