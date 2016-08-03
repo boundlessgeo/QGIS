@@ -153,8 +153,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
-    fprintf(stderr, QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
-    fprintf(stderr, QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
+    QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
+    QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
     DWORD pcbBinary;
     if ( !CryptStringToBinary(
@@ -169,7 +169,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
         QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
         return isAvailable;
     }
-    fprintf(stderr, "Hex Converted length: %d\n", pcbBinary );
+    QgsDebugMsg( "Hex Converted length: %d\n", pcbBinary );
     BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
     CryptStringToBinary(
                 pszString,
@@ -253,8 +253,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
-    fprintf(stderr, QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
-    fprintf(stderr, QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
+    QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
+    QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
     DWORD pcbBinary;
     if ( !CryptStringToBinary(
@@ -269,7 +269,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
         return result;
     }
-    fprintf(stderr, "Hex Converted length: %d\n", pcbBinary );
+    QgsDebugMsg( "Hex Converted length: %d\n", pcbBinary );
     BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
     CryptStringToBinary(
                 pszString,
