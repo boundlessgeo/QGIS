@@ -269,7 +269,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
         return result;
     }
-    QgsDebugMsg( QString("Hex Converted length: %1").arg(pcbhttps://boundless-test:8443/geoserver/wmsBinary) );
+    QgsDebugMsg( QString("Hex Converted length: %1").arg(pcbBinary) );
     BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
     CryptStringToBinary(
                 pszString,
