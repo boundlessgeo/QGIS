@@ -391,7 +391,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // and to retieve the lenght, then to retrieve data
     bool hasExported = CryptExportKey(
                             hKey,
-                            NULL,
+                            0,
                             PRIVATEKEYBLOB,
                             0,
                             NULL,
@@ -418,7 +418,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         // second attend to get the key after the memory hack
         hasExported = CryptExportKey(
                           hKey,
-                          NULL,
+                          0,
                           PRIVATEKEYBLOB,
                           0,
                           NULL,
@@ -435,7 +435,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     pbData = (BYTE*)malloc(cbData);
     if (!CryptExportKey(
               hKey,
-              NULL,
+              0,
               PRIVATEKEYBLOB,
               0,
               pbData,
