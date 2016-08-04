@@ -348,7 +348,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
     BOOL fCallerFreeProvOrNCryptKey;
 
-    if (CryptAcquireCertificatePrivateKey(
+    if (!CryptAcquireCertificatePrivateKey(
                 pCertContext,
                 CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
                 NULL,
