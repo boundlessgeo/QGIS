@@ -309,9 +309,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             memcpy(der.data(), pCertContext->pbCertEncoded, size);
 
             QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
-            if ( certs.size() != 0 )
+            if ( (certs.size() != 0) && !certs.first().isNull() )
             {
-                localCertificate = QSslCertificate(certs.first());
+                localCertificate = certs.first();
                 result.first = localCertificate;
 
                 // check if cert has private key
@@ -410,8 +410,12 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
                                         // get private key
                                         QString password("password");
-                                        privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
+                                        privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toLatin1());
                                         result.second = privateKey;
+                                        if (privateKey.isNull())
+                                        {
+                                            QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
+                                        }
                                     }
                                     else
                                     {
