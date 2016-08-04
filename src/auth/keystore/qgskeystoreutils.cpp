@@ -152,7 +152,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     }
 
     // convert hash in binary hash useful to find certificate
-    /*LPCTSTR pszString = certHash.toLatin1().data();
+    LPCTSTR pszString = certHash.toLatin1().data();
     QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
     QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
@@ -169,7 +169,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
         QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
         return isAvailable;
     }
-    QgsDebugMsg( "Hex Converted length: %d\n", pcbBinary );
+    QgsDebugMsg( QString("Hex Converted length: %1").arg(pcbBinary) );
     BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
     CryptStringToBinary(
                 pszString,
@@ -184,9 +184,6 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
-    */
-    hashBlob.cbData = certHash.toLatin1().size();
-    hashBlob.pbData = certHash.toLatin1().data();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -199,7 +196,7 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
                             CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
-    //free(pbBinary);
+    free(pbBinary);
     if ( pCertContext )
     {
         // check if cert is RSA
@@ -239,8 +236,8 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
 QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName)
 {
-    QSslKey privateKey;
-    QSslCertificate localCertificate;
+    QSslKey privateKey = QSslKey();
+    QSslCertificate localCertificate = QSslCertificate();
     QPair<QSslCertificate, QSslKey> result;
     result.first = localCertificate;
     result.second = privateKey;
@@ -255,7 +252,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         return result;
 
     // convert hash in binary hash useful to find certificate
-    /*LPCTSTR pszString = certHash.toLatin1().data();
+    LPCTSTR pszString = certHash.toLatin1().data();
     QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
     QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
@@ -272,7 +269,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
         return result;
     }
-    QgsDebugMsg( "Hex Converted length: %d\n", pcbBinary );
+    QgsDebugMsg( QString("Hex Converted length: %1").arg(pcbBinary) );
     BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
     CryptStringToBinary(
                 pszString,
@@ -287,9 +284,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
-    */
-    hashBlob.cbData = certHash.toLatin1().size();
-    hashBlob.pbData = certHash.toLatin1().data();
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
@@ -399,7 +393,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                           pbData,
                                           &cbData))
                                 {
-                                    QString password("password");
                                     QByteArray der(cbData, 0);
                                     memcpy(der.data(), pbData, cbData);
 
@@ -407,19 +400,24 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                                     QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
                                     if ( certs.size() != 0 )
                                     {
-                                        localCertificate = certs.first();
+                                        localCertificate = QSslCertificate(certs.first());
+
+                                        // get private key
+                                        QString password("password");
+                                        privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
+
+                                        // set result
+                                        result.first = localCertificate;
+                                        result.second = privateKey;
                                     }
-
-                                    // get private key
-                                    privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toAscii());
-
-                                    // set result
-                                    result.first = localCertificate;
-                                    result.second = privateKey;
+                                    else
+                                    {
+                                        QgsDebugMsg( QString( "Cannot create cert from data for cert with hash %1" ).arg( certHash ) );
+                                    }
                                 }
                                 else
                                 {
-                                    QgsDebugMsg( QString( "Cannot export private key fo cert with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError() ) );
+                                    QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
                                 }
 
                                 // free allocated mem
@@ -427,24 +425,23 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             }
                             else
                             {
-                                QgsDebugMsg( QString( "Cannot export private key fo cert with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError() ) );
+                                QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
                             }
                         }
                         else
                         {
-                            QgsDebugMsg( QString( "Cannot retrieve handles for private key fo cert with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError() ) );
+                            QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
                         }
 
                     }
                     else
                     {
-                        // TODO porting of exportrsa in case of win CE
                         QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1").arg( certHash ) );
                     }
                 }
                 else
                 {
-                    QgsDebugMsg( QString( "Cannot retrieve handles for private key fo cert with hash %1: Wincrypt error %X" ).arg( certHash ) );
+                    QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %X" ).arg( certHash ) );
                 }
             }
             else
