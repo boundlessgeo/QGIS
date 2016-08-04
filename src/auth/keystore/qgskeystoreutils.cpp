@@ -242,6 +242,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     result.first = localCertificate;
     result.second = privateKey;
     CRYPT_HASH_BLOB hashBlob;
+    QByteArray der;
+    QByteArray derKey;
+    QList<QSslCertificate> certs;
 
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext = NULL;
@@ -315,10 +318,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // create QSslCertificate from pCertContext
     int size = pCertContext->cbCertEncoded;
-    QByteArray der(size, 0);
+    der = QByteArray(size, 0);
     memcpy(der.data(), pCertContext->pbCertEncoded, size);
 
-    QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
+    certs = QSslCertificate::fromData(der, QSsl::Der);
     if ( (certs.size() == 0) || certs.first().isNull() )
     {
         QgsDebugMsg( QString( "Cannot create QSsl cert from data for cert with hash %1" ).arg( certHash ) );
@@ -445,7 +448,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     }
 
     // get private key
-    QByteArray derKey(cbData, 0);
+    derKey = QByteArray(cbData, 0);
     memcpy(derKey.data(), pbData, cbData);
     free(pbData);
 
