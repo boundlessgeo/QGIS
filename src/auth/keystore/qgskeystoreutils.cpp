@@ -449,8 +449,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     memcpy(der.data(), pbData, cbData);
     free(pbData);
 
-    QString password("password");
-    privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toLatin1());
+    privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey);
     if (privateKey.isNull())
     {
         QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
