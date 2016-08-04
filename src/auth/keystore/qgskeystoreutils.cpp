@@ -296,176 +296,172 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             (const void *) &hashBlob,
                             NULL);
     free(pbBinary);
-    if ( pCertContext )
-    {
-        // check if cert is RSA
-        if (!strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
-                    szOID_RSA,
-                    strlen(szOID_RSA)))
-        {
-            // create QSslCertificate from pCertContext
-            int size = pCertContext->cbCertEncoded;
-            QByteArray der(size, 0);
-            memcpy(der.data(), pCertContext->pbCertEncoded, size);
-
-            QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
-            if ( (certs.size() != 0) && !certs.first().isNull() )
-            {
-                localCertificate = certs.first();
-                result.first = localCertificate;
-
-                // check if cert has private key
-                DWORD dwKeySpec;
-                DWORD dwKeySpecSize = sizeof(dwKeySpec);
-                if (CertGetCertificateContextProperty(
-                            pCertContext,
-                            CERT_KEY_SPEC_PROP_ID,
-                            &dwKeySpec,
-                            &dwKeySpecSize))
-                {
-                    // Retrieve a handle to the certificate's private key's CSP key
-                    // container
-                    HCRYPTPROV hProv;
-                    HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
-                    BOOL fCallerFreeProvOrNCryptKey;
-
-                    if (CryptAcquireCertificatePrivateKey(
-                                pCertContext,
-                                CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
-                                NULL,
-                                &hCryptProvOrNCryptKey,
-                                &dwKeySpec,
-                                &fCallerFreeProvOrNCryptKey))
-                    {
-                        // export keys
-                        hProv = hCryptProvOrNCryptKey;
-                        HCRYPTKEY hKey;
-                        BYTE* pbData = NULL;
-                        DWORD cbData = 0;
-
-                        if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
-                        {
-                            // enetering here means that key can be:
-                            // AT_KEYEXCHANGE: The key pair is a key exchange pair.
-                            // AT_SIGNATURE: The key pair is a signature pair.
-
-                            // Retrieve a handle to the certificate's private key
-                            if (CryptGetUserKey(
-                                        hProv,
-                                        dwKeySpec,
-                                        &hKey))
-                            {
-                                // Export the public/private key
-                                // first attend in case key is exportable
-                                // and to retieve the lenght, then to retrieve data
-                                bool hasExported = CryptExportKey(
-                                                        hKey,
-                                                        NULL,
-                                                        PRIVATEKEYBLOB,
-                                                        0,
-                                                        NULL,
-                                                        &cbData);
-                                if (!hasExported)
-                                {
-                                    //
-                                    // TODO: notify the user to have permission to export privatekey
-                                    //
-
-                                    // Mark the certificate's private key as exportable and archivable
-                                    *(ULONG_PTR*)(*(ULONG_PTR*)(*(ULONG_PTR*)
-                                        #if defined(_M_X64)
-                                            (hKey + 0x58) ^ 0xE35A172CD96214A0) + 0x0C)
-                                        #elif (defined(_M_IX86) || defined(_ARM_))
-                                            (hKey + 0x2C) ^ 0xE35A172C) + 0x08)
-                                        #else
-                                            #error Platform not supported
-                                        #endif
-                                            |= CRYPT_EXPORTABLE | CRYPT_ARCHIVABLE;
-
-                                    // Export the public/private key
-                                    // first to retieve the lenght, then to retrieve data
-                                    // second attend to get the key after the memory hack
-                                    hasExported = CryptExportKey(
-                                                      hKey,
-                                                      NULL,
-                                                      PRIVATEKEYBLOB,
-                                                      0,
-                                                      NULL,
-                                                      &cbData);
-                                }
-                                if (hasExported)
-                                {
-                                    pbData = (BYTE*)malloc(cbData);
-
-                                    if (CryptExportKey(
-                                              hKey,
-                                              NULL,
-                                              PRIVATEKEYBLOB,
-                                              0,
-                                              pbData,
-                                              &cbData))
-                                    {
-                                        QByteArray der(cbData, 0);
-                                        memcpy(der.data(), pbData, cbData);
-
-                                        // get private key
-                                        QString password("password");
-                                        privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toLatin1());
-                                        result.second = privateKey;
-                                        if (privateKey.isNull())
-                                        {
-                                            QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
-                                        }
-                                    }
-                                    else
-                                    {
-                                        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
-                                    }
-
-                                    // free allocated mem
-                                    free(pbData);
-                                }
-                                else
-                                {
-                                    QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
-                                }
-                            }
-                            else
-                            {
-                                QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
-                            }
-
-                        }
-                        else
-                        {
-                            QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1").arg( certHash ) );
-                        }
-                    }
-                    else
-                    {
-                        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %X" ).arg( certHash ) );
-                    }
-                }
-                else
-                {
-                    QgsDebugMsg( QString( "Cert with hash %1 has not private key" ).arg( certHash ) );
-                }
-            }
-            else
-            {
-                QgsDebugMsg( QString( "Cannot create QSsl cert from data for cert with hash %1" ).arg( certHash ) );
-            }
-        }
-        else
-        {
-            QgsDebugMsg( QString( "Cert with hash %1: is not RSA" ).arg( certHash ) );
-        }
-    }
-    else
+    if ( !pCertContext )
     {
         QgsDebugMsg( QString( "No cert found with hash %1" ).arg( certHash ) );
+        if (pbBinary)
+            free(pbBinary);
+        goto err;
     }
 
+    // check if cert is RSA
+    if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
+                szOID_RSA,
+                strlen(szOID_RSA)))
+    {
+        QgsDebugMsg( QString( "Cert with hash %1: is not RSA" ).arg( certHash ) );
+        goto err;
+    }
+
+    // create QSslCertificate from pCertContext
+    int size = pCertContext->cbCertEncoded;
+    QByteArray der(size, 0);
+    memcpy(der.data(), pCertContext->pbCertEncoded, size);
+
+    QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
+    if ( (certs.size() == 0) || certs.first().isNull() )
+    {
+        QgsDebugMsg( QString( "Cannot create QSsl cert from data for cert with hash %1" ).arg( certHash ) );
+    }
+    localCertificate = certs.first();
+    result.first = localCertificate;
+
+    // check if cert has private key
+    DWORD dwKeySpec;
+    DWORD dwKeySpecSize = sizeof(dwKeySpec);
+    if (!CertGetCertificateContextProperty(
+                pCertContext,
+                CERT_KEY_SPEC_PROP_ID,
+                &dwKeySpec,
+                &dwKeySpecSize))
+    {
+        QgsDebugMsg( QString( "Cert with hash %1 has not private key" ).arg( certHash ) );
+        goto err;
+    }
+
+    // Retrieve a handle to the certificate's private key's CSP key
+    // container
+    HCRYPTPROV hProv;
+    HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
+    BOOL fCallerFreeProvOrNCryptKey;
+
+    if (CryptAcquireCertificatePrivateKey(
+                pCertContext,
+                CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+                NULL,
+                &hCryptProvOrNCryptKey,
+                &dwKeySpec,
+                &fCallerFreeProvOrNCryptKey))
+    {
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %X" ).arg( certHash ) );
+        goto err;
+    }
+
+    // export keys
+    hProv = hCryptProvOrNCryptKey;
+    HCRYPTKEY hKey;
+    BYTE* pbData = NULL;
+    DWORD cbData = 0;
+
+    if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
+    {
+        QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1").arg( certHash ) );
+        goto err;
+    }
+
+    // entering here means that key can be:
+    // AT_KEYEXCHANGE: The key pair is a key exchange pair.
+    // AT_SIGNATURE: The key pair is a signature pair.
+
+    // Retrieve a handle to the certificate's private key
+    if (!CryptGetUserKey(
+                hProv,
+                dwKeySpec,
+                &hKey))
+    {
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        goto err;
+    }
+
+    // Export the public/private key
+    // first attend in case key is exportable
+    // and to retieve the lenght, then to retrieve data
+    bool hasExported = CryptExportKey(
+                            hKey,
+                            NULL,
+                            PRIVATEKEYBLOB,
+                            0,
+                            NULL,
+                            &cbData);
+    if (!hasExported)
+    {
+        //
+        // TODO: notify the user to have permission to export privatekey
+        //
+
+        // Mark the certificate's private key as exportable and archivable
+        *(ULONG_PTR*)(*(ULONG_PTR*)(*(ULONG_PTR*)
+            #if defined(_M_X64)
+                (hKey + 0x58) ^ 0xE35A172CD96214A0) + 0x0C)
+            #elif (defined(_M_IX86) || defined(_ARM_))
+                (hKey + 0x2C) ^ 0xE35A172C) + 0x08)
+            #else
+                #error Platform not supported
+            #endif
+                |= CRYPT_EXPORTABLE | CRYPT_ARCHIVABLE;
+
+        // Export the public/private key
+        // first to retieve the lenght, then to retrieve data
+        // second attend to get the key after the memory hack
+        hasExported = CryptExportKey(
+                          hKey,
+                          NULL,
+                          PRIVATEKEYBLOB,
+                          0,
+                          NULL,
+                          &cbData);
+    }
+    // if not exported after the second attend => some error accourred
+    if (!hasExported)
+    {
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        goto err;
+    }
+
+    // retrieve private key
+    pbData = (BYTE*)malloc(cbData);
+    if (!CryptExportKey(
+              hKey,
+              NULL,
+              PRIVATEKEYBLOB,
+              0,
+              pbData,
+              &cbData))
+    {
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        if (pbData)
+            free(pbData);
+        goto err;
+    }
+
+    // get private key
+    QByteArray der(cbData, 0);
+    memcpy(der.data(), pbData, cbData);
+    free(pbData);
+
+    QString password("password");
+    privateKey = QSslKey(der, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey, password.toLatin1());
+    if (privateKey.isNull())
+    {
+        QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
+        goto err;
+    }
+
+    result.second = privateKey;
+
+    return result;
+
+err:
     // close store
     if(pCertContext)
         CertFreeCertificateContext(pCertContext);
