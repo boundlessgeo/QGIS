@@ -345,6 +345,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // Retrieve a handle to the certificate's private key's CSP key
     // container
     HCRYPTPROV hProv;
+    HCRYPTPROV hProvTemp;
     HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
     BOOL fCallerFreeProvOrNCryptKey;
 
@@ -419,7 +420,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         hasExported = CryptExportKey(
                           hKey,
                           0,
-                          PRIVATEKEYBLOB,
+                          PLAINTEXTKEYBLOB,//PRIVATEKEYBLOB
                           0,
                           NULL,
                           &cbData);
@@ -436,7 +437,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     if (!CryptExportKey(
               hKey,
               0,
-              PRIVATEKEYBLOB,
+              PLAINTEXTKEYBLOB,//PRIVATEKEYBLOB
               0,
               pbData,
               &cbData))
@@ -446,18 +447,113 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             free(pbData);
         goto err;
     }
+    QString pippo;
+    for(int count=0; count < cbData;)
+    {
+        pippo += QString("%1").arg(pbData[count], 2, 16, '0');
+        count ++;
+    }
+    QgsDebugMsg( QString("Hex private key is: %1").arg(pippo) );
 
     // get private key
     derKey = QByteArray(cbData, 0);
     memcpy(derKey.data(), pbData, cbData);
     free(pbData);
 
-    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey);
+    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey);
     if (privateKey.isNull())
     {
         QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
         goto err;
     }
+
+
+
+
+
+
+
+
+/*
+    // Establish a temporary key container
+    CryptAcquireContext(
+        &hProvTemp,
+        NULL,
+        NULL,
+        PROV_RSA_FULL,
+        CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET);
+
+    // Import the private key into the temporary key container
+    HCRYPTKEY hKeyNew;
+    CryptImportKey(
+        hProvTemp,
+        pbData,
+        cbData,
+        0,
+        CRYPT_EXPORTABLE,
+        &hKeyNew);
+
+    // Create a temporary certificate store in memory
+    HCERTSTORE hMemoryStore = CertOpenStore(
+        CERT_STORE_PROV_MEMORY,
+        PKCS_7_ASN_ENCODING | X509_ASN_ENCODING,
+        0,
+        NULL);
+
+    // Add a link to the certificate to our tempoary certificate store
+    PCCERT_CONTEXT pCertContextNew = NULL;
+    CertAddCertificateLinkToStore(
+        hMemoryStore,
+        pCertContext,
+        CERT_STORE_ADD_NEW,
+        &pCertContextNew);
+
+    // Set the key container for the linked certificate to be our temporary
+    // key container
+    CertSetCertificateContextProperty(
+        pCertContext,
+        CERT_HCRYPTPROV_OR_NCRYPT_KEY_HANDLE_PROP_ID,
+        0,
+        (void*) hProvTemp );
+
+    // Export the tempoary certificate store to a PFX data blob in memory
+    CRYPT_DATA_BLOB cdb;
+    cdb.cbData = 0;
+    cdb.pbData = NULL;
+    PFXExportCertStoreEx(
+        hMemoryStore,
+        &cdb,
+        NULL,
+        NULL,
+        EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
+
+    cdb.pbData = (BYTE*)malloc(cdb.cbData);
+
+    PFXExportCertStoreEx(
+        hMemoryStore,
+        &cdb,
+        NULL,
+        NULL,
+        EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     result.second = privateKey;
 
