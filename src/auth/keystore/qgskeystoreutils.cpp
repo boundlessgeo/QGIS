@@ -25,6 +25,7 @@
 #include <QSsl>
 #endif
 #include <QPair>
+#include <QChar>
 
 #include "qgslogger.h"
 #include "qgskeystoreutils.h"
@@ -450,7 +451,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QString pippo;
     for(int count=0; count < cbData;)
     {
-        pippo += QString("%1").arg(pbData[count], 2, 16, '0');
+        pippo += QString("%1").arg(pbData[count], 2, 16, QChar('0'));
         count ++;
     }
     QgsDebugMsg( QString("Hex private key is: %1").arg(pippo) );
