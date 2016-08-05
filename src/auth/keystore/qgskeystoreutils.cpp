@@ -448,13 +448,16 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             free(pbData);
         goto err;
     }
-    QString pippo;
-    for(int count=0; count < cbData;)
+
     {
-        pippo += QString("%1").arg(pbData[count], 2, 16, QChar('0'));
-        count ++;
+        QString pippo;
+        for(int count=0; count < cbData;)
+        {
+            pippo += QString("%1").arg(pbData[count], 2, 16, QChar('0'));
+            count ++;
+        }
+        QgsDebugMsg( QString("Hex private key is: %1").arg(pippo) );
     }
-    QgsDebugMsg( QString("Hex private key is: %1").arg(pippo) );
 
     // get private key
     derKey = QByteArray(cbData, 0);
