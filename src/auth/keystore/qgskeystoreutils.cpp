@@ -421,7 +421,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         hasExported = CryptExportKey(
                           hKey,
                           0,
-                          PLAINTEXTKEYBLOB,//PRIVATEKEYBLOB
+                          PRIVATEKEYBLOB,
                           0,
                           NULL,
                           &cbData);
@@ -438,7 +438,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     if (!CryptExportKey(
               hKey,
               0,
-              PLAINTEXTKEYBLOB,//PRIVATEKEYBLOB
+              PRIVATEKEYBLOB,
               0,
               pbData,
               &cbData))
@@ -449,27 +449,19 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         goto err;
     }
 
-    {
-        QString pippo;
-        for(int count=0; count < cbData;)
-        {
-            pippo += QString("%1").arg(pbData[count], 2, 16, QChar('0'));
-            count ++;
-        }
-        QgsDebugMsg( QString("Hex private key is: %1").arg(pippo) );
-    }
-
     // get private key
+/*
     derKey = QByteArray(cbData, 0);
     memcpy(derKey.data(), pbData, cbData);
     free(pbData);
 
-    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey);
+    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey);
     if (privateKey.isNull())
     {
         QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
         goto err;
     }
+*/
 
 
 
@@ -478,7 +470,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
 
 
-/*
     // Establish a temporary key container
     CryptAcquireContext(
         &hProvTemp,
@@ -488,7 +479,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET);
 
     // Import the private key into the temporary key container
-    HCRYPTKEY hKeyNew;
+    HCRYPTKEY hKeyNew; // <-- destroy with CryptDestroyKey
     CryptImportKey(
         hProvTemp,
         pbData,
@@ -504,7 +495,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         0,
         NULL);
 
-    // Add a link to the certificate to our tempoary certificate store
+    // Add a link to the certificate to our temporary certificate store
     PCCERT_CONTEXT pCertContextNew = NULL;
     CertAddCertificateLinkToStore(
         hMemoryStore,
@@ -520,7 +511,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         0,
         (void*) hProvTemp );
 
-    // Export the tempoary certificate store to a PFX data blob in memory
+    // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
     cdb.cbData = 0;
     cdb.pbData = NULL;
@@ -540,9 +531,18 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
-*/
 
+    // get qsslkey from exported der
+    derKey = QByteArray(cdb.cbData, 0);
+    memcpy(derKey.data(), cdb.pbData, cdb.cbData);
+    free(pbData);
 
+    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey);
+    if (privateKey.isNull())
+    {
+        QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
+        goto err;
+    }
 
 
 
