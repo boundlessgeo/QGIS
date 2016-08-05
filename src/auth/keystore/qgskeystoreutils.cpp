@@ -492,6 +492,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     HCERTSTORE hMemoryStore = CertOpenStore(
         CERT_STORE_PROV_MEMORY,
         PKCS_7_ASN_ENCODING | X509_ASN_ENCODING,
+        NULL,
         0,
         NULL);
 
