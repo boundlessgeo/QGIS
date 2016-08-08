@@ -1,4 +1,4 @@
-/***************************************************************************
+
     qgskeystoreutils.cpp
     ---------------------
     begin                : June 13, 2016
@@ -26,12 +26,30 @@
 #endif
 #include <QPair>
 #include <QChar>
+#include <QTemporaryFile>
+#include <QtGlobal>
+#include <QFile>
 
 #include "qgslogger.h"
 #include "qgskeystoreutils.h"
+#include "qgsauthcertutils.h"
 
 #include <windows.h>
 #include <wincrypt.h>
+
+QString get_random_string() const
+{
+   const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+
+   QString randomString;
+   for(int i=0; i<24; ++i)
+   {
+       int index = std::rand() % possibleCharacters.length();
+       QChar nextChar = possibleCharacters.at(index);
+       randomString.append(nextChar);
+   }
+   return randomString;
+}
 
 bool have_systemstore(const QString &storeName)
 {
@@ -512,6 +530,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         0,
         (void*) hProvTemp );
 
+    // random pwd to export key
+    QString pwd( get_random_string() );
+
     // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
     cdb.cbData = 0;
@@ -519,7 +540,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     PFXExportCertStoreEx(
         hMemoryStore,
         &cdb,
-        NULL,
+        pwd.toStdString().c_str(),
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
@@ -528,38 +549,65 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     PFXExportCertStoreEx(
         hMemoryStore,
         &cdb,
-        NULL,
+        pwd.toStdString().c_str(),
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
 
-    // get qsslkey from exported der
-    derKey = QByteArray(cdb.cbData, 0);
-    memcpy(derKey.data(), cdb.pbData, cdb.cbData);
-    free(pbData);
-
-    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey);
-    if (privateKey.isNull())
+    // Prepare the PFX's file name
+    QTemporaryFile wszFileName();
+    if (!wszFileName.open())
     {
-        QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
+        QgsDebugMsg( QString( "Cannot create temporary cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        goto err;
+    }
+    wszFileName.close();
+
+    /*int nameSize = 32
+    char randomName = [nameSize-5]
+    char wszFileName[nameSize];
+    gen_random(randomName, nameSize-5);
+    swprintf(
+        wszFileName,
+        L"%1.pfx",g_ulFileNumber++);*/
+
+    // Write the PFX data blob to disk
+    HANDLE hFile = CreateFile(
+        wszFileName.fileName().toStdString().c_str(),
+        GENERIC_WRITE,
+        0,
+        NULL,
+        CREATE_ALWAYS,
+        0,
+        NULL);
+
+    DWORD dwBytesWritten;
+    WriteFile(
+        hFile,
+        cdb.pbData,
+        cdb.cbData,
+        &dwBytesWritten,
+        NULL);
+
+    CloseHandle(hFile);
+
+    // deallocate key memory
+    free(cdb.pbData);
+
+    // reread the cert from file
+    privateKey = QgsAuthCertUtils::keyFromFile(wszFileName.fileName(), pwd);
+
+    // before to check if import was ok, remove stored certs
+    QFile::remove(wszFileName.fileName());
+
+    // check imported cert
+    if ( privateKey.isNull() || !privateKey.isValid() )
+    {
+        QgsDebugMsg( QString( "Cannot re-import private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
         goto err;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // set the definitive result
     result.second = privateKey;
 
     return result;
