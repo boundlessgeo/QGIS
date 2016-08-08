@@ -1,4 +1,4 @@
--/***************************************************************************
+/***************************************************************************
     qgskeystoreutils.cpp
     ---------------------
     begin                : June 13, 2016
@@ -37,7 +37,7 @@
 #include <windows.h>
 #include <wincrypt.h>
 
-QString get_random_string() const
+QString get_random_string()
 {
    const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 
