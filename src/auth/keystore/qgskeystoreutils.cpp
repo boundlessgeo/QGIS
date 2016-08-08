@@ -1,4 +1,4 @@
-
+-/***************************************************************************
     qgskeystoreutils.cpp
     ---------------------
     begin                : June 13, 2016
@@ -556,7 +556,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // Prepare the PFX's file name
     QTemporaryFile wszFileName();
-    if (!wszFileName.open())
+    if ( !wszFileName.open() )
     {
         QgsDebugMsg( QString( "Cannot create temporary cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
         goto err;
