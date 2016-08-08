@@ -540,7 +540,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     PFXExportCertStoreEx(
         hMemoryStore,
         &cdb,
-        pwd.toStdString().c_str(),
+        pwd.toStdWString().c_str(),
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
@@ -549,13 +549,13 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     PFXExportCertStoreEx(
         hMemoryStore,
         &cdb,
-        pwd.toStdString().c_str(),
+        pwd.toStdWString().c_str(),
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
 
     // Prepare the PFX's file name
-    QTemporaryFile wszFileName();
+    QTemporaryFile wszFileName;
     if ( !wszFileName.open() )
     {
         QgsDebugMsg( QString( "Cannot create temporary cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
@@ -573,7 +573,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // Write the PFX data blob to disk
     HANDLE hFile = CreateFile(
-        wszFileName.fileName().toStdString().c_str(),
+        wszFileName.fileName().toStdWString().c_str(),
         GENERIC_WRITE,
         0,
         NULL,
@@ -601,7 +601,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QFile::remove(wszFileName.fileName());
 
     // check imported cert
-    if ( privateKey.isNull() || !privateKey.isValid() )
+    if ( privateKey.isNull() )
     {
         QgsDebugMsg( QString( "Cannot re-import private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
         goto err;
