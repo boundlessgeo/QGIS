@@ -37,12 +37,12 @@
 #include <windows.h>
 #include <wincrypt.h>
 
-QString get_random_string()
+QString get_random_string(const int size)
 {
    const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 
    QString randomString;
-   for(int i=0; i<24; ++i)
+   for(int i=0; i<size; ++i)
    {
        int index = std::rand() % possibleCharacters.length();
        QChar nextChar = possibleCharacters.at(index);
@@ -535,7 +535,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // random pwd to export key...
     // and convert to wstring to API issue
-    pwd = get_random_string();
+    pwd = get_random_string(24);
     wsTemp = std::wstring(pwd.toStdString().begin(), pwd.toStdString().end());
 
     // Export the temporary certificate store to a PFX data blob in memory
@@ -566,7 +566,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     wszFileName = QString("%1%2%3")
                     .arg( QDir::tempPath() )
                     .arg( QDir::separator() )
-                    .arg( get_random_string() );
+                    .arg( get_random_string(8) );
     QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName ) );
 
     /*int nameSize = 32
