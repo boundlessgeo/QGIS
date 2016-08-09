@@ -563,10 +563,11 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
 
     // Prepare the PFX's file name
-    wszFileName = QString("%1%2%3")
-                    .arg( QDir::tempPath() )
-                    .arg( QDir::separator() )
-                    .arg( get_random_string(8) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%1").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%2").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%1%2%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
+    wszFileName = QString("%1%2%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) );
     QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName ) );
 
     /*int nameSize = 32
