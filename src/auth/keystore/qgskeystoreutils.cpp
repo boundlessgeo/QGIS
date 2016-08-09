@@ -542,13 +542,16 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     CRYPT_DATA_BLOB cdb;
     cdb.cbData = 0;
     cdb.pbData = NULL;
-    PFXExportCertStoreEx(
-        hMemoryStore,
-        &cdb,
-        wsTemp.c_str(),
-        NULL,
-        EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
-
+    if ( !PFXExportCertStoreEx(
+            hMemoryStore,
+            &cdb,
+            wsTemp.c_str(),
+            NULL,
+            EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY) )
+    {
+        QgsDebugMsg( QString( "Cannot store cert in temporary store for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        goto err;
+    }
     cdb.pbData = (BYTE*)malloc(cdb.cbData);
 
     PFXExportCertStoreEx(
@@ -566,6 +569,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         goto err;
     }
     wszFileName.close();
+    QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName.fileName() ) );
 
     /*int nameSize = 32
     char randomName = [nameSize-5]
@@ -586,14 +590,23 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         CREATE_ALWAYS,
         0,
         NULL);
+    if ( hFile == INVALID_HANDLE_VALUE)
+    {
+        QgsDebugMsg( QString( "Cannot create file handle for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        goto err;
+    }
 
     DWORD dwBytesWritten;
-    WriteFile(
-        hFile,
-        cdb.pbData,
-        cdb.cbData,
-        &dwBytesWritten,
-        NULL);
+    if ( !WriteFile(
+            hFile,
+            cdb.pbData,
+            cdb.cbData,
+            &dwBytesWritten,
+            NULL) )
+    {
+        QgsDebugMsg( QString( "Cannot write temp cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        goto err;
+    }
 
     CloseHandle(hFile);
 
