@@ -266,6 +266,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QList<QSslCertificate> certs;
     QTemporaryFile wszFileName;
     QString pwd;
+    std::wstring wsTemp;
 
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext = NULL;
@@ -532,8 +533,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         0,
         (void*) hProvTemp );
 
-    // random pwd to export key
+    // random pwd to export key...
+    // and convert to wstring to API issue
     pwd = get_random_string();
+    wsTemp = std::wstring(pwd.toStdString().begin(), pwd.toStdString().end());
 
     // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
@@ -542,7 +545,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     PFXExportCertStoreEx(
         hMemoryStore,
         &cdb,
-        pwd.toStdWString().c_str(),
+        wsTemp.c_str(),
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
@@ -551,7 +554,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     PFXExportCertStoreEx(
         hMemoryStore,
         &cdb,
-        pwd.toStdWString().c_str(),
+        wsTemp.c_str(),
         NULL,
         EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
 
