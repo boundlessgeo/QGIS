@@ -26,7 +26,7 @@
 #endif
 #include <QPair>
 #include <QChar>
-#include <QTemporaryFile>
+#include <QDir>
 #include <QtGlobal>
 #include <QFile>
 
@@ -264,7 +264,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QByteArray der;
     QByteArray derKey;
     QList<QSslCertificate> certs;
-    QTemporaryFile wszFileName;
+    QString wszFileName;
     QString pwd;
     std::wstring wsTemp;
 
@@ -405,7 +405,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 dwKeySpec,
                 &hKey))
     {
-        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto err;
     }
 
@@ -450,7 +450,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // if not exported after the second attend => some error accourred
     if (!hasExported)
     {
-        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto err;
     }
 
@@ -464,7 +464,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
               pbData,
               &cbData))
     {
-        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         if (pbData)
             free(pbData);
         goto err;
@@ -549,7 +549,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             NULL,
             EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY) )
     {
-        QgsDebugMsg( QString( "Cannot store cert in temporary store for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot store cert in temporary store for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto err;
     }
     cdb.pbData = (BYTE*)malloc(cdb.cbData);
@@ -563,13 +563,11 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
 
     // Prepare the PFX's file name
-    if ( !wszFileName.open() )
-    {
-        QgsDebugMsg( QString( "Cannot create temporary cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
-        goto err;
-    }
-    wszFileName.close();
-    QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName.fileName() ) );
+    wszFileName = QString("%1%2%3")
+                    .arg( QDir::tempPath() )
+                    .arg( QDir::separator() )
+                    .arg( get_random_string() );
+    QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName ) );
 
     /*int nameSize = 32
     char randomName = [nameSize-5]
@@ -583,7 +581,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // because of nature of the filename, I can safly use
     // CreateFileA (Ascii) insteand the generic alias CreateFile
     HANDLE hFile = CreateFileA(
-        wszFileName.fileName().toStdString().c_str(),
+        wszFileName.toStdString().c_str(),
         GENERIC_WRITE,
         0,
         NULL,
@@ -592,7 +590,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         NULL);
     if ( hFile == INVALID_HANDLE_VALUE)
     {
-        QgsDebugMsg( QString( "Cannot create file handle for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot create file handle for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto err;
     }
 
@@ -604,7 +602,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             &dwBytesWritten,
             NULL) )
     {
-        QgsDebugMsg( QString( "Cannot write temp cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot write temp cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto err;
     }
 
@@ -614,15 +612,15 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     free(cdb.pbData);
 
     // reread the cert from file
-    privateKey = QgsAuthCertUtils::keyFromFile(wszFileName.fileName(), pwd);
+    privateKey = QgsAuthCertUtils::keyFromFile(wszFileName, pwd);
 
     // before to check if import was ok, remove stored certs
-    QFile::remove(wszFileName.fileName());
+    QFile::remove(wszFileName);
 
     // check imported cert
     if ( privateKey.isNull() )
     {
-        QgsDebugMsg( QString( "Cannot re-import private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
+        QgsDebugMsg( QString( "Cannot re-import private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto err;
     }
 
