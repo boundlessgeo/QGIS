@@ -265,6 +265,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QByteArray derKey;
     QList<QSslCertificate> certs;
     QTemporaryFile wszFileName;
+    QString pwd;
 
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext = NULL;
@@ -532,7 +533,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         (void*) hProvTemp );
 
     // random pwd to export key
-    QString pwd( get_random_string() );
+    pwd = get_random_string();
 
     // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
