@@ -572,8 +572,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         L"%1.pfx",g_ulFileNumber++);*/
 
     // Write the PFX data blob to disk
-    HANDLE hFile = CreateFile(
-        wszFileName.fileName().toStdWString().c_str(),
+    // because of nature of the filename, I can safly use
+    // CreateFileA (Ascii) insteand the generic alias CreateFile
+    HANDLE hFile = CreateFileA(
+        wszFileName.fileName().toStdString().c_str(),
         GENERIC_WRITE,
         0,
         NULL,
