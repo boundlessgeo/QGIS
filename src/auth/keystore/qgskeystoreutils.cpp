@@ -264,6 +264,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QByteArray der;
     QByteArray derKey;
     QList<QSslCertificate> certs;
+    QTemporaryFile wszFileName;
 
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext = NULL;
@@ -555,7 +556,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
 
     // Prepare the PFX's file name
-    QTemporaryFile wszFileName;
     if ( !wszFileName.open() )
     {
         QgsDebugMsg( QString( "Cannot create temporary cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError() ) );
