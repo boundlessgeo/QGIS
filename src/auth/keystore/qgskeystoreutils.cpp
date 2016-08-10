@@ -539,7 +539,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // and convert to wstring to API issue
     QgsDebugMsg( QString( "prima " ) );
 
-    pwd = get_random_string(24);
+    pwd = QString("password"); // get_random_string(24);
     sTemp = pwd.toStdString();
     wsTemp = std::wstring(sTemp.begin(), sTemp.end());
 
@@ -574,7 +574,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QgsDebugMsg( QString("1 Temporary cert temp is %1").arg( QDir::tempPath() ) );
     QgsDebugMsg( QString("1 Temporary cert sep is %1").arg( QDir::separator() ) );
     QgsDebugMsg( QString("1 Temporary cert only filename is %1").arg( temp ) );
-    wszFileName = QString("%1%2%3.pem").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp );
+    wszFileName = QString("%1%2%3.pfx").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp );
     QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName ) );
 
     /*int nameSize = 32
