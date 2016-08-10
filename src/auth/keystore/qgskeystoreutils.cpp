@@ -172,8 +172,6 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
-    QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
-    QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
     DWORD pcbBinary;
     if ( !CryptStringToBinary(
@@ -185,10 +183,9 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
             NULL,
             NULL))
     {
-        QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
+        QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         return isAvailable;
     }
-    QgsDebugMsg( QString("Hex Converted length: %1").arg(pcbBinary) );
     BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
     CryptStringToBinary(
                 pszString,
@@ -274,21 +271,29 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QCA::KeyBundle bundle;
 
     // wincrypt section
-    HCERTSTORE hSystemStore;
+    HCERTSTORE hSystemStore = NULL;
     PCCERT_CONTEXT pCertContext = NULL;
+    BYTE *pbBinary = NULL;
     CRYPT_HASH_BLOB hashBlob;
+    CRYPT_DATA_BLOB cdb;
+    cdb.cbData = 0;
+    cdb.pbData = NULL;
 
     // open store
-    hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
+    hSystemStore = CertOpenSystemStoreA(
+                        0,
+                        storeName.toStdString().c_str());
     if(!hSystemStore)
-        return result;
+    {
+        QgsDebugMsg( QString( "Cannot open System Store %1: Wincrypt error %X" ).arg( storeName ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
-    QgsDebugMsg( QString("Hash is: -%1-\n").arg( certHash.toLatin1().data() ));
-    QgsDebugMsg( QString("Length is: -%1-\n").arg( certHash.toLatin1().size() ));
     DWORD pcchString = certHash.toLatin1().size();
     DWORD pcbBinary;
+
     if ( !CryptStringToBinary(
             pszString,
             pcchString,
@@ -298,11 +303,11 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             NULL,
             NULL))
     {
-        QgsDebugMsg( QString( "Cannot convert hash to binary" ) );
-        return result;
+        QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
-    QgsDebugMsg( QString("Hex Converted length: %1").arg(pcbBinary) );
-    BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
+    pbBinary = (BYTE*) malloc(pcbBinary);
+
     CryptStringToBinary(
                 pszString,
                 pcchString,
@@ -311,7 +316,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 &pcbBinary,
                 NULL,
                 NULL);
-
 
     // fill the CRYPT_HASH_BLOB struct
     hashBlob.cbData = pcbBinary;
@@ -327,13 +331,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
-    free(pbBinary);
     if ( !pCertContext )
     {
-        QgsDebugMsg( QString( "No cert found with hash %1" ).arg( certHash ) );
-        if (pbBinary)
-            free(pbBinary);
-        goto err;
+        QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
     // check if cert is RSA
@@ -342,18 +343,20 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 strlen(szOID_RSA)))
     {
         QgsDebugMsg( QString( "Cert with hash %1: is not RSA" ).arg( certHash ) );
-        goto err;
+        goto terminate;
     }
 
     // create QSslCertificate from pCertContext
-    int size = pCertContext->cbCertEncoded;
-    der = QByteArray(size, 0);
-    memcpy(der.data(), pCertContext->pbCertEncoded, size);
+    der = QByteArray(pCertContext->cbCertEncoded, 0);
+    memcpy(der.data(),
+           pCertContext->pbCertEncoded,
+           pCertContext->cbCertEncoded);
 
     certs = QSslCertificate::fromData(der, QSsl::Der);
     if ( (certs.size() == 0) || certs.first().isNull() )
     {
-        QgsDebugMsg( QString( "Cannot create QSsl cert from data for cert with hash %1" ).arg( certHash ) );
+        QgsDebugMsg( QString( "Cannot create QSslCertificate cert from data for cert with hash %1" ).arg( certHash ) );
+        goto terminate;
     }
     localCertificate = certs.first();
     result.first = localCertificate;
@@ -361,14 +364,15 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // check if cert has private key
     DWORD dwKeySpec;
     DWORD dwKeySpecSize = sizeof(dwKeySpec);
+
     if (!CertGetCertificateContextProperty(
                 pCertContext,
                 CERT_KEY_SPEC_PROP_ID,
                 &dwKeySpec,
                 &dwKeySpecSize))
     {
-        QgsDebugMsg( QString( "Cert with hash %1 has not private key" ).arg( certHash ) );
-        goto err;
+        QgsDebugMsg( QString( "Cert with hash %1 has not private key: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
     // Retrieve a handle to the certificate's private key's CSP key
@@ -386,8 +390,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 &dwKeySpec,
                 &fCallerFreeProvOrNCryptKey))
     {
-        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %X" ).arg( certHash ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
     // export keys
@@ -399,7 +403,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
     {
         QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1").arg( certHash ) );
-        goto err;
+        goto terminate;
     }
 
     // entering here means that key can be:
@@ -412,8 +416,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                 dwKeySpec,
                 &hKey))
     {
-        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
     // Export the public/private key
@@ -457,12 +461,13 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // if not exported after the second attend => some error accourred
     if (!hasExported)
     {
-        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
     // retrieve private key
     pbData = (BYTE*)malloc(cbData);
+
     if (!CryptExportKey(
               hKey,
               0,
@@ -471,29 +476,40 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
               pbData,
               &cbData))
     {
-        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        if (pbData)
-            free(pbData);
-        goto err;
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
+    /***********************************************************
+    * now having the key, start the process to export in a pfx
+    * file container
+    ************************************************************/
+
     // Establish a temporary key container
-    CryptAcquireContext(
-        &hProvTemp,
-        NULL,
-        NULL,
-        PROV_RSA_FULL,
-        CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET);
+    if ( !CryptAcquireContext(
+                &hProvTemp,
+                NULL,
+                NULL,
+                PROV_RSA_FULL,
+                CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET) )
+    {
+        QgsDebugMsg( QString( "Cannot create temporary KeyStore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // Import the private key into the temporary key container
-    HCRYPTKEY hKeyNew; // <-- destroy with CryptDestroyKey
-    CryptImportKey(
-        hProvTemp,
-        pbData,
-        cbData,
-        0,
-        CRYPT_EXPORTABLE,
-        &hKeyNew);
+    HCRYPTKEY hKeyNew = NULL; // <-- destroy with CryptDestroyKey
+    if ( !CryptImportKey(
+                hProvTemp,
+                pbData,
+                cbData,
+                0,
+                CRYPT_EXPORTABLE,
+                &hKeyNew) )
+    {
+        QgsDebugMsg( QString( "Cannot import key in temporary KeyStore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // Create a temporary certificate store in memory
     HCERTSTORE hMemoryStore = CertOpenStore(
@@ -502,35 +518,43 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         NULL,
         0,
         NULL);
+    if ( !hMemoryStore )
+    {
+        QgsDebugMsg( QString( "Cannot open memory store for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // Add a link to the certificate to our temporary certificate store
     PCCERT_CONTEXT pCertContextNew = NULL;
-    CertAddCertificateLinkToStore(
-        hMemoryStore,
-        pCertContext,
-        CERT_STORE_ADD_NEW,
-        &pCertContextNew);
+    if ( !CertAddCertificateLinkToStore(
+                hMemoryStore,
+                pCertContext,
+                CERT_STORE_ADD_NEW,
+                &pCertContextNew) )
+    {
+        QgsDebugMsg( QString( "Cannot link cert context for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // Set the key container for the linked certificate to be our temporary
     // key container
-    CertSetCertificateContextProperty(
-        pCertContext,
-        CERT_HCRYPTPROV_OR_NCRYPT_KEY_HANDLE_PROP_ID,
-        0,
-        (void*) hProvTemp );
+    if ( !CertSetCertificateContextProperty(
+                pCertContext,
+                CERT_HCRYPTPROV_OR_NCRYPT_KEY_HANDLE_PROP_ID,
+                0,
+                (void*) hProvTemp ) )
+    {
+        QgsDebugMsg( QString( "Cannot set property for temporary cert related to cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // random pwd to export key...
-    // and convert to wstring to API issue
+    // and convert to wstring to API compatibility
     pwd = get_random_string(24);
     sTemp = pwd.toStdString();
     wsTemp = std::wstring(sTemp.begin(), sTemp.end());
 
-    QgsDebugMsg( QString( "dopo %1" ).arg(pwd) );
-
     // Export the temporary certificate store to a PFX data blob in memory
-    CRYPT_DATA_BLOB cdb;
-    cdb.cbData = 0;
-    cdb.pbData = NULL;
     if ( !PFXExportCertStoreEx(
             hMemoryStore,
             &cdb,
@@ -538,18 +562,21 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             NULL,
             EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY) )
     {
-        QgsDebugMsg( QString( "Cannot store cert in temporary store for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot get cert size for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
     cdb.pbData = (BYTE*)malloc(cdb.cbData);
 
-    PFXExportCertStoreEx(
-        hMemoryStore,
-        &cdb,
-        wsTemp.c_str(),
-        NULL,
-        EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY);
-
+    if ( !PFXExportCertStoreEx(
+                hMemoryStore,
+                &cdb,
+                wsTemp.c_str(),
+                NULL,
+                EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY) )
+    {
+        QgsDebugMsg( QString( "Cannot store cert in temporary store for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
 
     // Prepare the PFX's file name
     wszFileName = QString("%1%2%3")
@@ -560,7 +587,9 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // Write the PFX data blob to disk
     // because of nature of the filename, I can safly use
     // CreateFileA (Ascii) insteand the generic alias CreateFile
-    HANDLE hFile = CreateFileA(
+    HANDLE hFile = NULL;
+
+    hFile = CreateFileA(
         wszFileName.toStdString().c_str(),
         GENERIC_WRITE,
         0,
@@ -570,8 +599,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         NULL);
     if ( hFile == INVALID_HANDLE_VALUE)
     {
-        QgsDebugMsg( QString( "Cannot create file handle for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot create file handle for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
     DWORD dwBytesWritten;
@@ -582,47 +611,49 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
             &dwBytesWritten,
             NULL) )
     {
-        QgsDebugMsg( QString( "Cannot write temp cert for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot write temp cert for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
+    // close file to avoid locks
     CloseHandle(hFile);
+    hFile = NULL;
 
-    // deallocate key memory
-    free(cdb.pbData);
-
-    // reread generated cert file with QCA lib...
+    // re-read generated cert file with QCA lib...
     // I didn't find a way to directly ready using QSsl libd
     if ( !QCA::isSupported( "pkcs12" ) )
     {
       QgsDebugMsg( QString( "QCA library has no PKCS#12 support" ) );
-      goto err;
+      goto terminate;
     }
 
     // load the bundle
     passarray = QCA::SecureArray( pwd.toUtf8() );
-    bundle = QCA::KeyBundle( QCA::KeyBundle::fromFile( wszFileName, passarray, &res, QString( "qca-ossl" ) ) );
-
+    bundle = QCA::KeyBundle( QCA::KeyBundle::fromFile(
+                                 wszFileName,
+                                 passarray,
+                                 &res,
+                                 QString( "qca-ossl" ) ) );
     if ( res == QCA::ErrorFile )
     {
-      QgsDebugMsg( QString( "Failed to read bundle file" ) );
-      goto err;
+      QgsDebugMsg( QString( "Failed to read bundle file for cert with hash %1" ).arg(certHash) );
+      goto terminate;
     }
     else if ( res == QCA::ErrorPassphrase )
     {
-      QgsDebugMsg( QString( "Incorrect bundle password" ) );
-      goto err;
+      QgsDebugMsg( QString( "Incorrect bundle password for cert with hash %1" ).arg(certHash) );
+      goto terminate;
     }
     else if ( res == QCA::ErrorDecode )
     {
-      QgsDebugMsg( QString( "Failed to decode (try entering another password)" ) );
-      goto err;
+      QgsDebugMsg( QString( "Failed to decode (try entering another password) for cert with hash %1" ).arg(certHash) );
+      goto terminate;
     }
 
     if ( bundle.isNull() )
     {
-      QgsDebugMsg( QString( "Bundle empty or can not be loaded" ) );
-      goto err;
+      QgsDebugMsg( QString( "Bundle empty or can not be loaded for cert with hash %1" ).arg(certHash) );
+      goto terminate;
     }
 
     // try to get QSslKey from QCA bundle
@@ -635,20 +666,32 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // check imported cert
     if ( privateKey.isNull() )
     {
-        QgsDebugMsg( QString( "Cannot re-import private key for cert with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto err;
+        QgsDebugMsg( QString( "Cannot re-import private key for cert with hash %1" ).arg( certHash ) );
+        goto terminate;
     }
 
     // set the definitive result
     result.second = privateKey;
 
-    return result;
-
-err:
+terminate:
     // close store
+    if ( hFile && (hFile != INVALID_HANDLE_VALUE) )
+        CloseHandle(hFile);
+    if (pbBinary)
+        free(pbBinary);
+    if (pbData)
+        free(pbData);
+    if (hKeyNew)
+        if ( !CryptDestroyKey(hKeyNew) )
+        {
+            QgsDebugMsg( QString( "Cannot destroy temporary key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        }
+    if (cdb.pbData)
+        free(cdb.pbData);
     if(pCertContext)
         CertFreeCertificateContext(pCertContext);
-    CertCloseStore(hSystemStore, 0);
+    if (hSystemStore)
+        CertCloseStore(hSystemStore, 0);
 
     return result;
 }
