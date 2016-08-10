@@ -262,10 +262,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     result.first = localCertificate;
     result.second = privateKey;
     QByteArray der;
-    QByteArray derKey;
     QList<QSslCertificate> certs;
     QString wszFileName;
-    QString temp;
     QString pwd;
     std::string sTemp;
     std::wstring wsTemp;
@@ -479,27 +477,6 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         goto err;
     }
 
-    // get private key
-/*
-    derKey = QByteArray(cbData, 0);
-    memcpy(derKey.data(), pbData, cbData);
-    free(pbData);
-
-    privateKey = QSslKey(derKey, QSsl::Rsa, QSsl::Der, QSsl::PrivateKey);
-    if (privateKey.isNull())
-    {
-        QgsDebugMsg( QString( "Cannot create QSslKey from data for cert with hash %1" ).arg( certHash ) );
-        goto err;
-    }
-*/
-
-
-
-
-
-
-
-
     // Establish a temporary key container
     CryptAcquireContext(
         &hProvTemp,
@@ -575,20 +552,10 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
 
     // Prepare the PFX's file name
-    temp = get_random_string(8);
-    QgsDebugMsg( QString("1 Temporary cert temp is %1").arg( QDir::tempPath() ) );
-    QgsDebugMsg( QString("1 Temporary cert sep is %1").arg( QDir::separator() ) );
-    QgsDebugMsg( QString("1 Temporary cert only filename is %1").arg( temp ) );
-    wszFileName = QString("%1%2%3.pfx").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp );
-    QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName ) );
-
-    /*int nameSize = 32
-    char randomName = [nameSize-5]
-    char wszFileName[nameSize];
-    gen_random(randomName, nameSize-5);
-    swprintf(
-        wszFileName,
-        L"%1.pfx",g_ulFileNumber++);*/
+    wszFileName = QString("%1%2%3")
+            .arg( QDir::tempPath() )
+            .arg( QDir::separator() )
+            .arg( get_random_string(8) );
 
     // Write the PFX data blob to disk
     // because of nature of the filename, I can safly use
@@ -624,9 +591,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // deallocate key memory
     free(cdb.pbData);
 
-
-
-
+    // reread generated cert file with QCA lib...
+    // I didn't find a way to directly ready using QSsl libd
     if ( !QCA::isSupported( "pkcs12" ) )
     {
       QgsDebugMsg( QString( "QCA library has no PKCS#12 support" ) );
@@ -663,13 +629,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     privateKey = QSslKey( bundle.privateKey().toRSA().toPEM().toAscii(),
                           QSsl::Rsa );
 
-
-
-
-
-
     // before to check if import was ok, remove stored certs
-    //QFile::remove(wszFileName);
+    QFile::remove(wszFileName);
 
     // check imported cert
     if ( privateKey.isNull() )
