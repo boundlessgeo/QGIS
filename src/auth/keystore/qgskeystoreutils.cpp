@@ -265,6 +265,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QByteArray derKey;
     QList<QSslCertificate> certs;
     QString wszFileName;
+    QString temp;
     QString pwd;
     std::wstring wsTemp;
 
@@ -535,8 +536,12 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // random pwd to export key...
     // and convert to wstring to API issue
+    QgsDebugMsg( QString( "prima " ) );
+
     pwd = get_random_string(24);
     wsTemp = std::wstring(pwd.toStdString().begin(), pwd.toStdString().end());
+
+    QgsDebugMsg( QString( "dopo " ) );
 
     // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
@@ -563,11 +568,12 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
 
     // Prepare the PFX's file name
-    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%1").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
-    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%2").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
-    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
-    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%1%2%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) ) ) );
-    wszFileName = QString("%1%2%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( get_random_string(8) );
+    temp = get_random_string(8);
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%1").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp ) ) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%2").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp ) ) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp ) ) );
+    QgsDebugMsg( QString("1 Temporary cert filename is %1").arg( QString("%1%2%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp ) ) );
+    wszFileName = QString("%1%2%3").arg( QDir::tempPath() ).arg( QDir::separator() ).arg( temp );
     QgsDebugMsg( QString("Temporary cert filename is %1").arg( wszFileName ) );
 
     /*int nameSize = 32
