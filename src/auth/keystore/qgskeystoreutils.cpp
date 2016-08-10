@@ -255,12 +255,12 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
 
 QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName)
 {
+    // QSsl section
     QSslKey privateKey = QSslKey();
     QSslCertificate localCertificate = QSslCertificate();
     QPair<QSslCertificate, QSslKey> result;
     result.first = localCertificate;
     result.second = privateKey;
-    CRYPT_HASH_BLOB hashBlob;
     QByteArray der;
     QByteArray derKey;
     QList<QSslCertificate> certs;
@@ -270,8 +270,15 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     std::string sTemp;
     std::wstring wsTemp;
 
+    // qca section
+    QCA::SecureArray passarray;
+    QCA::ConvertResult res;
+    QCA::KeyBundle bundle;
+
+    // wincrypt section
     HCERTSTORE hSystemStore;
     PCCERT_CONTEXT pCertContext = NULL;
+    CRYPT_HASH_BLOB hashBlob;
 
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
@@ -537,13 +544,11 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     // random pwd to export key...
     // and convert to wstring to API issue
-    QgsDebugMsg( QString( "prima " ) );
-
-    pwd = QString("password"); // get_random_string(24);
+    pwd = get_random_string(24);
     sTemp = pwd.toStdString();
     wsTemp = std::wstring(sTemp.begin(), sTemp.end());
 
-    QgsDebugMsg( QString( "dopo " ) );
+    QgsDebugMsg( QString( "dopo %1" ).arg(pwd)) );
 
     // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
@@ -619,8 +624,49 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     // deallocate key memory
     free(cdb.pbData);
 
-    // reread the cert from file
-    privateKey = QgsAuthCertUtils::keyFromFile(wszFileName, pwd);
+
+
+
+    if ( !QCA::isSupported( "pkcs12" ) )
+    {
+      QgsDebugMsg( tr( "QCA library has no PKCS#12 support" ) );
+      goto err;
+    }
+
+    // load the bundle
+    passarray = QCA::SecureArray( pwd );
+    bundle = QCA::KeyBundle( QCA::KeyBundle::fromFile( wszFileName, passarray, &res, QString( "qca-ossl" ) ) );
+
+    if ( res == QCA::ErrorFile )
+    {
+      QgsDebugMsg( tr( "Failed to read bundle file" ) );
+      goto err;
+    }
+    else if ( res == QCA::ErrorPassphrase )
+    {
+      QgsDebugMsg( tr( "Incorrect bundle password" ) );
+      goto err;
+    }
+    else if ( res == QCA::ErrorDecode )
+    {
+      QgsDebugMsg( tr( "Failed to decode (try entering another password)" ) );
+      goto err;
+    }
+
+    if ( bundle.isNull() )
+    {
+      QgsDebugMsg( tr( "Bundle empty or can not be loaded" ) );
+      goto err;
+    }
+
+    // try to get QSslKey from QCA bundle
+    privateKey = QSslKey( bundle.privateKey().toRSA().toPEM().toAscii(),
+                          QSsl::Rsa );
+
+
+
+
+
 
     // before to check if import was ok, remove stored certs
     //QFile::remove(wszFileName);
