@@ -548,7 +548,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     sTemp = pwd.toStdString();
     wsTemp = std::wstring(sTemp.begin(), sTemp.end());
 
-    QgsDebugMsg( QString( "dopo %1" ).arg(pwd)) );
+    QgsDebugMsg( QString( "dopo %1" ).arg(pwd) );
 
     // Export the temporary certificate store to a PFX data blob in memory
     CRYPT_DATA_BLOB cdb;
@@ -634,7 +634,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     }
 
     // load the bundle
-    passarray = QCA::SecureArray( pwd );
+    passarray = QCA::SecureArray( pwd.toUtf8() );
     bundle = QCA::KeyBundle( QCA::KeyBundle::fromFile( wszFileName, passarray, &res, QString( "qca-ossl" ) ) );
 
     if ( res == QCA::ErrorFile )
