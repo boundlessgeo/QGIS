@@ -267,6 +267,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QString wszFileName;
     QString temp;
     QString pwd;
+    std::wstring sTemp;
     std::wstring wsTemp;
 
     HCERTSTORE hSystemStore;
@@ -539,7 +540,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QgsDebugMsg( QString( "prima " ) );
 
     pwd = get_random_string(24);
-    wsTemp = std::wstring(pwd.toStdString().begin(), pwd.toStdString().end());
+    sTemp = pwd.toStdString();
+    wsTemp = std::wstring(sTemp.begin(), sTemp.end());
 
     QgsDebugMsg( QString( "dopo " ) );
 
