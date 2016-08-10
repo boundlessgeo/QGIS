@@ -76,7 +76,7 @@ class QgsOracleFeatureIterator : public QgsAbstractFeatureIteratorFromSource<Qgs
     //! fetch next feature filter expression
     bool nextFeatureFilterExpression( QgsFeature& f ) override;
 
-    bool openQuery( QString whereClause );
+    bool openQuery( QString whereClause, bool showLog = true );
 
     QgsOracleConn *mConnection;
     QSqlQuery mQry;
@@ -84,6 +84,7 @@ class QgsOracleFeatureIterator : public QgsAbstractFeatureIteratorFromSource<Qgs
     bool mExpressionCompiled;
     bool mFetchGeometry;
     QgsAttributeList mAttributeList;
+    QString mSql;
 };
 
 #endif // QGSORACLEFEATUREITERATOR_H

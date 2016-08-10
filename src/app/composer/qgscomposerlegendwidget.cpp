@@ -134,6 +134,8 @@ void QgsComposerLegendWidget::setGuiElements()
   mCheckBoxAutoUpdate->setChecked( mLegend->autoUpdateModel() );
   refreshMapComboBox();
 
+  mCheckboxResizeContents->setChecked( mLegend->resizeToContents() );
+
   const QgsComposerMap* map = mLegend->composerMap();
   if ( map )
   {
@@ -590,6 +592,21 @@ void QgsComposerLegendWidget::on_mMapComboBox_currentIndexChanged( int index )
   }
 }
 
+void QgsComposerLegendWidget::on_mCheckboxResizeContents_toggled( bool checked )
+{
+  if ( !mLegend )
+  {
+    return;
+  }
+
+  mLegend->beginCommand( tr( "Legend resize to contents" ) );
+  mLegend->setResizeToContents( checked );
+  if ( checked )
+    mLegend->adjustBoxSize();
+  mLegend->updateItem();
+  mLegend->endCommand();
+}
+
 void QgsComposerLegendWidget::on_mRasterBorderGroupBox_toggled( bool state )
 {
   if ( !mLegend )
@@ -728,62 +745,7 @@ void QgsComposerLegendWidget::on_mEditPushButton_clicked()
   }
 
   QModelIndex idx = mItemTreeView->selectionModel()->currentIndex();
-  QgsLayerTreeModel* model = mItemTreeView->layerTreeModel();
-  QgsLayerTreeNode* currentNode = model->index2node( idx );
-  QgsLayerTreeModelLegendNode* legendNode = model->index2legendNode( idx );
-  QString currentText;
-
-  if ( QgsLayerTree::isGroup( currentNode ) )
-  {
-    currentText = QgsLayerTree::toGroup( currentNode )->name();
-  }
-  else if ( QgsLayerTree::isLayer( currentNode ) )
-  {
-    currentText = QgsLayerTree::toLayer( currentNode )->layerName();
-    QVariant v = currentNode->customProperty( "legend/title-label" );
-    if ( !v.isNull() )
-      currentText = v.toString();
-  }
-  else if ( legendNode )
-  {
-    currentText = legendNode->data( Qt::EditRole ).toString();
-  }
-
-  bool ok;
-  QString newText = QInputDialog::getText( this, tr( "Legend item properties" ), tr( "Item text" ),
-                    QLineEdit::Normal, currentText, &ok );
-  if ( !ok || newText == currentText )
-    return;
-
-  mLegend->beginCommand( tr( "Legend item edited" ) );
-
-  if ( QgsLayerTree::isGroup( currentNode ) )
-  {
-    QgsLayerTree::toGroup( currentNode )->setName( newText );
-  }
-  else if ( QgsLayerTree::isLayer( currentNode ) )
-  {
-    currentNode->setCustomProperty( "legend/title-label", newText );
-
-    // force update of label of the legend node with embedded icon (a bit clumsy i know)
-    QList<QgsLayerTreeModelLegendNode*> nodes = model->layerLegendNodes( QgsLayerTree::toLayer( currentNode ) );
-    if ( nodes.count() == 1 && nodes[0]->isEmbeddedInParent() )
-      nodes[0]->setUserLabel( QString() );
-  }
-  else if ( legendNode )
-  {
-    QList<int> order = QgsMapLayerLegendUtils::legendNodeOrder( legendNode->layerNode() );
-    //find unfiltered row number
-    QList<QgsLayerTreeModelLegendNode*> layerLegendNodes = model->layerOriginalLegendNodes( legendNode->layerNode() );
-    int unfilteredRowIndex = layerLegendNodes.indexOf( legendNode );
-    int originalIndex = ( unfilteredRowIndex >= 0 && unfilteredRowIndex < order.count() ? order[unfilteredRowIndex] : -1 );
-    QgsMapLayerLegendUtils::setLegendNodeUserLabel( legendNode->layerNode(), originalIndex, newText );
-    model->refreshLayerLegend( legendNode->layerNode() );
-  }
-
-  mLegend->adjustBoxSize();
-  mLegend->updateItem();
-  mLegend->endCommand();
+  on_mItemTreeView_doubleClicked( idx );
 }
 
 void QgsComposerLegendWidget::resetLayerNodeToDefaults()
@@ -957,6 +919,10 @@ void QgsComposerLegendWidget::blockAllSignals( bool b )
   mRasterBorderGroupBox->blockSignals( b );
   mRasterBorderColorButton->blockSignals( b );
   mRasterBorderWidthSpinBox->blockSignals( b );
+  mWmsLegendWidthSpinBox->blockSignals( b );
+  mWmsLegendHeightSpinBox->blockSignals( b );
+  mCheckboxResizeContents->blockSignals( b );
+  mTitleSpaceBottomSpinBox->blockSignals( b );
 }
 
 void QgsComposerLegendWidget::refreshMapComboBox()
@@ -1054,6 +1020,71 @@ void QgsComposerLegendWidget::updateFilterLegendByAtlasButton()
 {
   const QgsAtlasComposition& atlas = mLegend->composition()->atlasComposition();
   mFilterLegendByAtlasCheckBox->setEnabled( atlas.enabled() && atlas.coverageLayer() && atlas.coverageLayer()->geometryType() == QGis::Polygon );
+}
+
+void QgsComposerLegendWidget::on_mItemTreeView_doubleClicked( const QModelIndex &idx )
+{
+  if ( !mLegend || !idx.isValid() )
+  {
+    return;
+  }
+
+  QgsLayerTreeModel* model = mItemTreeView->layerTreeModel();
+  QgsLayerTreeNode* currentNode = model->index2node( idx );
+  QgsLayerTreeModelLegendNode* legendNode = model->index2legendNode( idx );
+  QString currentText;
+
+  if ( QgsLayerTree::isGroup( currentNode ) )
+  {
+    currentText = QgsLayerTree::toGroup( currentNode )->name();
+  }
+  else if ( QgsLayerTree::isLayer( currentNode ) )
+  {
+    currentText = QgsLayerTree::toLayer( currentNode )->layerName();
+    QVariant v = currentNode->customProperty( "legend/title-label" );
+    if ( !v.isNull() )
+      currentText = v.toString();
+  }
+  else if ( legendNode )
+  {
+    currentText = legendNode->data( Qt::EditRole ).toString();
+  }
+
+  bool ok;
+  QString newText = QInputDialog::getText( this, tr( "Legend item properties" ), tr( "Item text" ),
+                    QLineEdit::Normal, currentText, &ok );
+  if ( !ok || newText == currentText )
+    return;
+
+  mLegend->beginCommand( tr( "Legend item edited" ) );
+
+  if ( QgsLayerTree::isGroup( currentNode ) )
+  {
+    QgsLayerTree::toGroup( currentNode )->setName( newText );
+  }
+  else if ( QgsLayerTree::isLayer( currentNode ) )
+  {
+    currentNode->setCustomProperty( "legend/title-label", newText );
+
+    // force update of label of the legend node with embedded icon (a bit clumsy i know)
+    QList<QgsLayerTreeModelLegendNode*> nodes = model->layerLegendNodes( QgsLayerTree::toLayer( currentNode ) );
+    if ( nodes.count() == 1 && nodes[0]->isEmbeddedInParent() )
+      nodes[0]->setUserLabel( QString() );
+  }
+  else if ( legendNode )
+  {
+    QList<int> order = QgsMapLayerLegendUtils::legendNodeOrder( legendNode->layerNode() );
+    //find unfiltered row number
+    QList<QgsLayerTreeModelLegendNode*> layerLegendNodes = model->layerOriginalLegendNodes( legendNode->layerNode() );
+    int unfilteredRowIndex = layerLegendNodes.indexOf( legendNode );
+    int originalIndex = ( unfilteredRowIndex >= 0 && unfilteredRowIndex < order.count() ? order[unfilteredRowIndex] : -1 );
+    QgsMapLayerLegendUtils::setLegendNodeUserLabel( legendNode->layerNode(), originalIndex, newText );
+    model->refreshLayerLegend( legendNode->layerNode() );
+  }
+
+  mLegend->adjustBoxSize();
+  mLegend->updateItem();
+  mLegend->endCommand();
 }
 
 

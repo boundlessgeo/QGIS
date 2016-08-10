@@ -56,6 +56,18 @@ void QgsPhotoWidgetWrapper::selectFileName()
 
 void QgsPhotoWidgetWrapper::loadPixmap( const QString& fileName )
 {
+  if ( fileName.isEmpty() )
+  {
+#ifdef WITH_QTWEBKIT
+    if ( mWebView )
+    {
+      mWebView->setUrl( QString() );
+    }
+#endif
+    clearPicture();
+    return;
+  }
+
   QString filePath = fileName;
 
   if ( QUrl( fileName ).isRelative() )
@@ -98,6 +110,24 @@ void QgsPhotoWidgetWrapper::loadPixmap( const QString& fileName )
       mPhotoLabel->setPixmap( pm );
     }
   }
+  else
+  {
+    clearPicture();
+  }
+}
+
+void QgsPhotoWidgetWrapper::clearPicture()
+{
+  if ( mPhotoLabel )
+  {
+    mPhotoLabel->clear();
+    mPhotoLabel->setMinimumSize( QSize( 0, 0 ) );
+
+    if ( mPhotoPixmapLabel )
+      mPhotoPixmapLabel->setPixmap( QPixmap() );
+    else
+      mPhotoLabel->setPixmap( QPixmap() );
+  }
 }
 
 QVariant QgsPhotoWidgetWrapper::value() const
@@ -128,6 +158,8 @@ QWidget* QgsPhotoWidgetWrapper::createWidget( QWidget* parent )
   layout->addWidget( label, 0, 0, 1, 2 );
   layout->addWidget( le, 1, 0 );
   layout->addWidget( pb, 1, 1 );
+  layout->setMargin( 0 );
+  layout->setContentsMargins( 0, 0, 0, 0 );
 
   container->setLayout( layout );
 
@@ -200,7 +232,12 @@ void QgsPhotoWidgetWrapper::setValue( const QVariant& value )
   if ( mLineEdit )
   {
     if ( value.isNull() )
+    {
+      mLineEdit->blockSignals( true );
       mLineEdit->setText( QSettings().value( "qgis/nullValue", "NULL" ).toString() );
+      mLineEdit->blockSignals( false );
+      clearPicture();
+    }
     else
       mLineEdit->setText( value.toString() );
   }

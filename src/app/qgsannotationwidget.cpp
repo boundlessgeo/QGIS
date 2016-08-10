@@ -54,6 +54,8 @@ QgsAnnotationWidget::QgsAnnotationWidget( QgsAnnotationItem* item, QWidget * par
     mBackgroundColorButton->setNoColorString( tr( "Transparent" ) );
     mBackgroundColorButton->setShowNoColor( true );
 
+    connect( mBackgroundColorButton, SIGNAL( colorChanged( QColor ) ), this, SIGNAL( backgroundColorChanged( QColor ) ) );
+
     const QgsMarkerSymbolV2* symbol = mItem->markerSymbol();
     if ( symbol )
     {
@@ -112,16 +114,6 @@ void QgsAnnotationWidget::on_mMapMarkerButton_clicked()
   }
 }
 
-void QgsAnnotationWidget::on_mFrameColorButton_colorChanged( const QColor &color )
-{
-  if ( !mItem )
-  {
-    return;
-  }
-
-  mItem->setFrameColor( color );
-}
-
 void QgsAnnotationWidget::updateCenterIcon()
 {
   if ( !mMarkerSymbol )
@@ -130,15 +122,5 @@ void QgsAnnotationWidget::updateCenterIcon()
   }
   QIcon icon = QgsSymbolLayerV2Utils::symbolPreviewIcon( mMarkerSymbol, mMapMarkerButton->iconSize() );
   mMapMarkerButton->setIcon( icon );
-}
-
-void QgsAnnotationWidget::on_mBackgroundColorButton_colorChanged( const QColor &color )
-{
-  if ( !mItem )
-  {
-    return;
-  }
-
-  mItem->setFrameBackgroundColor( color );
 }
 

@@ -69,6 +69,7 @@ QgsOracleProvider::QgsOracleProvider( QString const & uri )
   mSrid = mUri.srid().toInt();
   mRequestedGeomType = mUri.wkbType();
   mUseEstimatedMetadata = mUri.useEstimatedMetadata();
+  mIncludeGeoAttributes = mUri.hasParam( "includegeoattributes" ) ? mUri.param( "includegeoattributes" ) == "true" : false;
 
   mConnection = QgsOracleConn::connectDb( mUri.connectionInfo() );
   if ( !mConnection )
@@ -157,6 +158,10 @@ QgsOracleProvider::QgsOracleProvider( QString const & uri )
   << QgsVectorDataProvider::NativeType( tr( "Text, fixed length (char)" ), "CHAR", QVariant::String, 1, 255 )
   << QgsVectorDataProvider::NativeType( tr( "Text, limited variable length (varchar2)" ), "VARCHAR2", QVariant::String, 1, 255 )
   << QgsVectorDataProvider::NativeType( tr( "Text, unlimited length (long)" ), "LONG", QVariant::String )
+
+  // date type
+  << QgsVectorDataProvider::NativeType( tr( "Date" ), "DATE", QVariant::Date, 38, 38, 0, 0 )
+  << QgsVectorDataProvider::NativeType( tr( "Date & Time" ), "TIMESTAMP(6)", QVariant::DateTime, 38, 38, 6, 6 )
   ;
 
   QString key;
@@ -602,11 +607,12 @@ bool QgsOracleProvider::loadFields()
                              ",t.char_used"
                              ",t.data_default"
                              " FROM all_tab_columns t"
-                             " WHERE t.owner=%1 AND t.table_name=%2%3"
+                             " WHERE t.owner=%1 AND t.table_name=%2%3%4"
                              " ORDER BY t.column_id" )
                .arg( quotedValue( mOwnerName ) )
                .arg( quotedValue( mTableName ) )
                .arg( mGeometryColumn.isEmpty() ? "" : QString( " AND t.column_name<>%1 " ).arg( quotedValue( mGeometryColumn ) ) )
+               .arg( mIncludeGeoAttributes ? "" : " AND (t.data_type_owner<>'MDSYS' OR t.data_type<>'SDO_GEOMETRY')" )
              ) )
     {
       while ( qry.next() )
@@ -693,28 +699,30 @@ bool QgsOracleProvider::loadFields()
                                    .arg( qry.lastError().text() ),
                                    tr( "Oracle" ) );
       }
-
-      if ( !mHasSpatialIndex )
-      {
-        mHasSpatialIndex = qry.exec( QString( "SELECT %2 FROM %1 WHERE sdo_filter(%2,mdsys.sdo_geometry(2003,%3,NULL,mdsys.sdo_elem_info_array(1,1003,3),mdsys.sdo_ordinate_array(-1,-1,1,1)))='TRUE'" )
-                                     .arg( mQuery )
-                                     .arg( quotedIdentifier( mGeometryColumn ) )
-                                     .arg( mSrid < 1 ? "NULL" : QString::number( mSrid ) ) );
-        if ( !mHasSpatialIndex )
-        {
-          QgsMessageLog::logMessage( tr( "No spatial index on column %1.%2.%3 found - expect poor performance." )
-                                     .arg( mOwnerName )
-                                     .arg( mTableName )
-                                     .arg( mGeometryColumn ),
-                                     tr( "Oracle" ) );
-        }
-      }
     }
-
-    qry.finish();
 
     mEnabledCapabilities |= QgsVectorDataProvider::CreateSpatialIndex;
   }
+
+  if ( !mGeometryColumn.isEmpty() )
+  {
+    if ( !mHasSpatialIndex )
+    {
+      mHasSpatialIndex = qry.exec( QString( "SELECT %2 FROM %1 WHERE sdo_filter(%2,mdsys.sdo_geometry(2003,%3,NULL,mdsys.sdo_elem_info_array(1,1003,3),mdsys.sdo_ordinate_array(-1,-1,1,1)))='TRUE'" )
+                                   .arg( mQuery )
+                                   .arg( quotedIdentifier( mGeometryColumn ) )
+                                   .arg( mSrid < 1 ? "NULL" : QString::number( mSrid ) ) );
+    }
+
+    if ( !mHasSpatialIndex )
+    {
+      QgsMessageLog::logMessage( tr( "No spatial index on column %1 found - expect poor performance." )
+                                 .arg( mGeometryColumn ),
+                                 tr( "Oracle" ) );
+    }
+  }
+
+  qry.finish();
 
   if ( !exec( qry, QString( "SELECT * FROM %1 WHERE 1=0" ).arg( mQuery ) ) )
   {
@@ -734,7 +742,15 @@ bool QgsOracleProvider::loadFields()
     if ( !mIsQuery && !types.contains( field.name() ) )
       continue;
 
-    mAttributeFields.append( QgsField( field.name(), field.type(), types.value( field.name() ), field.length(), field.precision(), comments.value( field.name() ) ) );
+    QVariant::Type type = field.type();
+
+    if ( types.value( field.name() ) == "DATE" )
+    {
+      // date types are incorrectly detected as datetime
+      type = QVariant::Date;
+    }
+
+    mAttributeFields.append( QgsField( field.name(), type, types.value( field.name() ), field.length(), field.precision(), comments.value( field.name() ) ) );
     mDefaultValues.append( defvalues.value( field.name(), QVariant() ) );
   }
 
@@ -816,7 +832,6 @@ bool QgsOracleProvider::hasSufficientPermsAndCapabilities()
                                  .arg( qry.lastQuery() ),
                                  tr( "Oracle" ) );
     }
-
   }
   else
   {
@@ -1757,7 +1772,6 @@ void QgsOracleProvider::appendGeomParam( const QgsGeometry *geom, QSqlQuery &qry
     g.eleminfo.clear();
     g.ordinates.clear();
 
-    QString expr;
     int iOrdinate = 1;
     QGis::WkbType type = ( QGis::WkbType ) * ptr.iPtr++;
     int dim = 2;
@@ -1766,6 +1780,8 @@ void QgsOracleProvider::appendGeomParam( const QgsGeometry *geom, QSqlQuery &qry
     {
       case QGis::WKBPoint25D:
         dim = 3;
+        FALLTHROUGH;
+
       case QGis::WKBPoint:
         g.srid  = mSrid;
         g.gtype = SDO_GTYPE( dim, gtPoint );
@@ -1777,6 +1793,8 @@ void QgsOracleProvider::appendGeomParam( const QgsGeometry *geom, QSqlQuery &qry
       case QGis::WKBLineString25D:
       case QGis::WKBMultiLineString25D:
         dim = 3;
+        FALLTHROUGH;
+
       case QGis::WKBLineString:
       case QGis::WKBMultiLineString:
       {
@@ -1812,6 +1830,8 @@ void QgsOracleProvider::appendGeomParam( const QgsGeometry *geom, QSqlQuery &qry
       case QGis::WKBPolygon25D:
       case QGis::WKBMultiPolygon25D:
         dim = 3;
+        FALLTHROUGH;
+
       case QGis::WKBPolygon:
       case QGis::WKBMultiPolygon:
       {
@@ -1851,6 +1871,8 @@ void QgsOracleProvider::appendGeomParam( const QgsGeometry *geom, QSqlQuery &qry
 
       case QGis::WKBMultiPoint25D:
         dim = 3;
+        FALLTHROUGH;
+
       case QGis::WKBMultiPoint:
       {
         g.gtype = SDO_GTYPE( dim, gtMultiPoint );
@@ -2056,38 +2078,40 @@ QgsRectangle QgsOracleProvider::extent()
   {
     QString sql;
     QSqlQuery qry( *mConnection );
-
-    if ( mUseEstimatedMetadata )
-    {
-      if ( exec( qry, QString( "SELECT sdo_lb,sdo_ub FROM mdsys.all_sdo_geom_metadata m, table(m.diminfo) WHERE owner=%1 AND table_name=%2 AND column_name=%3 AND sdo_dimname='X'" )
-                 .arg( quotedValue( mOwnerName ) )
-                 .arg( quotedValue( mTableName ) )
-                 .arg( quotedValue( mGeometryColumn ) ) ) && qry.next() )
-      {
-        mLayerExtent.setXMinimum( qry.value( 0 ).toDouble() );
-        mLayerExtent.setXMaximum( qry.value( 1 ).toDouble() );
-
-        if ( exec( qry, QString( "SELECT sdo_lb,sdo_ub FROM mdsys.all_sdo_geom_metadata m, table(m.diminfo) WHERE owner=%1 AND table_name=%2 AND column_name=%3 AND sdo_dimname='Y'" )
-                   .arg( quotedValue( mOwnerName ) )
-                   .arg( quotedValue( mTableName ) )
-                   .arg( quotedValue( mGeometryColumn ) ) )  && qry.next() )
-        {
-          mLayerExtent.setYMinimum( qry.value( 0 ).toDouble() );
-          mLayerExtent.setYMaximum( qry.value( 1 ).toDouble() );
-          return mLayerExtent;
-        }
-      }
-    }
-
     bool ok = false;
 
-    if ( mHasSpatialIndex && ( mUseEstimatedMetadata || mSqlWhereClause.isEmpty() ) )
+    if ( !mIsQuery )
     {
-      sql = QString( "SELECT SDO_TUNE.EXTENT_OF(%1,%2) FROM dual" )
-            .arg( quotedValue( QString( "%1.%2" ).arg( mOwnerName ).arg( mTableName ) ) )
-            .arg( quotedValue( mGeometryColumn ) );
+      if ( mUseEstimatedMetadata )
+      {
+        if ( exec( qry, QString( "SELECT sdo_lb,sdo_ub FROM mdsys.all_sdo_geom_metadata m, table(m.diminfo) WHERE owner=%1 AND table_name=%2 AND column_name=%3 AND sdo_dimname='X'" )
+                   .arg( quotedValue( mOwnerName ) )
+                   .arg( quotedValue( mTableName ) )
+                   .arg( quotedValue( mGeometryColumn ) ) ) && qry.next() )
+        {
+          mLayerExtent.setXMinimum( qry.value( 0 ).toDouble() );
+          mLayerExtent.setXMaximum( qry.value( 1 ).toDouble() );
 
-      ok = exec( qry, sql );
+          if ( exec( qry, QString( "SELECT sdo_lb,sdo_ub FROM mdsys.all_sdo_geom_metadata m, table(m.diminfo) WHERE owner=%1 AND table_name=%2 AND column_name=%3 AND sdo_dimname='Y'" )
+                     .arg( quotedValue( mOwnerName ) )
+                     .arg( quotedValue( mTableName ) )
+                     .arg( quotedValue( mGeometryColumn ) ) )  && qry.next() )
+          {
+            mLayerExtent.setYMinimum( qry.value( 0 ).toDouble() );
+            mLayerExtent.setYMaximum( qry.value( 1 ).toDouble() );
+            return mLayerExtent;
+          }
+        }
+      }
+
+      if ( mHasSpatialIndex && ( mUseEstimatedMetadata || mSqlWhereClause.isEmpty() ) )
+      {
+        sql = QString( "SELECT SDO_TUNE.EXTENT_OF(%1,%2) FROM dual" )
+              .arg( quotedValue( QString( "%1.%2" ).arg( mOwnerName ).arg( mTableName ) ) )
+              .arg( quotedValue( mGeometryColumn ) );
+
+        ok = exec( qry, sql );
+      }
     }
 
     if ( !ok )
@@ -2191,8 +2215,8 @@ bool QgsOracleProvider::getGeometryDetails()
     }
 
     if ( exec( qry, QString( mUseEstimatedMetadata
-                             ?  "SELECT DISTINCT gtype FROM (SELECT t.%1.sdo_gtype AS gtype FROM %2 t WHERE rownum<1000) WHERE rownum<=2"
-                             :  "SELECT DISTINCT t.%1.sdo_gtype FROM %2 t WHERE rownum<=2" ).arg( quotedIdentifier( geomCol ) ).arg( mQuery ) ) )
+                             ?  "SELECT DISTINCT gtype FROM (SELECT t.%1.sdo_gtype AS gtype FROM %2 t WHERE t.%1 IS NOT NULL AND rownum<1000) WHERE rownum<=2"
+                             :  "SELECT DISTINCT t.%1.sdo_gtype FROM %2 t WHERE t.%1 IS NOT NULL AND rownum<=2" ).arg( quotedIdentifier( geomCol ) ).arg( mQuery ) ) )
     {
       if ( qry.next() )
       {
@@ -2421,6 +2445,11 @@ bool QgsOracleProvider::convertField( QgsField &field )
       break;
 
     case QVariant::DateTime:
+      fieldType = "TIMESTAMP";
+      fieldPrec = -1;
+      break;
+
+
     case QVariant::Time:
     case QVariant::String:
       fieldType = "VARCHAR2(2047)";
@@ -2712,7 +2741,7 @@ QgsVectorLayerImport::ImportError QgsOracleProvider::createEmptyLayer(
 
   QgsDebugMsg( QString( "layer %1 created" ).arg( ownerTableName ) );
 
-  // use the provider to edit the table
+  // use the provider to edit the table1
   dsUri.setDataSource( ownerName, tableName, geometryColumn, QString(), primaryKey );
   QgsOracleProvider *provider = new QgsOracleProvider( dsUri.uri() );
   if ( !provider->isValid() )
@@ -2727,8 +2756,7 @@ QgsVectorLayerImport::ImportError QgsOracleProvider::createEmptyLayer(
   QgsDebugMsg( "layer loaded" );
 
   // add fields to the layer
-  if ( oldToNewAttrIdxMap )
-    oldToNewAttrIdxMap->clear();
+  oldToNewAttrIdxMap->clear();
 
   if ( fields.size() > 0 )
   {

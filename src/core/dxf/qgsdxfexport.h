@@ -20,6 +20,7 @@
 
 #include "qgsgeometry.h"
 #include "qgssymbolv2.h"
+
 #include <QColor>
 #include <QList>
 #include <QTextStream>
@@ -28,6 +29,12 @@ class QgsMapLayer;
 class QgsPoint;
 class QgsSymbolLayerV2;
 class QIODevice;
+class QgsPalLayerSettings;
+
+namespace pal
+{
+  class LabelPosition;
+};
 
 class CORE_EXPORT QgsDxfExport
 {
@@ -228,7 +235,7 @@ class CORE_EXPORT QgsDxfExport
      * @param line polyline
      * @param layer layer name to use
      * @param lineStyleName line type to use
-     * @param color coolor to use
+     * @param color color to use
      * @param width line width to use
      */
     void writePolyline( const QgsPolyline &line, const QString &layer, const QString &lineStyleName, const QColor& color, double width = -1 );
@@ -238,7 +245,7 @@ class CORE_EXPORT QgsDxfExport
      * @param polygon polygon
      * @param layer layer name to use
      * @param hatchPattern hatchPattern to use
-     * @param color coolor to use
+     * @param color color to use
      */
     void writePolygon( const QgsPolygon &polygon, const QString &layer, const QString &hatchPattern, const QColor& color );
 
@@ -283,6 +290,22 @@ class CORE_EXPORT QgsDxfExport
     //! return list of available DXF encodings
     static QStringList encodings();
 
+    /** Output the label
+     * @param layerId id of the layer
+     * @param context render context
+     * @param label position of label
+     * @param settings label settings
+     * @note not available in Python bindings
+     */
+    void drawLabel( QString layerId, QgsRenderContext& context, pal::LabelPosition* label, const QgsPalLayerSettings &settings );
+
+    /** Register name of layer for feature
+     * @param layerId id of layer
+     * @param fid id of feature
+     * @param layer dxf layer of feature
+     */
+    void registerDxfLayer( QString layerId, QgsFeatureId fid, QString layer );
+
   private:
     QList< QPair<QgsVectorLayer*, int> > mLayers;
 
@@ -317,7 +340,7 @@ class CORE_EXPORT QgsDxfExport
     void startSection();
     void endSection();
 
-    void writePoint( const QgsPoint &pt, const QString &layer, const QColor& color, const QgsFeature *f, const QgsSymbolLayerV2 *symbolLayer, const QgsSymbolV2 *symbol );
+    void writePoint( const QgsPoint &pt, const QString &layer, const QColor& color, QgsSymbolV2RenderContext &ctx, const QgsSymbolLayerV2 *symbolLayer, const QgsSymbolV2 *symbol, double angle );
     void writeVertex( const QgsPoint &pt, const QString &layer );
     void writeDefaultLinetypes();
     void writeSymbolLayerLinetype( const QgsSymbolLayerV2 *symbolLayer );
@@ -350,6 +373,9 @@ class CORE_EXPORT QgsDxfExport
 
     QHash<QString, int> mBlockHandles;
     QString mBlockHandle;
+
+    //! DXF layer name for each label feature
+    QMap< QString, QMap<QgsFeatureId, QString> > mDxfLayerNames;
 };
 
 #endif // QGSDXFEXPORT_H

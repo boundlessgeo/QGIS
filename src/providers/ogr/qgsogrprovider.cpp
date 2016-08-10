@@ -385,6 +385,9 @@ QgsOgrProvider::~QgsOgrProvider()
 {
   close();
   QgsOgrConnPool::instance()->unref( dataSourceUri() );
+  // We must also make sure to flush unusef cached connections so that
+  // the file can be removed (#15137)
+  QgsOgrConnPool::instance()->invalidateConnections( dataSourceUri() );
 }
 
 QgsAbstractFeatureSource* QgsOgrProvider::featureSource() const
@@ -664,6 +667,11 @@ OGRwkbGeometryType QgsOgrProvider::getOgrGeomType( OGRLayerH ogrLayer )
   if ( fdef )
   {
     geomType = OGR_FD_GetGeomType( fdef );
+
+    // Handle wkbUnknown and its Z/M variants. QGIS has no unknown Z/M variants,
+    // so just use flat wkbUnknown
+    if ( wkbFlatten( geomType ) == wkbUnknown )
+      geomType = wkbUnknown;
 
     // Some ogr drivers (e.g. GML) are not able to determine the geometry type of a layer like this.
     // In such cases, we use virtual sublayers for each geometry if the layer contains
@@ -1318,9 +1326,6 @@ bool QgsOgrProvider::changeGeometryValues( const QgsGeometryMap &geometry_map )
   if ( !doInitialActionsForEdition() )
     return false;
 
-  OGRFeatureH theOGRFeature = nullptr;
-  OGRGeometryH theNewGeometry = nullptr;
-
   setRelevantFields( ogrLayer, true, attributeIndexes() );
 
   for ( QgsGeometryMap::const_iterator it = geometry_map.constBegin(); it != geometry_map.constEnd(); ++it )
@@ -1331,37 +1336,47 @@ bool QgsOgrProvider::changeGeometryValues( const QgsGeometryMap &geometry_map )
       continue;
     }
 
-    theOGRFeature = OGR_L_GetFeature( ogrLayer, static_cast<long>( FID_TO_NUMBER( it.key() ) ) );
+    OGRFeatureH theOGRFeature = OGR_L_GetFeature( ogrLayer, static_cast<long>( FID_TO_NUMBER( it.key() ) ) );
     if ( !theOGRFeature )
     {
       pushError( tr( "OGR error changing geometry: feature %1 not found" ).arg( it.key() ) );
       continue;
     }
 
-    //create an OGRGeometry
-    if ( OGR_G_CreateFromWkb( const_cast<unsigned char*>( it->asWkb() ),
-                              OGR_L_GetSpatialRef( ogrLayer ),
-                              &theNewGeometry,
-                              it->wkbSize() ) != OGRERR_NONE )
+    OGRGeometryH theNewGeometry = nullptr;
+    // We might receive null geometries. It is ok, but don't go through the
+    // OGR_G_CreateFromWkb() route then
+    if ( it->wkbSize() != 0 )
     {
-      pushError( tr( "OGR error creating geometry for feature %1: %2" ).arg( it.key() ).arg( CPLGetLastErrorMsg() ) );
-      OGR_G_DestroyGeometry( theNewGeometry );
-      theNewGeometry = nullptr;
-      continue;
-    }
+      //create an OGRGeometry
+      if ( OGR_G_CreateFromWkb( const_cast<unsigned char*>( it->asWkb() ),
+                                OGR_L_GetSpatialRef( ogrLayer ),
+                                &theNewGeometry,
+                                it->wkbSize() ) != OGRERR_NONE )
+      {
+        pushError( tr( "OGR error creating geometry for feature %1: %2" ).arg( it.key() ).arg( CPLGetLastErrorMsg() ) );
+        OGR_G_DestroyGeometry( theNewGeometry );
+        theNewGeometry = nullptr;
+        OGR_F_Destroy( theOGRFeature );
+        continue;
+      }
 
-    if ( !theNewGeometry )
-    {
-      pushError( tr( "OGR error in feature %1: geometry is null" ).arg( it.key() ) );
-      continue;
+      if ( !theNewGeometry )
+      {
+        pushError( tr( "OGR error in feature %1: geometry is null" ).arg( it.key() ) );
+        OGR_F_Destroy( theOGRFeature );
+        continue;
+      }
     }
 
     //set the new geometry
     if ( OGR_F_SetGeometryDirectly( theOGRFeature, theNewGeometry ) != OGRERR_NONE )
     {
       pushError( tr( "OGR error setting geometry of feature %1: %2" ).arg( it.key() ).arg( CPLGetLastErrorMsg() ) );
-      OGR_G_DestroyGeometry( theNewGeometry );
-      theNewGeometry = nullptr;
+      // Shouldn't happen normally. If it happens, ownership of the geometry
+      // may be not really well defined, so better not destroy it, but just
+      // the feature.
+      OGR_F_Destroy( theOGRFeature );
       continue;
     }
 
@@ -1369,8 +1384,7 @@ bool QgsOgrProvider::changeGeometryValues( const QgsGeometryMap &geometry_map )
     if ( OGR_L_SetFeature( ogrLayer, theOGRFeature ) != OGRERR_NONE )
     {
       pushError( tr( "OGR error setting feature %1: %2" ).arg( it.key() ).arg( CPLGetLastErrorMsg() ) );
-      OGR_G_DestroyGeometry( theNewGeometry );
-      theNewGeometry = nullptr;
+      OGR_F_Destroy( theOGRFeature );
       continue;
     }
     mShapefileMayBeCorrupted = true;
@@ -2827,6 +2841,7 @@ void QgsOgrProvider::open( OpenMode mode )
   QgsDebugMsg( "mLayerName: " + mLayerName );
   QgsDebugMsg( "mSubsetString: " + mSubsetString );
   CPLSetConfigOption( "OGR_ORGANIZE_POLYGONS", "ONLY_CCW" );  // "SKIP" returns MULTIPOLYGONs for multiringed POLYGONs
+  CPLSetConfigOption( "GPX_ELE_AS_25D", "YES" );  // use GPX elevation as z values
 
   if ( mFilePath.startsWith( "MySQL:" ) && !mLayerName.isEmpty() && !mFilePath.endsWith( ",tables=" + mLayerName ) )
   {

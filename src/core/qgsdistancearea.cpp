@@ -890,6 +890,11 @@ void QgsDistanceArea::computeAreaInit()
 
 double QgsDistanceArea::computePolygonArea( const QList<QgsPoint>& points ) const
 {
+  if ( points.isEmpty() )
+  {
+    return 0;
+  }
+
   double x1, y1, x2, y2, dx, dy;
   double Qbar1, Qbar2;
   double area;
@@ -926,7 +931,8 @@ double QgsDistanceArea::computePolygonArea( const QList<QgsPoint>& points ) cons
     dx = x2 - x1;
     area += dx * ( m_Qp - getQ( y2 ) );
 
-    if (( dy = y2 - y1 ) != 0.0 )
+    dy = y2 - y1;
+    if ( !qgsDoubleNear( dy, 0.0 ) )
       area += dx * getQ( y2 ) - ( dx / dy ) * ( Qbar2 - Qbar1 );
   }
   if (( area *= m_AE ) < 0.0 )

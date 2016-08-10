@@ -283,7 +283,7 @@ void QgsVectorFieldSymbolLayer::drawPreviewIcon( QgsSymbolV2RenderContext& conte
 
 QSet<QString> QgsVectorFieldSymbolLayer::usedAttributes() const
 {
-  QSet<QString> attributes;
+  QSet<QString> attributes = QgsMarkerSymbolLayerV2::usedAttributes();
   if ( !mXAttribute.isEmpty() )
   {
     attributes.insert( mXAttribute );
@@ -291,6 +291,10 @@ QSet<QString> QgsVectorFieldSymbolLayer::usedAttributes() const
   if ( !mYAttribute.isEmpty() )
   {
     attributes.insert( mYAttribute );
+  }
+  if ( mLineSymbol )
+  {
+    attributes.unite( mLineSymbol->usedAttributes() );
   }
   return attributes;
 }
@@ -317,6 +321,19 @@ void QgsVectorFieldSymbolLayer::convertPolarToCartesian( double length, double a
 
   x = length * sin( angle );
   y = length * cos( angle );
+}
+
+void QgsVectorFieldSymbolLayer::setColor( const QColor& color )
+{
+  if ( mLineSymbol )
+    mLineSymbol->setColor( color );
+
+  mColor = color;
+}
+
+QColor QgsVectorFieldSymbolLayer::color() const
+{
+  return mLineSymbol ? mLineSymbol->color() : mColor;
 }
 
 

@@ -348,6 +348,9 @@ class QgsOracleProvider : public QgsVectorDataProvider
     /* Use estimated metadata. Uses fast table counts, geometry type and extent determination */
     bool mUseEstimatedMetadata;
 
+    /* Include additional geo attributes */
+    bool mIncludeGeoAttributes;
+
     struct OracleFieldNotFound {}; //! Exception to throw
 
     struct OracleException
@@ -397,7 +400,6 @@ class QgsOracleProvider : public QgsVectorDataProvider
     QgsFeatureId mFidCounter;                //! next feature id if map is used
     QgsOracleConn *mConnection;
 
-    bool mHasSpatial;                        //! Oracle Spatial is installed
     bool mHasSpatialIndex;                   //! Geometry column is indexed
     QString mSpatialIndexName;               //! name of spatial index of geometry column
 

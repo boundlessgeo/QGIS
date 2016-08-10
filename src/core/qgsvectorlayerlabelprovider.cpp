@@ -101,7 +101,6 @@ void QgsVectorLayerLabelProvider::init()
   if ( mSettings.displayAll ) mFlags |= DrawAllLabels;
   if ( mSettings.mergeLines ) mFlags |= MergeConnectedLines;
   if ( mSettings.centroidInside ) mFlags |= CentroidMustBeInside;
-  if ( mSettings.fitInPolygonOnly ) mFlags |= FitInPolygonOnly;
   if ( mSettings.labelPerPart ) mFlags |= LabelPerFeaturePart;
   mPriority = 1 - mSettings.priority / 10.0; // convert 0..10 --> 1..0
 
@@ -316,7 +315,7 @@ QList<QgsLabelFeature*> QgsVectorLayerLabelProvider::labelFeatures( QgsRenderCon
 void QgsVectorLayerLabelProvider::registerFeature( QgsFeature& feature, QgsRenderContext& context, QgsGeometry* obstacleGeometry )
 {
   QgsLabelFeature* label = nullptr;
-  mSettings.registerFeature( feature, context, QString(), &label, obstacleGeometry );
+  mSettings.registerFeature( feature, context, &label, obstacleGeometry );
   if ( label )
     mLabels << label;
 }

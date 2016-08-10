@@ -862,7 +862,7 @@ QgsRectangle QgsMapCanvas::fullExtent() const
 } // extent
 
 
-void QgsMapCanvas::setExtent( QgsRectangle const & r )
+void QgsMapCanvas::setExtent( const QgsRectangle& r )
 {
   QgsRectangle current = extent();
 
@@ -1134,8 +1134,14 @@ void QgsMapCanvas::panToSelected( QgsVectorLayer* layer )
     return;
 
   QgsRectangle rect = mapSettings().layerExtentToOutputExtent( layer, layer->boundingBoxOfSelected() );
-  setExtent( QgsRectangle( rect.center(), rect.center() ) );
-  refresh();
+  if ( !rect.isNull() )
+  {
+    setCenter( rect.center() );
+  }
+  else
+  {
+    emit messageEmitted( tr( "Cannot pan to selected feature(s)" ), tr( "Geometry is NULL" ), QgsMessageBar::WARNING );
+  }
 } // panToSelected
 
 void QgsMapCanvas::keyPressEvent( QKeyEvent * e )
@@ -1192,6 +1198,7 @@ void QgsMapCanvas::keyPressEvent( QKeyEvent * e )
         //mCanvasProperties->dragging = true;
         if ( ! e->isAutoRepeat() )
         {
+          QApplication::setOverrideCursor( Qt::ClosedHandCursor );
           mCanvasProperties->panSelectorDown = true;
           mCanvasProperties->rubberStartPoint = mCanvasProperties->mouseLastXY;
         }
@@ -1245,7 +1252,7 @@ void QgsMapCanvas::keyReleaseEvent( QKeyEvent * e )
       if ( !e->isAutoRepeat() && mCanvasProperties->panSelectorDown )
       {
         QgsDebugMsg( "Releasing pan selector" );
-
+        QApplication::restoreOverrideCursor();
         mCanvasProperties->panSelectorDown = false;
         panActionEnd( mCanvasProperties->mouseLastXY );
       }

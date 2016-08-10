@@ -1061,6 +1061,8 @@ class CORE_EXPORT QgsComposition : public QGraphicsScene
     void composerArrowAdded( QgsComposerArrow* arrow );
     /** Is emitted when a new composer html has been added to the view*/
     void composerHtmlFrameAdded( QgsComposerHtml* html, QgsComposerFrame* frame );
+    /** Is emitted when a new item group has been added to the view*/
+    void composerItemGroupAdded( QgsComposerItemGroup* group );
     /** Is emitted when new composer label has been added to the view*/
     void composerLabelAdded( QgsComposerLabel* label );
     /** Is emitted when new composer map has been added to the view*/
@@ -1085,6 +1087,11 @@ class CORE_EXPORT QgsComposition : public QGraphicsScene
 
     /** Is emitted when the composition has an updated status bar message for the composer window*/
     void statusMsgChanged( const QString& message );
+
+    /** Emitted whenever the expression variables stored in the composition have been changed.
+     * @note added in QGIS 3.0
+     */
+    void variablesChanged();
 
     friend class QgsComposerObject; //for accessing dataDefinedEvaluate, readDataDefinedPropertyMap and writeDataDefinedPropertyMap
     friend class QgsComposerModel; //for accessing updateZValues (should not be public)

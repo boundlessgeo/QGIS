@@ -88,6 +88,8 @@ class TestQgsGeometry : public QObject
     void bufferCheck();
     void smoothCheck();
 
+    void unaryUnion();
+
     void dataStream();
 
     void exportToGeoJSON();
@@ -604,7 +606,7 @@ void TestQgsGeometry::pointV2()
   p16.transform( tr, QgsCoordinateTransform::ForwardTransform );
   QVERIFY( qgsDoubleNear( p16.x(), 175.771, 0.001 ) );
   QVERIFY( qgsDoubleNear( p16.y(), -39.722, 0.001 ) );
-  QVERIFY( qgsDoubleNear( p16.z(), 57.2958, 0.001 ) );
+  QVERIFY( qgsDoubleNear( p16.z(), 1.0, 0.001 ) );
   QCOMPARE( p16.m(), 2.0 );
   p16.transform( tr, QgsCoordinateTransform::ReverseTransform );
   QVERIFY( qgsDoubleNear( p16.x(), 6374985, 1 ) );
@@ -1489,11 +1491,11 @@ void TestQgsGeometry::lineStringV2()
   l22.transform( tr, QgsCoordinateTransform::ForwardTransform );
   QVERIFY( qgsDoubleNear( l22.pointN( 0 ).x(), 175.771, 0.001 ) );
   QVERIFY( qgsDoubleNear( l22.pointN( 0 ).y(), -39.722, 0.001 ) );
-  QVERIFY( qgsDoubleNear( l22.pointN( 0 ).z(), 57.2958, 0.001 ) );
+  QVERIFY( qgsDoubleNear( l22.pointN( 0 ).z(), 1.0, 0.001 ) );
   QCOMPARE( l22.pointN( 0 ).m(), 2.0 );
   QVERIFY( qgsDoubleNear( l22.pointN( 1 ).x(), 176.959, 0.001 ) );
   QVERIFY( qgsDoubleNear( l22.pointN( 1 ).y(), -38.798, 0.001 ) );
-  QVERIFY( qgsDoubleNear( l22.pointN( 1 ).z(), 171.887, 0.001 ) );
+  QVERIFY( qgsDoubleNear( l22.pointN( 1 ).z(), 3.0, 0.001 ) );
   QCOMPARE( l22.pointN( 1 ).m(), 4.0 );
 
   //reverse transform
@@ -3238,6 +3240,20 @@ void TestQgsGeometry::smoothCheck()
                          <<  QgsPoint( 4.0, 3.8 ) << QgsPoint( 3.8, 4.0 ) << QgsPoint( 2.2, 4.0 ) << QgsPoint( 2.0, 3.8 )
                          << QgsPoint( 2, 2.2 ) << QgsPoint( 2.2, 2 ) ) );
   QVERIFY( QgsGeometry::compare( multipoly, expectedMultiPoly ) );
+}
+
+void TestQgsGeometry::unaryUnion()
+{
+  //test QgsGeometry::unaryUnion with null geometry
+  QString wkt1 = "Polygon ((0 0, 10 0, 10 10, 0 10, 0 0 ))";
+  QString wkt2 = "Polygon ((2 2, 4 2, 4 4, 2 4, 2 2))";
+  QScopedPointer< QgsGeometry > geom1( QgsGeometry::fromWkt( wkt1 ) );
+  QScopedPointer< QgsGeometry > geom2( QgsGeometry::fromWkt( wkt2 ) );
+  QScopedPointer< QgsGeometry > empty( new QgsGeometry() );
+  QList< QgsGeometry* > list;
+  list << geom1.data() << empty.data() << geom2.data();
+
+  QScopedPointer< QgsGeometry > result( QgsGeometry::unaryUnion( list ) );
 }
 
 void TestQgsGeometry::dataStream()

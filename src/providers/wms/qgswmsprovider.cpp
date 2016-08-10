@@ -215,6 +215,36 @@ QString QgsWmsProvider::getTileUrl() const
   }
 }
 
+static bool isValidLegend( const QgsWmsLegendUrlProperty &l )
+{
+  return l.format.startsWith( "image/" );
+}
+
+/**
+ * Picks a usable legend URL for a given style.
+ */
+static QString pickLegend( const QgsWmsStyleProperty &s )
+{
+  QString url;
+  for ( int k = 0; k < s.legendUrl.size() && url.isEmpty(); k++ )
+  {
+    const QgsWmsLegendUrlProperty &l = s.legendUrl[k];
+    if ( isValidLegend( l ) )
+    {
+      url = l.onlineResource.xlinkHref;
+    }
+  }
+  return url;
+}
+
+static const QgsWmsStyleProperty *searchStyle( const QVector<QgsWmsStyleProperty>& styles, const QString& name )
+{
+  Q_FOREACH ( const QgsWmsStyleProperty &s, styles )
+    if ( s.name == name )
+      return &s;
+  return nullptr;
+}
+
 QString QgsWmsProvider::getLegendGraphicUrl() const
 {
   QString url;
@@ -223,25 +253,31 @@ QString QgsWmsProvider::getLegendGraphicUrl() const
   {
     const QgsWmsLayerProperty &l = mCaps.mLayersSupported[i];
 
-    if ( l.name != mSettings.mActiveSubLayers[0] )
-      continue;
-
-    for ( int j = 0; j < l.style.size() && url.isEmpty(); j++ )
+    if ( l.name == mSettings.mActiveSubLayers[0] )
     {
-      const QgsWmsStyleProperty &s = l.style[j];
-
-      if ( s.name != mSettings.mActiveSubStyles[0] )
-        continue;
-
-      for ( int k = 0; k < s.legendUrl.size() && url.isEmpty(); k++ )
+      if ( !mSettings.mActiveSubStyles[0].isEmpty() && mSettings.mActiveSubStyles[0] != "default" )
       {
-        const QgsWmsLegendUrlProperty &l = s.legendUrl[k];
-
-        if ( l.format != mSettings.mImageMimeType )
-          continue;
-
-        url = l.onlineResource.xlinkHref;
+        const QgsWmsStyleProperty *s = searchStyle( l.style, mSettings.mActiveSubStyles[0] );
+        if ( s )
+          url = pickLegend( *s );
       }
+      else
+      {
+        // QGIS wants the default style, but GetCapabilities doesn't give us a
+        // way to know what is the default style. So we look for the onlineResource
+        // only if there is a single style available or if there is a style called "default".
+        if ( l.style.size() == 1 )
+        {
+          url = pickLegend( l.style[0] );
+        }
+        else
+        {
+          const QgsWmsStyleProperty *s = searchStyle( l.style, "default" );
+          if ( s )
+            url = pickLegend( *s );
+        }
+      }
+      break;
     }
   }
 
@@ -2952,20 +2988,29 @@ QUrl QgsWmsProvider::getLegendGraphicFullURL( double scale, const QgsRectangle& 
 
   QUrl url( lurl );
 
-  if ( !url.hasQueryItem( "SERVICE" ) )
+  // query names are NOT case-sensitive, so make an uppercase list for proper comparison
+  QStringList qnames = QStringList();
+  for ( int i = 0; i < url.queryItems().size(); i++ )
+  {
+    qnames << url.queryItems().at( i ).first.toUpper();
+  }
+  if ( !qnames.contains( "SERVICE" ) )
     setQueryItem( url, "SERVICE", "WMS" );
-  if ( !url.hasQueryItem( "VERSION" ) )
+  if ( !qnames.contains( "VERSION" ) )
     setQueryItem( url, "VERSION", mCaps.mCapabilities.version );
-  if ( !url.hasQueryItem( "SLD_VERSION" ) )
+  if ( !qnames.contains( "SLD_VERSION" ) )
     setQueryItem( url, "SLD_VERSION", "1.1.0" ); // can not determine SLD_VERSION
-  if ( !url.hasQueryItem( "REQUEST" ) )
+  if ( !qnames.contains( "REQUEST" ) )
     setQueryItem( url, "REQUEST", "GetLegendGraphic" );
-  if ( !url.hasQueryItem( "FORMAT" ) )
+  if ( !qnames.contains( "FORMAT" ) )
     setFormatQueryItem( url );
-  if ( !url.hasQueryItem( "LAYER" ) )
+  if ( !qnames.contains( "LAYER" ) )
     setQueryItem( url, "LAYER", mSettings.mActiveSubLayers[0] );
-  if ( !url.hasQueryItem( "STYLE" ) )
+  if ( !qnames.contains( "STYLE" ) )
     setQueryItem( url, "STYLE", mSettings.mActiveSubStyles[0] );
+  // by setting TRANSPARENT=true, even too big legend images will look good
+  if ( !qnames.contains( "TRANSPARENT" ) )
+    setQueryItem( url, "TRANSPARENT", "true" );
 
   // add config parameter related to resolution
   QSettings s;

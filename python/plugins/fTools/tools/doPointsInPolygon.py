@@ -79,13 +79,13 @@ class Dialog(QDialog, Ui_Dialog):
 
             self.attributeList.clear()
             for field in pointFieldList:
-                if field.type() == QVariant.Int or field.type() == QVariant.Double:
-                    if field.type() == QVariant.Int:
-                        global typeInt
-                        item = QListWidgetItem(unicode(field.name()), None, typeInt)
-                    else:
+                if field.type() in [QVariant.Int, QVariant.Double, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
+                    if field.type() == QVariant.Double:
                         global typeDouble
                         item = QListWidgetItem(unicode(field.name()), None, typeDouble)
+                    else:
+                        global typeInt
+                        item = QListWidgetItem(unicode(field.name()), None, typeInt)
                     item.setToolTip("Attribute <%s> of type %s" % (field.name(), field.typeName()))
                     self.attributeList.addItem(item)
 
@@ -298,6 +298,9 @@ class PointsInPolygonThread(QThread):
                             value = two_pass_variance(values)
                             value = math.sqrt(value)
                         atMap.append(value)
+
+            else:  # no intersection - store at least the zero count
+                atMap.append(0)
 
             outFeat.setAttributes(atMap)
             writer.addFeature(outFeat)

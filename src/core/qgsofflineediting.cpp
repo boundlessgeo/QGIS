@@ -134,15 +134,18 @@ bool QgsOfflineEditing::convertToOfflineProject( const QString& offlineDataPath,
 
         QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer( layerIds.at( i ) );
         QgsVectorLayer* vl = qobject_cast<QgsVectorLayer*>( layer );
-        QString origLayerId = vl->id();
-        QgsVectorLayer* newLayer = copyVectorLayer( vl, db, dbPath );
-
-        if ( newLayer )
+        if ( vl )
         {
-          layerIdMapping.insert( origLayerId, newLayer );
-          // remove remote layer
-          QgsMapLayerRegistry::instance()->removeMapLayers(
-            QStringList() << origLayerId );
+          QString origLayerId = vl->id();
+          QgsVectorLayer* newLayer = copyVectorLayer( vl, db, dbPath );
+
+          if ( newLayer )
+          {
+            layerIdMapping.insert( origLayerId, newLayer );
+            // remove remote layer
+            QgsMapLayerRegistry::instance()->removeMapLayers(
+              QStringList() << origLayerId );
+          }
         }
       }
 
@@ -181,7 +184,7 @@ bool QgsOfflineEditing::convertToOfflineProject( const QString& offlineDataPath,
       projectTitle += " (offline)";
       QgsProject::instance()->setTitle( projectTitle );
 
-      QgsProject::instance()->writeEntry( PROJECT_ENTRY_SCOPE_OFFLINE, PROJECT_ENTRY_KEY_OFFLINE_DB_PATH, dbPath );
+      QgsProject::instance()->writeEntry( PROJECT_ENTRY_SCOPE_OFFLINE, PROJECT_ENTRY_KEY_OFFLINE_DB_PATH, QgsProject::instance()->writePath( dbPath ) );
 
       return true;
     }
@@ -656,11 +659,11 @@ QgsVectorLayer* QgsOfflineEditing::copyVectorLayer( QgsVectorLayer* layer, sqlit
           // Check if the online feature has been fetched (WFS download aborted for some reason)
           if ( i < offlineFeatureIds.count() )
           {
-            addFidLookup( db, layerId, offlineFeatureIds.at( i ), remoteFeatureIds.at( remoteCount - ( i + 1 ) ) );
+            addFidLookup( db, layerId, offlineFeatureIds.at( i ), remoteFeatureIds.at( i ) );
           }
           else
           {
-            showWarning( QString( "Feature cannot be copied to the offline layer, please check if the online layer '%1' is sill accessible." ).arg( layer->name() ) );
+            showWarning( tr( "Feature cannot be copied to the offline layer, please check if the online layer '%1' is still accessible." ).arg( layer->name() ) );
             return nullptr;
           }
           emit progressUpdated( featureCount++ );
@@ -915,7 +918,8 @@ sqlite3* QgsOfflineEditing::openLoggingDb()
   QString dbPath = QgsProject::instance()->readEntry( PROJECT_ENTRY_SCOPE_OFFLINE, PROJECT_ENTRY_KEY_OFFLINE_DB_PATH );
   if ( !dbPath.isEmpty() )
   {
-    int rc = sqlite3_open( dbPath.toUtf8().constData(), &db );
+    QString absoluteDbPath = QgsProject::instance()->readPath( dbPath );
+    int rc = sqlite3_open( absoluteDbPath.toUtf8().constData(), &db );
     if ( rc != SQLITE_OK )
     {
       showWarning( tr( "Could not open the spatialite logging database" ) );

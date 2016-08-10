@@ -139,7 +139,7 @@ QgsProjectProperties::QgsProjectProperties( QgsMapCanvas* mapCanvas, QWidget *pa
   // Properties stored in QgsProject
 
   title( QgsProject::instance()->title() );
-  projectFileName->setText( QgsProject::instance()->fileName() );
+  mProjectFileLineEdit->setText( QgsProject::instance()->fileName() );
 
   // get the manner in which the number of decimal places in the mouse
   // position display is set (manual or automatic)
@@ -1151,6 +1151,7 @@ void QgsProjectProperties::apply()
 
   //save variables
   QgsExpressionContextUtils::setProjectVariables( mVariableEditor->variablesInActiveScope() );
+  QgsProject::instance()->emitVariablesChanged();
 
   emit refresh();
 }

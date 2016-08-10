@@ -18,6 +18,7 @@
 
 %Include qgis.sip
 
+%Include qgsannotation.sip
 %Include qgsapplication.sip
 %Include qgsattributeaction.sip
 %Include qgsbrowsermodel.sip
@@ -158,6 +159,7 @@
 %Include auth/qgsauthmethod.sip
 
 %Include composer/qgsaddremoveitemcommand.sip
+%Include composer/qgsgroupungroupitemscommand.sip
 %Include composer/qgsaddremovemultiframecommand.sip
 %Include composer/qgsatlascomposition.sip
 %Include composer/qgscomposerarrow.sip
