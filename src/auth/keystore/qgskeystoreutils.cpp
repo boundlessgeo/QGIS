@@ -267,7 +267,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
     QString wszFileName;
     QString temp;
     QString pwd;
-    std::wstring sTemp;
+    std::string sTemp;
     std::wstring wsTemp;
 
     HCERTSTORE hSystemStore;
