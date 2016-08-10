@@ -629,7 +629,7 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     if ( !QCA::isSupported( "pkcs12" ) )
     {
-      QgsDebugMsg( tr( "QCA library has no PKCS#12 support" ) );
+      QgsDebugMsg( QString( "QCA library has no PKCS#12 support" ) );
       goto err;
     }
 
@@ -639,23 +639,23 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
 
     if ( res == QCA::ErrorFile )
     {
-      QgsDebugMsg( tr( "Failed to read bundle file" ) );
+      QgsDebugMsg( QString( "Failed to read bundle file" ) );
       goto err;
     }
     else if ( res == QCA::ErrorPassphrase )
     {
-      QgsDebugMsg( tr( "Incorrect bundle password" ) );
+      QgsDebugMsg( QString( "Incorrect bundle password" ) );
       goto err;
     }
     else if ( res == QCA::ErrorDecode )
     {
-      QgsDebugMsg( tr( "Failed to decode (try entering another password)" ) );
+      QgsDebugMsg( QString( "Failed to decode (try entering another password)" ) );
       goto err;
     }
 
     if ( bundle.isNull() )
     {
-      QgsDebugMsg( tr( "Bundle empty or can not be loaded" ) );
+      QgsDebugMsg( QString( "Bundle empty or can not be loaded" ) );
       goto err;
     }
 
