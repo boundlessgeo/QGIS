@@ -52,8 +52,13 @@ bool QgsKeyStoreEdit::validateConfig()
 QgsStringMap QgsKeyStoreEdit::configMap() const
 {
   QgsStringMap config;
-  config.insert( "certid", cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() ).toString() );
+  QPair<QString, bool> pair = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() );
+  config.insert( "certid", pair.first );
   QgsDebugMsg( QString( "Cert hash link to the KeyStore: %1" ).arg( config.value( "certid" ) ) );
+
+  bool doExport = ( chkMakeItExportable.checkState() == Qt::Checked );
+  config.insert( "export",  doExport);
+  QgsDebugMsg( QString( "Cert have to be exported flag: %1" ).arg( config.value( "export" ) ) );
 
   return config;
 }
@@ -65,6 +70,24 @@ void QgsKeyStoreEdit::loadConfig( const QgsStringMap &configmap )
   mConfigMap = configmap;
   int indx = cmbIdentityCert->findData( configmap.value( "certid" ) );
   cmbIdentityCert->setCurrentIndex( indx == -1 ? 0 : indx );
+
+  // set exportable checkbox basing on user configuration
+  chkMakeItExportable.setCheckState( configmap.value( "export" )? Qt::checked : Qt::Unchecked );
+
+  // visualize or not checkbox depending if cert is exportable
+  QPair<QString, bool> pair = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() );
+  bool isExportable = pair.second;
+
+  // set exportable checkbox basing on cert
+  chkMakeItExportable.setVsible( !isExportable );
+  if ( isExportable )
+  {
+      chkMakeItExportable.setCheckState( Qt::Unchecked );
+  }
+  else
+  {
+      // leave setting based on user configuration
+  }
 
   validateConfig();
 }
@@ -84,23 +107,30 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
   cmbIdentityCert->addItem( tr( "Select identity..." ), "" );
 
   // get the list of certs stored in KeyStore
-  QList<QSslCertificate> certs( get_systemstore("MY") );
+  QList< QPair<QSslCertificate, bool> > certsPair( get_systemstore("MY") );
   if ( !certs.isEmpty() )
   {
     cmbIdentityCert->setIconSize( QSize( 26, 22 ) );
-    QgsStringMap idents;
-    Q_FOREACH ( const QSslCertificate& cert, certs )
+    QMap< QString, QPair<QString, bool> > idents;
+
+    Q_FOREACH ( const QPair<QSslCertificate, bool>& certPair, certsPair )
     {
+      QSslCertificate cert = certPair.first;
+      bool isExportable = certPair.second;
+
       QString org( SSL_SUBJECT_INFO( cert, QSslCertificate::Organization ) );
       if ( org.isEmpty() )
         org = tr( "Organization not defined" );
+
+      QPair<QString, bool> ref(QgsAuthCertUtils::shaHexForCert(cert), isExportable);
       idents.insert( QString( "%1 (%2)" ).arg( QgsAuthCertUtils::resolvedCertName( cert ), org ),
-                     QgsAuthCertUtils::shaHexForCert(cert) );
+                     ref );
       QgsDebugMsg( QString( "Add certid = %1" ).arg( QgsAuthCertUtils::shaHexForCert(cert) ) );
     }
     QgsStringMap::const_iterator it = idents.constBegin();
     for ( ; it != idents.constEnd(); ++it )
     {
+
       cmbIdentityCert->addItem( QgsApplication::getThemeIcon( "/mIconCertificate.svg" ),
                                 it.key(), it.value() );
     }

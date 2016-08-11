@@ -37,7 +37,9 @@
 #include <windows.h>
 #include <wincrypt.h>
 
-QString get_random_string(const int size)
+QString
+get_random_string(
+        const int size)
 {
    const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 
@@ -51,7 +53,9 @@ QString get_random_string(const int size)
    return randomString;
 }
 
-bool have_systemstore(const QString &storeName)
+bool
+have_systemstore(
+        const QString &storeName)
 {
     bool ok = false;
     HCERTSTORE hSystemStore;
@@ -67,9 +71,14 @@ bool have_systemstore(const QString &storeName)
     return ok;
 }
 
-QList<QSslCertificate> get_systemstore(const QString &storeName)
+QList< QPair<SslCertificate, bool> >
+get_systemstore(
+        const QString &storeName)
 {
-    QList<QSslCertificate> col;
+    QList< QPair<SslCertificate, bool> > result;
+    QList<QSslCertificate> certs;
+    QSslCertificate cert;
+    bool isExportable;
     HCERTSTORE hSystemStore;
 
     // open store
@@ -90,25 +99,130 @@ QList<QSslCertificate> get_systemstore(const QString &storeName)
             pc);
         if(!pc)
             break;
+
+        // transform cert in QSslCertificate format
         int size = pc->cbCertEncoded;
         QByteArray der(size, 0);
         memcpy(der.data(), pc->pbCertEncoded, size);
 
-        QList<QSslCertificate> certs = QSslCertificate::fromData(der, QSsl::Der);
-        if( !certs.isEmpty() )
-            Q_FOREACH ( const QSslCertificate& cert, certs )
-            {
-                col.append(cert);
-            }
+        certs = QSslCertificate::fromData(der, QSsl::Der);
+        if( certs.isEmpty() )
+            continue;
+        cert = certs.first();
+
+        // get printable info useful for notification purpose
+        QString certInfoName = QgsAuthCertUtils::resolvedCertName( cert );
+
+        // ckeck if:
+        // 1) cert is RSA
+        // 2) has private key
+        // 3) private key is exportable
+
+        // check if cert is RSA
+        if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
+                    szOID_RSA,
+                    strlen(szOID_RSA)))
+        {
+            QgsDebugMsg( QString( "Cert %1: is not RSA. Skipped!" ).arg( certInfoName ) );
+            continue;
+        }
+
+        // check if private key is availale
+        // if not available,then cert can't be used to setup a
+        // openssl secure connection => cert is not used
+        // check if cert has private key
+        DWORD dwKeySpec;
+        DWORD dwKeySpecSize = sizeof(dwKeySpec);
+        if (!CertGetCertificateContextProperty(
+                    pCertContext,
+                    CERT_KEY_SPEC_PROP_ID,
+                    &dwKeySpec,
+                    &dwKeySpecSize))
+        {
+            QgsDebugMsg( QString( "Cert %1 has not private key. Skipped!: Wincrypt error %X" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+            continue;
+        }
+
+        // check if private key is exportable
+        // if not exportable, need permission from user
+        // to allow render it exportable by code
+
+        // Retrieve a handle to the certificate's private key's CSP key
+        // container
+        HCRYPTPROV hProv;
+        HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
+        BOOL fCallerFreeProvOrNCryptKey;
+
+        if (!CryptAcquireCertificatePrivateKey(
+                    pCertContext,
+                    CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+                    NULL,
+                    &hCryptProvOrNCryptKey,
+                    &dwKeySpec,
+                    &fCallerFreeProvOrNCryptKey))
+        {
+            QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert %1. Skipped!: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+            continue;
+        }
+
+        // export keys
+        if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
+        {
+            QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert %1. Skipped!").arg( certInfoName ) );
+            continue;
+        }
+
+        // entering here means that key can be:
+        // AT_KEYEXCHANGE: The key pair is a key exchange pair.
+        // AT_SIGNATURE: The key pair is a signature pair.
+
+        // Retrieve a handle to the certificate's private key
+        hProv = hCryptProvOrNCryptKey;
+        HCRYPTKEY hKey;
+
+        if (!CryptGetUserKey(
+                    hProv,
+                    dwKeySpec,
+                    &hKey))
+        {
+            QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert %1: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+            continue;
+        }
+
+        // try to export public/private key
+        DWORD cbData;
+
+        if ( !CryptExportKey(
+                    hKey,
+                    0,
+                    PRIVATEKEYBLOB,
+                    0,
+                    NULL,
+                    &cbData) )
+        {
+            QgsDebugMsg( QString( "Private key is not exportable for cert %1: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+            isExportable = false;
+        }
+        else
+        {
+            isExportable = true;
+        }
+
+        // add pair
+        QPair<SslCertificate, bool> pair(cert, isExportable);
+        collection.append( pair );
     }
 
     // close store
     CertCloseStore(hSystemStore, 0);
 
-    return col;
+    return collection;
 }
 
-QSslCertificate get_systemstore_cert(const QString &certHash, const QString &storeName)
+QSslCertificate
+get_systemstore_cert(
+        const QString &certHash,
+        const QString &storeName)
 {
     QSslCertificate cert;
     HCERTSTORE hSystemStore;
@@ -156,7 +270,10 @@ QSslCertificate get_systemstore_cert(const QString &certHash, const QString &sto
     return cert;
 }
 
-bool systemstore_cert_privatekey_available(const QString &certHash, const QString &storeName)
+bool
+systemstore_cert_privatekey_available(
+        const QString &certHash,
+        const QString &storeName)
 {
     bool isAvailable = false;
     HCERTSTORE hSystemStore;
@@ -250,7 +367,11 @@ bool systemstore_cert_privatekey_available(const QString &certHash, const QStrin
     return isAvailable;
 }
 
-QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName)
+QPair<QSslCertificate, QSslKey>
+get_systemstore_cert_with_privatekey(
+        const QString &certHash,
+        const QString &storeName,
+        const bool forceExport)
 {
     // QSsl section
     QSslKey privateKey = QSslKey();
@@ -430,12 +551,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
                             0,
                             NULL,
                             &cbData);
-    if (!hasExported)
+    if (!hasExported && forceExport)
     {
-        //
-        // TODO: notify the user to have permission to export privatekey
-        //
-
         // Mark the certificate's private key as exportable and archivable
         // this memory structure hack derive directly from the following paper:
         // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
