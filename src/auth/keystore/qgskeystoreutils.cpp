@@ -437,6 +437,8 @@ QPair<QSslCertificate, QSslKey> get_systemstore_cert_with_privatekey(const QStri
         //
 
         // Mark the certificate's private key as exportable and archivable
+        // this memory structure hack derive directly from the following paper:
+        // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
         *(ULONG_PTR*)(*(ULONG_PTR*)(*(ULONG_PTR*)
             #if defined(_M_X64)
                 (hKey + 0x58) ^ 0xE35A172CD96214A0) + 0x0C)
