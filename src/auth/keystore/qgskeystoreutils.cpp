@@ -24,6 +24,7 @@
 #include <QSslKey>
 #include <QSsl>
 #endif
+#include <QList>
 #include <QPair>
 #include <QChar>
 #include <QDir>
@@ -134,7 +135,7 @@ get_systemstore(
         DWORD dwKeySpec;
         DWORD dwKeySpecSize = sizeof(dwKeySpec);
         if (!CertGetCertificateContextProperty(
-                    pCertContext,
+                    pc,
                     CERT_KEY_SPEC_PROP_ID,
                     &dwKeySpec,
                     &dwKeySpecSize))
@@ -154,7 +155,7 @@ get_systemstore(
         BOOL fCallerFreeProvOrNCryptKey;
 
         if (!CryptAcquireCertificatePrivateKey(
-                    pCertContext,
+                    pc,
                     CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
                     NULL,
                     &hCryptProvOrNCryptKey,
@@ -209,14 +210,17 @@ get_systemstore(
         }
 
         // add pair
-        QPair<SslCertificate, bool> pair(cert, isExportable);
-        collection.append( pair );
+        QPair<QSslCertificate, bool> pair;
+        pair.first = cert;
+        pair.second = isExportable;
+
+        result.append( pair );
     }
 
     // close store
     CertCloseStore(hSystemStore, 0);
 
-    return collection;
+    return result;
 }
 
 QSslCertificate
