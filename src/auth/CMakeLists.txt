@@ -12,7 +12,12 @@ SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${QGIS_OUTPUT_DIRECTORY}/${QGIS_PLUGIN_SUBDI
 # NOTE: the plugin's file name must follow this pattern to be found during auth method registry loading:
 #       (.*)authmethod\.(so|dll)
 
+SET(ENABLE_OAUTH2_PLUGIN FALSE CACHE BOOL "Enable OAuth2 authentication plugin")
+
 ADD_SUBDIRECTORY(basic)
 ADD_SUBDIRECTORY(identcert)
+IF(ENABLE_OAUTH2_PLUGIN)
+  ADD_SUBDIRECTORY(oauth2)
+ENDIF(ENABLE_OAUTH2_PLUGIN)
 ADD_SUBDIRECTORY(pkipaths)
 ADD_SUBDIRECTORY(pkipkcs12)
