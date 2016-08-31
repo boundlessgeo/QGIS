@@ -265,7 +265,7 @@ QgsPkiConfigBundle *QgsKeyStoreMethod::getPkiConfigBundle( const QString &authcf
   cibundle = get_systemstore_cert_with_privatekey(
               mconfig.config( "certid" ),
               "MY",
-              mconfig.config( "export" ));
+              mconfig.config( "export" ) == "1");
   if ( cibundle.first.isNull() || cibundle.second.isNull() )
   {
     QgsDebugMsg( QString( "KeyStore bundle uncomplete for cert with hash: %1" ).arg( mconfig.config( "certid" ) ) );
