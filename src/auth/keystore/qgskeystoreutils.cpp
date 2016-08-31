@@ -55,6 +55,51 @@ get_random_string(
 }
 
 bool
+convert_hash_to_binary(
+        const QString &certHash,
+        CRYPT_HASH_BLOB &hashBlob)
+{
+    // reset the CRYPT_HASH_BLOB struct
+    hashBlob.cbData = 0;
+    if hashBlob.pbData
+    {
+        free(hashBlob.pbData);
+        hashBlob.pbData = NULL;
+    }
+
+    // convert hash in binary hash useful to find certificate
+    LPCTSTR pszString = certHash.toLatin1().data();
+    DWORD pcchString = certHash.toLatin1().size();
+    if ( !CryptStringToBinary(
+            pszString,
+            pcchString,
+            CRYPT_STRING_HEX,
+            NULL,
+            &pcbBinary,
+            NULL,
+            NULL))
+    {
+        QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        return false;
+    }
+    BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
+    CryptStringToBinary(
+                pszString,
+                pcchString,
+                CRYPT_STRING_HEX,
+                pbBinary,
+                &pcbBinary,
+                NULL,
+                NULL);
+
+    // fill the CRYPT_HASH_BLOB struct
+    hashBlob.cbData = pcbBinary;
+    hashBlob.pbData = pbBinary;
+
+    return true
+}
+
+bool
 have_systemstore(
         const QString &storeName)
 {
@@ -70,6 +115,73 @@ have_systemstore(
     CertCloseStore(hSystemStore, 0);
 
     return ok;
+}
+
+
+QList< SslCertificate >
+get_systemstore(
+        const QString &storeName)
+{
+    QList<SslCertificate> result;
+    QList<QSslCertificate> certs;
+    QSslCertificate cert;
+    bool isExportable;
+    HCERTSTORE hSystemStore;
+
+    // open store
+    hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
+    if(!hSystemStore)
+        return col;
+
+    // load certs
+    PCCERT_CONTEXT pc = NULL;
+    while(1)
+    {
+        pc = CertFindCertificateInStore(
+            hSystemStore,
+            X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
+            0,
+            CERT_FIND_ANY,
+            NULL,
+            pc);
+        if(!pc)
+            break;
+
+        // transform cert in QSslCertificate format
+        int size = pc->cbCertEncoded;
+        QByteArray der(size, 0);
+        memcpy(der.data(), pc->pbCertEncoded, size);
+
+        certs = QSslCertificate::fromData(der, QSsl::Der);
+        if( certs.isEmpty() )
+            continue;
+        cert = certs.first();
+
+        // get printable info useful for notification purpose
+        QString certInfoName = QgsAuthCertUtils::resolvedCertName( cert );
+
+        // ckeck if:
+        // 1) cert is RSA
+        // 2) has private key
+        // 3) private key is exportable
+
+        // check if cert is RSA
+        if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
+                    szOID_RSA,
+                    strlen(szOID_RSA)))
+        {
+            QgsDebugMsg( QString( "Cert %1: is not RSA. Skipped!" ).arg( certInfoName ) );
+            continue;
+        }
+
+        // add to result
+        result.append( cert );
+    }
+
+    // close store
+    CertCloseStore(hSystemStore, 0);
+
+    return result;
 }
 
 QList< QPair<SslCertificate, bool> >
@@ -101,7 +213,50 @@ get_systemstore(
         if(!pc)
             break;
 
-        // transform cert in QSslCertificate format
+        // bool
+        convert_hash_to_binary(
+                const QString &certHash,
+                CRYPT_HASH_BLOB &hashBlob)
+        {
+            // reset the CRYPT_HASH_BLOB struct
+            hashBlob.cbData = 0;
+            if hashBlob.pbData
+            {
+                free(hashBlob.pbData);
+                hashBlob.pbData = NULL;
+            }
+
+            // convert hash in binary hash useful to find certificate
+            LPCTSTR pszString = certHash.toLatin1().data();
+            DWORD pcchString = certHash.toLatin1().size();
+            if ( !CryptStringToBinary(
+                    pszString,
+                    pcchString,
+                    CRYPT_STRING_HEX,
+                    NULL,
+                    &pcbBinary,
+                    NULL,
+                    NULL))
+            {
+                QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+                return false;
+            }
+            BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
+            CryptStringToBinary(
+                        pszString,
+                        pcchString,
+                        CRYPT_STRING_HEX,
+                        pbBinary,
+                        &pcbBinary,
+                        NULL,
+                        NULL);
+
+            // fill the CRYPT_HASH_BLOB struct
+            hashBlob.cbData = pcbBinary;
+            hashBlob.pbData = pbBinary;
+
+            return true
+        }transform cert in QSslCertificate format
         int size = pc->cbCertEncoded;
         QByteArray der(size, 0);
         memcpy(der.data(), pc->pbCertEncoded, size);
@@ -280,52 +435,35 @@ systemstore_cert_privatekey_available(
         const QString &storeName)
 {
     bool isAvailable = false;
+
+    // wincrypt vars
     HCERTSTORE hSystemStore;
     CRYPT_HASH_BLOB hashBlob;
+    hashBlob.cbData = 0;
+    hashBlob.pbData = NULL;
+    PCCERT_CONTEXT pCertContext = NULL;
+    DWORD dwKeySpec;
+    DWORD dwKeySpecSize = sizeof(dwKeySpec);
 
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
     {
         QgsDebugMsg( QString( "Cannot open KeyStore %1" ).arg( storeName ) );
-        return isAvailable;
+        goto terminate;
     }
 
     // convert hash in binary hash useful to find certificate
-    LPCTSTR pszString = certHash.toLatin1().data();
-    DWORD pcchString = certHash.toLatin1().size();
-    DWORD pcbBinary;
-    if ( !CryptStringToBinary(
-            pszString,
-            pcchString,
-            CRYPT_STRING_HEX,
-            NULL,
-            &pcbBinary,
-            NULL,
-            NULL))
+    if ( !convert_hash_to_binary(
+             certHash,
+             hashBlob) )
     {
-        QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        return isAvailable;
+        goto terminate;
     }
-    BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
-    CryptStringToBinary(
-                pszString,
-                pcchString,
-                CRYPT_STRING_HEX,
-                pbBinary,
-                &pcbBinary,
-                NULL,
-                NULL);
-
-
-    // fill the CRYPT_HASH_BLOB struct
-    hashBlob.cbData = pcbBinary;
-    hashBlob.pbData = pbBinary;
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to
     // multiple import and different name
-    PCCERT_CONTEXT pCertContext = NULL;
     pCertContext = CertFindCertificateInStore(
                             hSystemStore,
                             X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
@@ -333,43 +471,191 @@ systemstore_cert_privatekey_available(
                             CERT_FIND_HASH,
                             (const void *) &hashBlob,
                             NULL);
-    free(pbBinary);
-    if ( pCertContext )
+    if ( !pCertContext )
     {
-        // check if cert is RSA
-        if (!strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
-                    szOID_RSA,
-                    strlen(szOID_RSA)))
-        {
-            // check if cert has private key
-            DWORD dwKeySpec;
-            DWORD dwKeySpecSize = sizeof(dwKeySpec);
-            if (CertGetCertificateContextProperty(
-                        pCertContext,
-                        CERT_KEY_SPEC_PROP_ID,
-                        &dwKeySpec,
-                        &dwKeySpecSize))
-            {
-                isAvailable = true;
-            }
-            else
-            {
-                QgsDebugMsg( QString( "Cert with hash %1: has no private key available" ).arg( certHash ) );
-            }
-        }
-        else
-        {
-            QgsDebugMsg( QString( "Cert with hash %1: is not RSA" ).arg( certHash ) );
-        }
+        QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
     }
 
+    // check if cert is RSA
+    if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
+                szOID_RSA,
+                strlen(szOID_RSA)))
+    {
+        QgsDebugMsg( QString( "Cert with hash %1: is not RSA" ).arg( certHash ) );
+        goto terminate;
+    }
+
+    // check if cert has private key
+    if (CertGetCertificateContextProperty(
+                pCertContext,
+                CERT_KEY_SPEC_PROP_ID,
+                &dwKeySpec,
+                &dwKeySpecSize))
+    {
+        isAvailable = true;
+    }
+    else
+    {
+        QgsDebugMsg( QString( "Cert with hash %1: has no private key available" ).arg( certHash ) );
+    }
+
+terminate:
     // close store
     if(pCertContext)
         CertFreeCertificateContext(pCertContext);
     CertCloseStore(hSystemStore, 0);
 
+    // fee allocations
+    if hashBlob.pbData
+        free(hashBlob.pbData);
+
     return isAvailable;
 }
+
+bool
+systemstore_cert_privatekey_is_exportable(
+        const QString &certHash,
+        const QString &storeName)
+{
+    bool isExportable = false;
+
+    // wincrypt vars
+    HCERTSTORE hSystemStore;
+    CRYPT_HASH_BLOB hashBlob;
+    hashBlob.cbData = 0;
+    hashBlob.pbData = NULL;
+    PCCERT_CONTEXT pCertContext = NULL;
+    DWORD dwKeySpec;
+    DWORD dwKeySpecSize = sizeof(dwKeySpec);
+    HCRYPTPROV hProv;
+    HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
+    BOOL fCallerFreeProvOrNCryptKey;
+    HCRYPTKEY hKey;
+    DWORD cbData;
+
+    // open store
+    hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
+    if(!hSystemStore)
+    {
+        QgsDebugMsg( QString( "Cannot open KeyStore %1" ).arg( storeName ) );
+        goto terminate;
+    }
+
+    // convert hash in binary hash useful to find certificate
+    if ( !convert_hash_to_binary(
+             certHash,
+             hashBlob) )
+    {
+        goto terminate;
+    }
+
+    // load cert related with the hash
+    // can be available more than one cert with the same hash due to
+    // multiple import and different name
+    pCertContext = CertFindCertificateInStore(
+                            hSystemStore,
+                            X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
+                            0,
+                            CERT_FIND_HASH,
+                            (const void *) &hashBlob,
+                            NULL);
+    if ( !pCertContext )
+    {
+        QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
+
+    // check if cert is RSA
+    if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
+                szOID_RSA,
+                strlen(szOID_RSA)))
+    {
+        QgsDebugMsg( QString( "Cert with hash %1: is not RSA" ).arg( certHash ) );
+        goto terminate;
+    }
+
+    // check if cert has private key
+    if (!CertGetCertificateContextProperty(
+                pCertContext,
+                CERT_KEY_SPEC_PROP_ID,
+                &dwKeySpec,
+                &dwKeySpecSize))
+    {
+        QgsDebugMsg( QString( "Cert with hash %1: has no private key available" ).arg( certHash ) );
+        goto terminate;
+    }
+
+    // check if private key is exportable
+
+    // Retrieve a handle to the certificate's private key's CSP key
+    // container
+    if (!CryptAcquireCertificatePrivateKey(
+                pc,
+                CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+                NULL,
+                &hCryptProvOrNCryptKey,
+                &dwKeySpec,
+                &fCallerFreeProvOrNCryptKey))
+    {
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert %1. Skipped!: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+    }
+
+    // export keys
+    if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
+    {
+        QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert %1. Skipped!").arg( certInfoName ) );
+        goto terminate;
+    }
+
+    // entering here means that key can be:
+    // AT_KEYEXCHANGE: The key pair is a key exchange pair.
+    // AT_SIGNATURE: The key pair is a signature pair.
+
+    // Retrieve a handle to the certificate's private key
+    hProv = hCryptProvOrNCryptKey;
+
+    if (!CryptGetUserKey(
+                hProv,
+                dwKeySpec,
+                &hKey))
+    {
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert %1: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+        continue;
+    }
+
+    // try to export public/private key
+    if ( !CryptExportKey(
+                hKey,
+                0,
+                PRIVATEKEYBLOB,
+                0,
+                NULL,
+                &cbData) )
+    {
+        QgsDebugMsg( QString( "Private key is NOT exportable for cert %1: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+        isExportable = false;
+    }
+    else
+    {
+        QgsDebugMsg( QString( "Private key is exportable for cert %1" ).arg( certInfoName ));
+        isExportable = true;
+    }
+
+terminate:
+    // close store
+    if(pCertContext)
+        CertFreeCertificateContext(pCertContext);
+    CertCloseStore(hSystemStore, 0);
+
+    // fee allocations
+    if hashBlob.pbData
+        free(hashBlob.pbData);
+
+    return isExportable;
+}
+
 
 QPair<QSslCertificate, QSslKey>
 get_systemstore_cert_with_privatekey(
@@ -415,36 +701,12 @@ get_systemstore_cert_with_privatekey(
     }
 
     // convert hash in binary hash useful to find certificate
-    LPCTSTR pszString = certHash.toLatin1().data();
-    DWORD pcchString = certHash.toLatin1().size();
-    DWORD pcbBinary;
-
-    if ( !CryptStringToBinary(
-            pszString,
-            pcchString,
-            CRYPT_STRING_HEX,
-            NULL,
-            &pcbBinary,
-            NULL,
-            NULL))
+    if ( !convert_hash_to_binary(
+             certHash,
+             hashBlob) )
     {
-        QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto terminate;
     }
-    pbBinary = (BYTE*) malloc(pcbBinary);
-
-    CryptStringToBinary(
-                pszString,
-                pcchString,
-                CRYPT_STRING_HEX,
-                pbBinary,
-                &pcbBinary,
-                NULL,
-                NULL);
-
-    // fill the CRYPT_HASH_BLOB struct
-    hashBlob.cbData = pcbBinary;
-    hashBlob.pbData = pbBinary;
 
     // load cert related with the hash
     // can be available more than one cert with the same hash due to

@@ -53,14 +53,15 @@ bool QgsKeyStoreEdit::validateConfig()
     mValid = curvalid;
     emit validityChanged( curvalid );
   }
+
   return curvalid;
 }
 
 QgsStringMap QgsKeyStoreEdit::configMap() const
 {
   QgsStringMap config;
-  QMap<QString, bool> map = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() );
-  config.insert( "certid", map.begin().key() );
+  QString certHash = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() );
+  config.insert( "certid", certHash );
   QgsDebugMsg( QString( "Cert hash link to the KeyStore: %1" ).arg( config.value( "certid" ) ) );
 
   bool doExport = ( chkMakeItExportable.checkState() == Qt::Checked );
@@ -75,26 +76,8 @@ void QgsKeyStoreEdit::loadConfig( const QgsStringMap &configmap )
   clearConfig();
 
   mConfigMap = configmap;
-  int indx = cmbIdentityCert->findData( configmap.value( "certid" ) );
+  int indx = cmbIdentityCert->findData( mConfigMap.value( "certid" ) );
   cmbIdentityCert->setCurrentIndex( indx == -1 ? 0 : indx );
-
-  // set exportable checkbox basing on user configuration
-  chkMakeItExportable.setCheckState( configmap.value( "export" )? Qt::checked : Qt::Unchecked );
-
-  // visualize or not checkbox depending if cert is exportable
-  QMap<QString, bool> map = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() );
-  bool isExportable = map.begin().value();
-
-  // set exportable checkbox basing on cert
-  chkMakeItExportable.setVsible( !isExportable );
-  if ( isExportable )
-  {
-      chkMakeItExportable.setCheckState( Qt::Unchecked );
-  }
-  else
-  {
-      // leave setting based on user configuration
-  }
 
   validateConfig();
 }
@@ -114,25 +97,22 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
   cmbIdentityCert->addItem( tr( "Select identity..." ), "" );
 
   // get the list of certs stored in KeyStore
-  QList< QPair<QSslCertificate, bool> > certsPair( get_systemstore("MY") );
-  if ( !certsPair.isEmpty() )
+  QList< QSslCertificate > certs( get_systemstore("MY") );
+  if ( !certs.isEmpty() )
   {
     cmbIdentityCert->setIconSize( QSize( 26, 22 ) );
     QMap< QString, QMap<QString, bool> > idents;
 
-    Q_FOREACH ( const QPair<QSslCertificate, bool>& certPair, certsPair )
+    Q_FOREACH ( const QSslCertificate& cert, certs )
     {
-      QSslCertificate cert = certPair.first;
-      bool isExportable = certPair.second;
-
       QString org( SSL_SUBJECT_INFO( cert, QSslCertificate::Organization ) );
       if ( org.isEmpty() )
         org = tr( "Organization not defined" );
 
-      QMap<QString, bool> ref(QgsAuthCertUtils::shaHexForCert(cert), isExportable);
+      QString ref(QgsAuthCertUtils::shaHexForCert(cert));
       idents.insert( QString( "%1 (%2)" ).arg( QgsAuthCertUtils::resolvedCertName( cert ), org ),
                      ref );
-      QgsDebugMsg( QString( "Add certid = %1" ).arg( QgsAuthCertUtils::shaHexForCert(cert) ) );
+      QgsDebugMsg( QString( "Add certid = %1" ).arg( ref ) );
     }
     QgsStringMap::const_iterator it = idents.constBegin();
     for ( ; it != idents.constEnd(); ++it )
@@ -146,7 +126,30 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
 
 void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
 {
-  Q_UNUSED( indx );
+  // get hash
+  QString certHash = cmbIdentityCert->itemData( indx );
+
+  // visualize or not checkbox depending if cert is exportable
+  bool isExportable = systemstore_cert_privatekey_is_exportable(
+                            configmap.value( "certid" ),
+                            "MY");
+  chkMakeItExportable.setVsible( !isExportable );
+
+  // set exportable checkbox basing on cert
+  if (isExportable)
+  {
+    chkMakeItExportable.setCheckState( Qt::Unchecked );
+  }
+  else
+  {
+    // set basing of user configuration
+    if (mConfigMap &&
+        (mConfigMap.value( "certid" ) == certHash) )
+    {
+      chkMakeItExportable.setCheckState( mConfigMap.value( "export" ) );
+    }
+  }
+
   validateConfig();
 }
 
