@@ -60,12 +60,12 @@ bool QgsKeyStoreEdit::validateConfig()
 QgsStringMap QgsKeyStoreEdit::configMap() const
 {
   QgsStringMap config;
-  QString certHash = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() );
+  QString certHash = cmbIdentityCert->itemData( cmbIdentityCert->currentIndex() ).toString();
   config.insert( "certid", certHash );
   QgsDebugMsg( QString( "Cert hash link to the KeyStore: %1" ).arg( config.value( "certid" ) ) );
 
-  bool doExport = ( chkMakeItExportable.checkState() == Qt::Checked );
-  config.insert( "export",  doExport);
+  bool doExport = ( chkMakeItExportable->checkState() == Qt::Checked );
+  config.insert( "export",  doExport? QString("1") : QString("0") );
   QgsDebugMsg( QString( "Cert have to be exported flag: %1" ).arg( config.value( "export" ) ) );
 
   return config;
@@ -101,7 +101,7 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
   if ( !certs.isEmpty() )
   {
     cmbIdentityCert->setIconSize( QSize( 26, 22 ) );
-    QMap< QString, QMap<QString, bool> > idents;
+    QgsStringMap idents;
 
     Q_FOREACH ( const QSslCertificate& cert, certs )
     {
@@ -127,18 +127,16 @@ void QgsKeyStoreEdit::populateIdentityComboBox()
 void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
 {
   // get hash
-  QString certHash = cmbIdentityCert->itemData( indx );
+  QString certHash = cmbIdentityCert->itemData( indx ).toString();
 
   // visualize or not checkbox depending if cert is exportable
-  bool isExportable = systemstore_cert_privatekey_is_exportable(
-                            configmap.value( "certid" ),
-                            "MY");
-  chkMakeItExportable.setVsible( !isExportable );
+  bool isExportable = systemstore_cert_privatekey_is_exportable( certHash, "MY" );
+  chkMakeItExportable->setVsible( !isExportable );
 
   // set exportable checkbox basing on cert
   if (isExportable)
   {
-    chkMakeItExportable.setCheckState( Qt::Unchecked );
+    chkMakeItExportable->setCheckState( Qt::Unchecked );
   }
   else
   {
@@ -146,7 +144,8 @@ void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
     if (mConfigMap &&
         (mConfigMap.value( "certid" ) == certHash) )
     {
-      chkMakeItExportable.setCheckState( mConfigMap.value( "export" ) );
+      bool toExport = (mConfigMap.value( "export" ) == QString("1"));
+      chkMakeItExportable->setCheckState( toExport );
     }
   }
 

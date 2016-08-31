@@ -61,7 +61,7 @@ convert_hash_to_binary(
 {
     // reset the CRYPT_HASH_BLOB struct
     hashBlob.cbData = 0;
-    if hashBlob.pbData
+    if(hashBlob.pbData)
     {
         free(hashBlob.pbData);
         hashBlob.pbData = NULL;
@@ -70,6 +70,7 @@ convert_hash_to_binary(
     // convert hash in binary hash useful to find certificate
     LPCTSTR pszString = certHash.toLatin1().data();
     DWORD pcchString = certHash.toLatin1().size();
+    DWORD pcbBinary;
     if ( !CryptStringToBinary(
             pszString,
             pcchString,
@@ -96,7 +97,7 @@ convert_hash_to_binary(
     hashBlob.cbData = pcbBinary;
     hashBlob.pbData = pbBinary;
 
-    return true
+    return true;
 }
 
 bool
@@ -117,12 +118,11 @@ have_systemstore(
     return ok;
 }
 
-
-QList< SslCertificate >
+QList< QSslCertificate >
 get_systemstore(
         const QString &storeName)
 {
-    QList<SslCertificate> result;
+    QList<QSslCertificate> result;
     QList<QSslCertificate> certs;
     QSslCertificate cert;
     bool isExportable;
@@ -131,26 +131,26 @@ get_systemstore(
     // open store
     hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
     if(!hSystemStore)
-        return col;
+        return result;
 
     // load certs
-    PCCERT_CONTEXT pc = NULL;
+    PCCERT_CONTEXT pCertContext = NULL;
     while(1)
     {
-        pc = CertFindCertificateInStore(
-            hSystemStore,
-            X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
-            0,
-            CERT_FIND_ANY,
-            NULL,
-            pc);
-        if(!pc)
+        pCertContext = CertFindCertificateInStore(
+                          hSystemStore,
+                          X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
+                          0,
+                          CERT_FIND_ANY,
+                          NULL,
+                          pCertContext);
+        if(!pCertContext)
             break;
 
         // transform cert in QSslCertificate format
-        int size = pc->cbCertEncoded;
+        int size = pCertContext->cbCertEncoded;
         QByteArray der(size, 0);
-        memcpy(der.data(), pc->pbCertEncoded, size);
+        memcpy(der.data(), pCertContext->pbCertEncoded, size);
 
         certs = QSslCertificate::fromData(der, QSsl::Der);
         if( certs.isEmpty() )
@@ -184,7 +184,7 @@ get_systemstore(
     return result;
 }
 
-QList< QPair<SslCertificate, bool> >
+/*QList< QPair<SslCertificate, bool> >
 get_systemstore(
         const QString &storeName)
 {
@@ -376,7 +376,7 @@ get_systemstore(
     CertCloseStore(hSystemStore, 0);
 
     return result;
-}
+}*/
 
 QSslCertificate
 get_systemstore_cert(
@@ -507,7 +507,7 @@ terminate:
     CertCloseStore(hSystemStore, 0);
 
     // fee allocations
-    if hashBlob.pbData
+    if(hashBlob.pbData)
         free(hashBlob.pbData);
 
     return isAvailable;
@@ -591,21 +591,21 @@ systemstore_cert_privatekey_is_exportable(
     // Retrieve a handle to the certificate's private key's CSP key
     // container
     if (!CryptAcquireCertificatePrivateKey(
-                pc,
+                pCertContext,
                 CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
                 NULL,
                 &hCryptProvOrNCryptKey,
                 &dwKeySpec,
                 &fCallerFreeProvOrNCryptKey))
     {
-        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert %1. Skipped!: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1. Skipped!: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto terminate;
     }
 
     // export keys
     if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
     {
-        QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert %1. Skipped!").arg( certInfoName ) );
+        QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1. Skipped!").arg( certHash ) );
         goto terminate;
     }
 
@@ -621,7 +621,7 @@ systemstore_cert_privatekey_is_exportable(
                 dwKeySpec,
                 &hKey))
     {
-        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert %1: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         continue;
     }
 
@@ -634,12 +634,12 @@ systemstore_cert_privatekey_is_exportable(
                 NULL,
                 &cbData) )
     {
-        QgsDebugMsg( QString( "Private key is NOT exportable for cert %1: Wincrypt error 0x%2" ).arg( certInfoName ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         isExportable = false;
     }
     else
     {
-        QgsDebugMsg( QString( "Private key is exportable for cert %1" ).arg( certInfoName ));
+        QgsDebugMsg( QString( "Private key is exportable for cert with hash %1" ).arg( certHash ));
         isExportable = true;
     }
 
@@ -650,7 +650,7 @@ terminate:
     CertCloseStore(hSystemStore, 0);
 
     // fee allocations
-    if hashBlob.pbData
+    if(hashBlob.pbData)
         free(hashBlob.pbData);
 
     return isExportable;

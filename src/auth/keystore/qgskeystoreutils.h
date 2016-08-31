@@ -23,9 +23,11 @@
 #define QGSKEYSTOREUTILS_H
 
 bool have_systemstore(const QString &storeName = "ROOT");
-QList< QPair<QSslCertificate, bool> > get_systemstore(const QString &storeName = "ROOT");
+QList< QSslCertificate > get_systemstore(const QString &storeName = "ROOT");
+//QList< QPair<QSslCertificate, bool> > get_systemstore(const QString &storeName = "ROOT");
 QSslCertificate get_systemstore_cert(const QString &certHash, const QString &storeName = "ROOT");
 bool systemstore_cert_privatekey_available(const QString &certHash, const QString &storeName = "ROOT");
+bool systemstore_cert_privatekey_is_exportable(const QString &certHash, const QString &storeName = "ROOT");
 QPair<QSslCertificate, QSslKey>get_systemstore_cert_with_privatekey(const QString &certHash, const QString &storeName = "ROOT", const bool forceExport = false);
 
 #endif // QGSKEYSTOREUTILS_H
