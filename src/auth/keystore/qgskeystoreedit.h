@@ -27,31 +27,31 @@
 
 class QgsKeyStoreEdit : public QgsAuthMethodEdit, private Ui::QgsKeyStoreEdit
 {
-    Q_OBJECT
+  Q_OBJECT
 
-  public:
-    explicit QgsKeyStoreEdit( QWidget *parent = nullptr );
-    virtual ~QgsKeyStoreEdit();
+public:
+  explicit QgsKeyStoreEdit( QWidget *parent = nullptr );
+  virtual ~QgsKeyStoreEdit();
 
-    bool validateConfig() override;
+  bool validateConfig() override;
 
-    QgsStringMap configMap() const override;
+  QgsStringMap configMap() const override;
 
-  public slots:
-    void loadConfig( const QgsStringMap &configmap ) override;
+public slots:
+  void loadConfig( const QgsStringMap &configmap ) override;
 
-    void resetConfig() override;
+  void resetConfig() override;
 
-    void clearConfig() override;
+  void clearConfig() override;
 
-  private slots:
-    void populateIdentityComboBox();
+private slots:
+  void populateIdentityComboBox();
 
-    void on_cmbIdentityCert_currentIndexChanged( int indx );
+  void on_cmbIdentityCert_currentIndexChanged( int indx );
 
-  private:
-    QgsStringMap mConfigMap;
-    bool mValid;
+private:
+  QgsStringMap mConfigMap;
+  bool mValid;
 };
 
 #endif // QGSKEYSTOREEDIT_H

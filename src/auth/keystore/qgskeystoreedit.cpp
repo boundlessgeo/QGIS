@@ -34,8 +34,8 @@
 #include "qgskeystoreutils.h"
 
 QgsKeyStoreEdit::QgsKeyStoreEdit( QWidget *parent )
-    : QgsAuthMethodEdit( parent )
-    , mValid( 0 )
+  : QgsAuthMethodEdit( parent )
+  , mValid( 0 )
 {
   setupUi( this );
   populateIdentityComboBox();

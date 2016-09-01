@@ -26,38 +26,38 @@
 
 class QgsKeyStoreMethod : public QgsAuthMethod
 {
-    Q_OBJECT
+  Q_OBJECT
 
-  public:
-    explicit QgsKeyStoreMethod();
-    ~QgsKeyStoreMethod();
+public:
+  explicit QgsKeyStoreMethod();
+  ~QgsKeyStoreMethod();
 
-    // QgsAuthMethod interface
-    QString key() const override;
+  // QgsAuthMethod interface
+  QString key() const override;
 
-    QString description() const override;
+  QString description() const override;
 
-    QString displayDescription() const override;
+  QString displayDescription() const override;
 
-    bool updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
-                               const QString &dataprovider = QString() ) override;
+  bool updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
+                             const QString &dataprovider = QString() ) override;
 
-    bool updateDataSourceUriItems( QStringList &connectionItems, const QString &authcfg,
-                                   const QString &dataprovider = QString() ) override;
+  bool updateDataSourceUriItems( QStringList &connectionItems, const QString &authcfg,
+                                 const QString &dataprovider = QString() ) override;
 
-    void clearCachedConfig( const QString &authcfg ) override;
+  void clearCachedConfig( const QString &authcfg ) override;
 
-    void updateMethodConfig( QgsAuthMethodConfig &mconfig ) override;
+  void updateMethodConfig( QgsAuthMethodConfig &mconfig ) override;
 
-  private:
+private:
 
-    QgsPkiConfigBundle * getPkiConfigBundle( const QString &authcfg );
+  QgsPkiConfigBundle * getPkiConfigBundle( const QString &authcfg );
 
-    void putPkiConfigBundle( const QString &authcfg, QgsPkiConfigBundle * pkibundle );
+  void putPkiConfigBundle( const QString &authcfg, QgsPkiConfigBundle * pkibundle );
 
-    void removePkiConfigBundle( const QString &authcfg );
+  void removePkiConfigBundle( const QString &authcfg );
 
-    static QMap<QString, QgsPkiConfigBundle *> mPkiConfigBundleCache;
+  static QMap<QString, QgsPkiConfigBundle *> mPkiConfigBundleCache;
 
 };
 
