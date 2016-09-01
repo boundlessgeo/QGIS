@@ -861,7 +861,7 @@ terminate:
   // close store
   if ( hFile && (hFile != INVALID_HANDLE_VALUE) )
     CloseHandle(hFile);
-  if (wszFileName)
+  if (wszFileName.isEmpty())
     // be sure that temp cert has been removed
     // if not available => return false and no exception
     QFile::remove(wszFileName);
