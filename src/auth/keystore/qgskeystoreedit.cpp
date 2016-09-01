@@ -130,17 +130,14 @@ void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
   QString certHash = cmbIdentityCert->itemData( indx ).toString();
 
   // visualize or not checkbox depending if cert is exportable
-  bool isExportable = systemstore_cert_privatekey_is_exportable( certHash, "MY" );
-  chkMakeItExportable->setVisible( !isExportable );
+  bool isCertExportable = systemstore_cert_privatekey_is_exportable( certHash, "MY" );
+  chkMakeItExportable->setVisible( !isCertExportable );
 
-  // set exportable checkbox basing on cert
-  if (isExportable)
+  // set exportable checkbox basing on cert (by default don't force export)
+  chkMakeItExportable->setCheckState( Qt::Unchecked );
+  if (!isCertExportable)
   {
-    chkMakeItExportable->setCheckState( Qt::Unchecked );
-  }
-  else
-  {
-    // set basing of user configuration
+    // set basing of user configuration for the saved conf
     if ( mConfigMap.value( "certid" ) == certHash )
     {
       bool toExport = (mConfigMap.value( "export" ) == QString("1"));
