@@ -11,9 +11,6 @@
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
- *
- *   Code inspired from Justin Karneges <justin@affinix.com> code get from
- *   https://quickgit.kde.org/?p=qca.git&a=blob&h=cdf15659b0f8a33cfe13b5d9473471f60ab95fe4&hb=eb5eeca609e9960d7afe3462b421bfe0a48b8e21&f=src%2Fqca_systemstore.h
  *                                                                         *
  ***************************************************************************/
 

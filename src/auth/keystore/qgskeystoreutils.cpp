@@ -12,8 +12,11 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *
- *   Code inspired from Justin Karneges <justin@affinix.com> code get from
+ *   Code inspired from Justin Karneges <justin@affinix.com> code get from:
  *   https://quickgit.kde.org/?p=qca.git&a=blob&h=b48d8529ccd586c2a14dfa219fae29825c1c7105&hb=eb5eeca609e9960d7afe3462b421bfe0a48b8e21&f=src%2Fqca_systemstore_win.cpp
+ *   and
+ *   from Jason Geffner code get from:
+ *   https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
  *                                                                         *
  ***************************************************************************/
 
