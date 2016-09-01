@@ -125,7 +125,6 @@ get_systemstore(
     QList<QSslCertificate> result;
     QList<QSslCertificate> certs;
     QSslCertificate cert;
-    bool isExportable;
     HCERTSTORE hSystemStore;
 
     // open store
@@ -622,7 +621,7 @@ systemstore_cert_privatekey_is_exportable(
                 &hKey))
     {
         QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        continue;
+        goto terminate;
     }
 
     // try to export public/private key

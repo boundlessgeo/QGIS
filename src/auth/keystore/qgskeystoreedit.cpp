@@ -141,11 +141,10 @@ void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
   else
   {
     // set basing of user configuration
-    if (mConfigMap &&
-        (QString(mConfigMap.value( "certid" )) == certHash) )
+    if ( mConfigMap.value( "certid" ) == certHash )
     {
-      bool toExport = (QString(mConfigMap.value( "export" ) == QString("1"));
-      chkMakeItExportable->setCheckState( toExport );
+      bool toExport = (mConfigMap.value( "export" ) == QString("1"));
+      chkMakeItExportable->setCheckState(( (toExport)? Qt::Checked : Qt::Unchecked ));
     }
   }
 
