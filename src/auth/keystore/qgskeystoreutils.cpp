@@ -20,7 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 
-//#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
 
 #ifndef QT_NO_OPENSSL
 #include <QSslCertificate>
@@ -884,4 +884,4 @@ terminate:
   return result;
 }
 
-//#endif // Q_OS_WIN
+#endif // Q_OS_WIN

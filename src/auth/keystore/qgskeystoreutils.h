@@ -14,7 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
-//#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
 
 #ifndef QGSKEYSTOREUTILS_H
 #define QGSKEYSTOREUTILS_H
@@ -28,4 +28,4 @@ QPair<QSslCertificate, QSslKey>get_systemstore_cert_with_privatekey(const QStrin
 
 #endif // QGSKEYSTOREUTILS_H
 
-//#endif // Q_OS_WIN
+#endif // Q_OS_WIN
