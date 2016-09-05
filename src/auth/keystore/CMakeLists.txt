@@ -23,6 +23,9 @@ INCLUDE_DIRECTORIES (
   ../../core/auth
   ../../core/geometry
 )
+INCLUDE_DIRECTORIES (SYSTEM
+  ${QCA_INCLUDE_DIR}
+)
 INCLUDE_DIRECTORIES (
   ../../gui
   ../../gui/auth
