@@ -14,7 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
-//#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
 
 #ifndef QGSKEYSTOREMETHOD_H
 #define QGSKEYSTOREMETHOD_H
@@ -63,4 +63,4 @@ private:
 
 #endif // QGSKEYSTOREMETHOD_H
 
-//#endif // Q_OS_WIN
+#endif // Q_OS_WIN

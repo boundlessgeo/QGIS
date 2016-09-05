@@ -1,50 +1,51 @@
-SET(AUTH_KEYSTORE_SRCS
-  qgskeystoremethod.cpp
-  qgskeystoreedit.cpp
-  qgskeystoreutils.cpp
-)
+IF (WIN32)
 
-SET(AUTH_KEYSTORE_HDRS
-  qgskeystoremethod.h
-  qgskeystoreedit.h
-  qgskeystoreutils.h
-)
+  SET(AUTH_KEYSTORE_SRCS
+    qgskeystoremethod.cpp
+    qgskeystoreedit.cpp
+    qgskeystoreutils.cpp
+  )
 
-SET(AUTH_KEYSTORE_MOC_HDRS
-  qgskeystoremethod.h
-  qgskeystoreedit.h
-  qgskeystoreutils.h
-)
+  SET(AUTH_KEYSTORE_HDRS
+    qgskeystoremethod.h
+    qgskeystoreedit.h
+    qgskeystoreutils.h
+  )
 
-SET(AUTH_KEYSTORE_UIS qgskeystoreedit.ui)
+  SET(AUTH_KEYSTORE_MOC_HDRS
+    qgskeystoremethod.h
+    qgskeystoreedit.h
+    qgskeystoreutils.h
+  )
 
-INCLUDE_DIRECTORIES (
-  ../../core
-  ../../core/auth
-  ../../core/geometry
-)
-INCLUDE_DIRECTORIES (SYSTEM
-  ${QCA_INCLUDE_DIR}
-)
-INCLUDE_DIRECTORIES (
-  ../../gui
-  ../../gui/auth
-  ${CMAKE_CURRENT_BINARY_DIR}
-)
+  SET(AUTH_KEYSTORE_UIS qgskeystoreedit.ui)
 
-QT4_WRAP_UI (AUTH_KEYSTORE_UIS_H ${AUTH_KEYSTORE_UIS})
+  INCLUDE_DIRECTORIES (
+    ../../core
+    ../../core/auth
+    ../../core/geometry
+  )
+  INCLUDE_DIRECTORIES (
+    ../../gui
+    ../../gui/auth
+    ${CMAKE_CURRENT_BINARY_DIR}
+  )
 
-QT4_WRAP_CPP(AUTH_KEYSTORE_MOC_SRCS ${AUTH_KEYSTORE_MOC_HDRS})
+  QT4_WRAP_UI (AUTH_KEYSTORE_UIS_H ${AUTH_KEYSTORE_UIS})
 
-ADD_LIBRARY (keystoreauthmethod MODULE ${AUTH_KEYSTORE_SRCS} ${AUTH_KEYSTORE_HDRS} ${AUTH_KEYSTORE_MOC_SRCS} ${AUTH_KEYSTORE_UIS_H})
+  QT4_WRAP_CPP(AUTH_KEYSTORE_MOC_SRCS ${AUTH_KEYSTORE_MOC_HDRS})
 
-TARGET_LINK_LIBRARIES (keystoreauthmethod
-  qgis_core
-  qgis_gui
-  advapi32
-  crypt32
-)
+  ADD_LIBRARY (keystoreauthmethod MODULE ${AUTH_KEYSTORE_SRCS} ${AUTH_KEYSTORE_HDRS} ${AUTH_KEYSTORE_MOC_SRCS} ${AUTH_KEYSTORE_UIS_H})
 
-INSTALL(TARGETS keystoreauthmethod
-  RUNTIME DESTINATION ${QGIS_PLUGIN_DIR}
-  LIBRARY DESTINATION ${QGIS_PLUGIN_DIR})
+  TARGET_LINK_LIBRARIES (keystoreauthmethod
+    qgis_core
+    qgis_gui
+    advapi32
+    crypt32
+  )
+
+  INSTALL(TARGETS keystoreauthmethod
+    RUNTIME DESTINATION ${QGIS_PLUGIN_DIR}
+    LIBRARY DESTINATION ${QGIS_PLUGIN_DIR})
+
+ENDIF (WIN32)
