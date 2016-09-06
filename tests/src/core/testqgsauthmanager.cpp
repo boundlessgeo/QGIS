@@ -397,7 +397,7 @@ QList<QgsAuthMethodConfig> TestQgsAuthManager::registerAuthConfigs()
     return configs;
   }
 
-#ifdef(Q_OS_WIN)
+#ifdef Q_OS_WIN
   // Windows KeyStore
   QgsAuthMethodConfig ks_config;
   ks_config.setName( "KeyStore" );
@@ -413,7 +413,7 @@ QList<QgsAuthMethodConfig> TestQgsAuthManager::registerAuthConfigs()
 
   // do this last, so we are assured to have all core configs
   configs << b_config << p_config << k_config;
-#ifdef(Q_OS_WIN)
+#ifdef Q_OS_WIN
   configs << ks_configg;
 #endif // Q_OS_WIN
 
