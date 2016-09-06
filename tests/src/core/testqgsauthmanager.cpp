@@ -414,7 +414,7 @@ QList<QgsAuthMethodConfig> TestQgsAuthManager::registerAuthConfigs()
   // do this last, so we are assured to have all core configs
   configs << b_config << p_config << k_config;
 #ifdef Q_OS_WIN
-  configs << ks_configg;
+  configs << ks_config;
 #endif // Q_OS_WIN
 
   return configs;
