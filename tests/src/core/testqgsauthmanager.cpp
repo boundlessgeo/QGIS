@@ -397,8 +397,26 @@ QList<QgsAuthMethodConfig> TestQgsAuthManager::registerAuthConfigs()
     return configs;
   }
 
+#ifdef(Q_OS_WIN)
+  // Windows KeyStore
+  QgsAuthMethodConfig ks_config;
+  ks_config.setName( "KeyStore" );
+  ks_config.setMethod( "KeyStore" );
+  ks_config.setUri( "http://example.com" );
+  ks_config.setConfig( "certid", "FakeHashPointingToExternalKeyStore" );
+  ks_config.setConfig( "export", "1" );
+  if ( !ks_config.isValid() )
+  {
+    return configs;
+  }
+#endif // Q_OS_WIN
+
   // do this last, so we are assured to have all core configs
   configs << b_config << p_config << k_config;
+#ifdef(Q_OS_WIN)
+  configs << ks_configg;
+#endif // Q_OS_WIN
+
   return configs;
 }
 
