@@ -70,8 +70,7 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
     //if ( have_systemstore("CA") )
     if ( have_systemstore("CA") )
     {
-      // QList< QSslCertificate > _CAs = get_systemstore("CA");
-      QList< QSslCertificate > _CAs;
+      QList< QSslCertificate > _CAs = get_systemstore("CA");
       if ( !_CAs.isEmpty() )
       {
         // add new CAs to the reply sslConfig
