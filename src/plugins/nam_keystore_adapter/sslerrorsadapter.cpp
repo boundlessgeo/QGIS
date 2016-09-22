@@ -73,6 +73,8 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
       QList< QSslCertificate > _CAs = get_systemstore("CA");
       if ( !_CAs.isEmpty() )
       {
+        QgsDebugMsg( QString( "Adding CAs to a new ssl request from CA KeyStore" ) );
+
         // add new CAs to the reply sslConfig
         QSslConfiguration sslConf = reply->sslConfiguration();
         QList< QSslCertificate > currentCAs = sslConf.caCertificates();
@@ -99,6 +101,10 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
 
         // remove reply before to diconnection to
         reply->deleteLater();
+      }
+      else
+      {
+        QgsDebugMsg( QString( "No CAs found in CA KeyStore" ) );
       }
     }
   }
