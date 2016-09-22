@@ -75,6 +75,17 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
       {
         QgsDebugMsg( QString( "Adding CAs to a new ssl request from CA KeyStore" ) );
 
+        // first avoid signal propagation to QgisApp::namSslError slot it's necessary
+        // to disconnect and reconnect
+        if (!disconnect( mNam, mMetaSender, mQgisApp, mMetaReceiver) )
+        {
+          QgsDebugMsg( QString( "Cannot disconnect mQgisApp->namSslErrors from mNam::sslErrors signal" ) );
+        }
+        if ( !connect(mNam, mMetaSender, mQgisApp, mMetaReceiver) )
+        {
+          QgsDebugMsg( QString( "Cannot connect mQgisApp->namSslErrors to mNam::sslErrors signal" ) );
+        }
+
         // add new CAs to the reply sslConfig
         QSslConfiguration sslConf = reply->sslConfiguration();
         QList< QSslCertificate > currentCAs = sslConf.caCertificates();
@@ -87,17 +98,6 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
         QNetworkRequest request( reply->request() );
         request.setSslConfiguration(sslConf);
         QgsNetworkAccessManager::instance()->get( request );
-
-        // to avoid signal propagation to QgisApp::namSslError slot it's necessary
-        // to disconnect and reconnect
-        if (!disconnect( mNam, mMetaSender, mQgisApp, mMetaReceiver) )
-        {
-          QgsDebugMsg( QString( "Cannot disconnect mQgisApp->namSslErrors from mNam::sslErrors signal" ) );
-        }
-        if ( !connect(mNam, mMetaSender, mQgisApp, mMetaReceiver) )
-        {
-          QgsDebugMsg( QString( "Cannot connect mQgisApp->namSslErrors to mNam::sslErrors signal" ) );
-        }
 
         // remove reply before to diconnection to
         reply->deleteLater();
