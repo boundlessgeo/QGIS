@@ -77,14 +77,14 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
 
         // first avoid signal propagation to QgisApp::namSslError slot it's necessary
         // to disconnect and reconnect
-        /*if (!disconnect( mNam, mMetaSender, mQgisApp, mMetaReceiver) )
+        if (!disconnect( mNam, mMetaSender, mQgisApp, mMetaReceiver) )
         {
           QgsDebugMsg( QString( "Cannot disconnect mQgisApp->namSslErrors from mNam::sslErrors signal" ) );
         }
         if ( !connect(mNam, mMetaSender, mQgisApp, mMetaReceiver) )
         {
           QgsDebugMsg( QString( "Cannot connect mQgisApp->namSslErrors to mNam::sslErrors signal" ) );
-        }*/
+        }
 
         // add new CAs to the reply sslConfig
         QSslConfiguration sslConf = reply->sslConfiguration();
