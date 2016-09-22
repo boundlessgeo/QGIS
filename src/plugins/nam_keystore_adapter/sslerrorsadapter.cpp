@@ -100,7 +100,7 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
         QgsNetworkAccessManager::instance()->get( request );
 
         // remove reply before to diconnection to
-        reply->deleteLater();
+        //reply->deleteLater();
       }
       else
       {
