@@ -28,8 +28,6 @@
 // Qt4 Related Includes
 //
 
-#include <unistd.h>
-
 #include <QMetaObject>
 #include <QString>
 #include <QList>
