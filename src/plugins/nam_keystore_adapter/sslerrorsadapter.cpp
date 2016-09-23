@@ -96,8 +96,8 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
 
         Q_FOREACH ( const QSslCertificate &ca, _CAs )
         {
-          QString hash( QgsAuthCertUtils::shaHexForCert(cert) );
-          QString certInfoName( QgsAuthCertUtils::resolvedCertName( cert ) );
+          QString hash( QgsAuthCertUtils::shaHexForCert(ca) );
+          QString certInfoName( QgsAuthCertUtils::resolvedCertName( ca ) );
           QgsDebugMsg( QString( "Adding CA %1 with hash %2" ).arg(certInfoName, hash) );
         }
 
