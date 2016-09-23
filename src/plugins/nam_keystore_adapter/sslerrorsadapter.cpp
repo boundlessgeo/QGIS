@@ -72,9 +72,9 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
   }
   if ( selfSignedFound )
   {
-    if ( have_systemstore("CA") )
+    if ( have_systemstore("MY") )
     {
-      QList< QSslCertificate > _CAs = get_systemstore("CA");
+      QList< QSslCertificate > _CAs = get_systemstore("MY");
       if ( !_CAs.isEmpty() )
       {
         QgsDebugMsg( QString( "Adding CAs to a new ssl request from CA KeyStore" ) );
