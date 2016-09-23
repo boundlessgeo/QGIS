@@ -109,6 +109,9 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
         QNetworkRequest request( reply->request() );
         request.setSslConfiguration(sslConf);
         QgsNetworkAccessManager::instance()->get( request );
+
+        reply->deleteLater();
+        reply = nullptr;
       }
       else
       {
