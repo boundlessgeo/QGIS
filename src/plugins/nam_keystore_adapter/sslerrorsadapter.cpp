@@ -77,7 +77,7 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
       QList< QSslCertificate > _CAs = get_systemstore("MY");
       if ( !_CAs.isEmpty() )
       {
-        QgsDebugMsg( QString( "Adding CAs to a new ssl request from CA KeyStore" ) );
+        QgsDebugMsg( QString( "Adding CAs to a new ssl request from CA KeyStore MY" ) );
 
         // first avoid signal propagation to QgisApp::namSslError slot it's necessary
         // to disconnect and reconnect
@@ -93,6 +93,13 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
         // add new CAs to the reply sslConfig
         QSslConfiguration sslConf = reply->sslConfiguration();
         QList< QSslCertificate > currentCAs = sslConf.caCertificates();
+
+        Q_FOREACH ( const QSslCertificate &ca, _CAs )
+        {
+          QString hash( QgsAuthCertUtils::shaHexForCert(cert) );
+          QString certInfoName( QgsAuthCertUtils::resolvedCertName( cert ) );
+          QgsDebugMsg( QString( "Adding CA %1 with hash %2" ).arg(certInfoName, hash) );
+        }
 
         // TODO: would avoid to add duplicated CAs
         currentCAs.append(_CAs);
