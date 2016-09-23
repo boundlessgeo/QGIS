@@ -95,7 +95,6 @@ class sslErrorsAdapter: public QObject, public QgisPlugin
   private:
     QMainWindow *mQgisApp;
     QgsNetworkAccessManager *mNam;
-    QNetworkReply *mReply;
 
     QMetaMethod mMetaSender;
     QMetaMethod mMetaReceiver;
