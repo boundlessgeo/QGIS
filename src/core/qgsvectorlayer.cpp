@@ -1923,8 +1923,11 @@ bool QgsVectorLayer::writeSymbology( QDomNode& node, QDomDocument& doc, QString&
 
   if ( hasGeometryType() )
   {
-    QDomElement rendererElement = mRendererV2->save( doc );
-    node.appendChild( rendererElement );
+    if ( mRendererV2 )
+    {
+      QDomElement rendererElement = mRendererV2->save( doc );
+      node.appendChild( rendererElement );
+    }
 
     if ( mLabeling )
     {
@@ -2955,6 +2958,23 @@ void QgsVectorLayer::uniqueValues( int index, QList<QVariant> &uniqueValues, int
           vals << v.toString();
         }
 
+        QgsFeatureMap added = mEditBuffer->addedFeatures();
+        QMapIterator< QgsFeatureId, QgsFeature > addedIt( added );
+        while ( addedIt.hasNext() && ( limit < 0 || uniqueValues.count() < limit ) )
+        {
+          addedIt.next();
+          QVariant v = addedIt.value().attribute( index );
+          if ( v.isValid() )
+          {
+            QString vs = v.toString();
+            if ( !vals.contains( vs ) )
+            {
+              vals << vs;
+              uniqueValues << v;
+            }
+          }
+        }
+
         QMapIterator< QgsFeatureId, QgsAttributeMap > it( mEditBuffer->changedAttributeValues() );
         while ( it.hasNext() && ( limit < 0 || uniqueValues.count() < limit ) )
         {
@@ -3033,7 +3053,35 @@ QVariant QgsVectorLayer::minimumValue( int index )
       return QVariant();
 
     case QgsFields::OriginProvider: //a provider field
-      return mDataProvider->minimumValue( index );
+    {
+      QVariant min = mDataProvider->minimumValue( index );
+      if ( mEditBuffer )
+      {
+        QgsFeatureMap added = mEditBuffer->addedFeatures();
+        QMapIterator< QgsFeatureId, QgsFeature > addedIt( added );
+        while ( addedIt.hasNext() )
+        {
+          addedIt.next();
+          QVariant v = addedIt.value().attribute( index );
+          if ( v.isValid() && qgsVariantLessThan( v, min ) )
+          {
+            min = v;
+          }
+        }
+
+        QMapIterator< QgsFeatureId, QgsAttributeMap > it( mEditBuffer->changedAttributeValues() );
+        while ( it.hasNext() )
+        {
+          it.next();
+          QVariant v = it.value().value( index );
+          if ( v.isValid() && qgsVariantLessThan( v, min ) )
+          {
+            min = v;
+          }
+        }
+      }
+      return min;
+    }
 
     case QgsFields::OriginEdit:
     {
@@ -3092,7 +3140,35 @@ QVariant QgsVectorLayer::maximumValue( int index )
       return QVariant();
 
     case QgsFields::OriginProvider: //a provider field
-      return mDataProvider->maximumValue( index );
+    {
+      QVariant min = mDataProvider->maximumValue( index );
+      if ( mEditBuffer )
+      {
+        QgsFeatureMap added = mEditBuffer->addedFeatures();
+        QMapIterator< QgsFeatureId, QgsFeature > addedIt( added );
+        while ( addedIt.hasNext() )
+        {
+          addedIt.next();
+          QVariant v = addedIt.value().attribute( index );
+          if ( v.isValid() && qgsVariantGreaterThan( v, min ) )
+          {
+            min = v;
+          }
+        }
+
+        QMapIterator< QgsFeatureId, QgsAttributeMap > it( mEditBuffer->changedAttributeValues() );
+        while ( it.hasNext() )
+        {
+          it.next();
+          QVariant v = it.value().value( index );
+          if ( v.isValid() && qgsVariantGreaterThan( v, min ) )
+          {
+            min = v;
+          }
+        }
+      }
+      return min;
+    }
 
     case QgsFields::OriginEdit:
       // the layer is editable, but in certain cases it can still be avoided going through all features
