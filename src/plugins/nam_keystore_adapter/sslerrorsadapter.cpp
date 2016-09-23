@@ -55,6 +55,11 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
     QNetworkReply *reply,
     const QList<QSslError> &errors)
 {
+  // set flag to true to avoid to redo this slot
+  if (mFired)
+    return;
+  mFired = true;
+
   // check if SslError is SelfSignedCertificateInChain
   bool selfSignedFound = false;
   Q_FOREACH ( const QSslError &err, errors )
@@ -67,7 +72,6 @@ void sslErrorsAdapter::checkPeerCertAgainstKeystoreCAs(
   }
   if ( selfSignedFound )
   {
-    //if ( have_systemstore("CA") )
     if ( have_systemstore("CA") )
     {
       QList< QSslCertificate > _CAs = get_systemstore("CA");
@@ -153,7 +157,10 @@ bool sslErrorsAdapter::modifySslErrorsListeners()
  */
 sslErrorsAdapter::sslErrorsAdapter( QgisInterface * theQgisInterface ):
     QgisPlugin( sName, sDescription, sCategory, sPluginVersion, sPluginType ),
-    mQGisIface( theQgisInterface )
+    mQGisIface( theQgisInterface ),
+    mQgisApp(nullptr),
+    mNam(nullptr),
+    mFired(false)
 {
   // get pointers to signals and slot that have to be managed
   mQgisApp = dynamic_cast<QMainWindow*>( mQGisIface->mainWindow() );

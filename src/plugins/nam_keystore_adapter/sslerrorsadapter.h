@@ -95,6 +95,8 @@ class sslErrorsAdapter: public QObject, public QgisPlugin
   private:
     QMainWindow *mQgisApp;
     QgsNetworkAccessManager *mNam;
+    // flag to avoid retrigger CAs import if already done without removing nam slot
+    bool mFired;
 
     QMetaMethod mMetaSender;
     QMetaMethod mMetaReceiver;
