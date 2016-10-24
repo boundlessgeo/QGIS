@@ -25,6 +25,7 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsmslayercache.h"
 #include "qgsrasterlayer.h"
+#include "qgsvectorlayerjoinbuffer.h"
 #include "qgseditorwidgetregistry.h"
 #include "qgslayertreegroup.h"
 
@@ -234,7 +235,12 @@ QgsMapLayer* QgsServerProjectParser::createLayerFromElement( const QDomElement& 
     if ( !QgsMapLayerRegistry::instance()->mapLayer( id ) )
       QgsMapLayerRegistry::instance()->addMapLayer( layer, false, false );
     if ( layer->type() == QgsMapLayer::VectorLayer )
-      addValueRelationLayersForLayer( dynamic_cast<QgsVectorLayer *>( layer ) );
+    {
+      QgsVectorLayer* vlayer = qobject_cast<QgsVectorLayer *>( layer );
+      addValueRelationLayersForLayer( vlayer );
+      QgsVectorLayerJoinBuffer* joinBuffer = vlayer->joinBuffer();
+      joinBuffer->readXml( const_cast<QDomElement&>( elem ) );
+    }
 
     return layer;
   }
@@ -287,7 +293,7 @@ QgsMapLayer* QgsServerProjectParser::createLayerFromElement( const QDomElement& 
 
     if ( layer->type() == QgsMapLayer::VectorLayer )
     {
-      addValueRelationLayersForLayer( dynamic_cast<QgsVectorLayer *>( layer ) );
+      addValueRelationLayersForLayer( qobject_cast<QgsVectorLayer *>( layer ) );
     }
   }
   return layer;
@@ -1535,7 +1541,7 @@ void QgsServerProjectParser::addJoinLayersForElement( const QDomElement& layerEl
   {
     QString id = joinNodeList.at( i ).toElement().attribute( "joinLayerId" );
     QgsMapLayer* layer = mapLayerFromLayerId( id );
-    if ( layer )
+    if ( layer && !QgsMapLayerRegistry::instance()->mapLayer( id ) )
     {
       QgsMapLayerRegistry::instance()->addMapLayer( layer, false, false );
     }

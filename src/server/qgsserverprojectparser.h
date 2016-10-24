@@ -111,6 +111,7 @@ class SERVER_EXPORT QgsServerProjectParser
     QStringList wfsLayers() const;
     QStringList wcsLayers() const;
 
+    /** Add layers for vector joins */
     void addJoinLayersForElement( const QDomElement& layerElem ) const;
 
     void addValueRelationLayersForLayer( const QgsVectorLayer *vl ) const;

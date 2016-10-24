@@ -33,7 +33,7 @@ import subprocess
 from PyQt4.QtCore import QSettings, QCoreApplication
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.ProcessingLog import ProcessingLog
-from processing.tools.system import userFolder, isWindows, mkdir
+from processing.tools.system import userFolder, isWindows, mkdir, getTempFilenameInTempFolder
 
 
 class RUtils:
@@ -42,6 +42,8 @@ class RUtils:
     R_FOLDER = 'R_FOLDER'
     R_USE64 = 'R_USE64'
     R_LIBS_USER = 'R_LIBS_USER'
+
+    rscriptfilename = userFolder() + os.sep + 'processing_script.r'
 
     @staticmethod
     def RFolder():
@@ -85,7 +87,7 @@ class RUtils:
 
     @staticmethod
     def getRScriptFilename():
-        return userFolder() + os.sep + 'processing_script.r'
+        return RUtils.rscriptfilename
 
     @staticmethod
     def getConsoleOutputFilename():
@@ -93,6 +95,9 @@ class RUtils:
 
     @staticmethod
     def executeRAlgorithm(alg, progress):
+        # generate new R script file name in a temp folder
+        RUtils.rscriptfilename = getTempFilenameInTempFolder('processing_script.r')
+        # run commands
         RUtils.verboseCommands = alg.getVerboseCommands()
         RUtils.createRScriptFromRCommands(alg.getFullSetOfRCommands())
         if isWindows():

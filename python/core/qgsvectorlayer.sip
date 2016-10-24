@@ -452,6 +452,11 @@ class QgsVectorLayer : QgsMapLayer
       @returns true if join was found and successfully removed */
     bool removeJoin( const QString& joinLayerId );
 
+    /**
+     * Acccessor to the join buffer object
+     * @note added 2.14.7
+     */
+    QgsVectorLayerJoinBuffer* joinBuffer();
     const QList<QgsVectorJoinInfo> vectorJoins() const;
 
     /**
@@ -733,7 +738,23 @@ class QgsVectorLayer : QgsMapLayer
      */
     bool writeSymbology( QDomNode& node, QDomDocument& doc, QString& errorMessage ) const;
 
-    bool writeSld( QDomNode& node, QDomDocument& doc, QString& errorMessage ) const;
+    /**
+     * Writes the symbology of the layer into the document provided in SLD 1.1 format
+     * @param node the node that will have the style element added to it.
+     * @param doc the document that will have the QDomNode added.
+     * @param errorMessage reference to string that will be updated with any error messages
+     * @param props a open ended set of properties that can drive/inform the SLD encoding
+     * @return true in case of success
+     */
+    bool writeSld( QDomNode& node, QDomDocument& doc, QString& errorMessage, const QgsStringMap& props = QgsStringMap() ) const;
+
+    /**
+     * Read the symbology of the layer according to the information contained in
+     * the UserStyle element of a SLD style document
+     * @param node the node that have the style element in it.
+     * @param errorMessage reference to string that will be updated with any error messages
+     * @return true in case of success
+     */
     bool readSld( const QDomNode& node, QString& errorMessage );
 
     /**
@@ -1820,4 +1841,3 @@ class QgsVectorLayer : QgsMapLayer
 
 
 };
-

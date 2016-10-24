@@ -114,7 +114,7 @@ QString QgsRendererCategoryV2::dump() const
   return QString( "%1::%2::%3:%4\n" ).arg( mValue.toString(), mLabel, mSymbol->dump() ).arg( mRender );
 }
 
-void QgsRendererCategoryV2::toSld( QDomDocument &doc, QDomElement &element, QgsStringMap props ) const
+void QgsRendererCategoryV2::toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const
 {
   if ( !mSymbol.data() || props.value( "attribute", "" ).isEmpty() )
     return;
@@ -141,6 +141,9 @@ void QgsRendererCategoryV2::toSld( QDomDocument &doc, QDomElement &element, QgsS
                              mValue.toString().replace( '\'', "''" ) );
   QgsSymbolLayerV2Utils::createFunctionElement( doc, ruleElem, filterFunc );
 
+  // add the mix/max scale denoms if we got any from the callers
+  QgsSymbolLayerV2Utils::applyScaleDependency( doc, ruleElem, props );
+
   mSymbol->toSld( doc, ruleElem, props );
 }
 
@@ -159,9 +162,9 @@ QgsCategorizedSymbolRendererV2::QgsCategorizedSymbolRendererV2( const QString& a
   //trigger a detachment and copy of mCategories BUT that same method CAN be used to modify a symbol in place
   Q_FOREACH ( const QgsRendererCategoryV2& cat, categories )
   {
-    if ( cat.symbol() )
+    if ( !cat.symbol() )
     {
-      QgsDebugMsg( "invalid symbol in a category! ignoring..." );
+      QgsDebugMsg( QString( "invalid symbol in category %1 (%2)! ignoring..." ).arg( cat.value().toString(), cat.label() ) );
     }
     mCategories << cat;
   }
@@ -442,6 +445,12 @@ void QgsCategorizedSymbolRendererV2::startRender( QgsRenderContext& context, con
       mTempSymbols[ cat.symbol()] = tempSymbol;
     }
   }
+
+  Q_FOREACH ( QgsSymbolV2 *symbol, mSymbolHash.values() )
+  {
+    symbol->startRender( context, &fields );
+  }
+
   return;
 }
 
@@ -450,6 +459,11 @@ void QgsCategorizedSymbolRendererV2::stopRender( QgsRenderContext& context )
   Q_FOREACH ( const QgsRendererCategoryV2& cat, mCategories )
   {
     cat.symbol()->stopRender( context );
+  }
+
+  Q_FOREACH ( QgsSymbolV2 *symbol, mSymbolHash.values() )
+  {
+    symbol->stopRender( context );
   }
 
   // cleanup mTempSymbols
@@ -519,17 +533,22 @@ QgsCategorizedSymbolRendererV2* QgsCategorizedSymbolRendererV2::clone() const
 
 void QgsCategorizedSymbolRendererV2::toSld( QDomDocument &doc, QDomElement &element ) const
 {
-  QgsStringMap props;
-  props[ "attribute" ] = mAttrName;
+  toSld( doc, element, QgsStringMap() );
+}
+
+void QgsCategorizedSymbolRendererV2::toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const
+{
+  QgsStringMap locProps( props );
+  locProps[ "attribute" ] = mAttrName;
   if ( mRotation.data() )
-    props[ "angle" ] = mRotation->expression();
+    locProps[ "angle" ] = mRotation->expression();
   if ( mSizeScale.data() )
-    props[ "scale" ] = mSizeScale->expression();
+    locProps[ "scale" ] = mSizeScale->expression();
 
   // create a Rule for each range
   for ( QgsCategoryList::const_iterator it = mCategories.constBegin(); it != mCategories.constEnd(); ++it )
   {
-    QgsStringMap catProps( props );
+    QgsStringMap catProps( locProps );
     it->toSld( doc, element, catProps );
   }
 }

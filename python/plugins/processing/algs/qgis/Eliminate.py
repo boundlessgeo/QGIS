@@ -25,8 +25,9 @@ __copyright__ = '(C) 2013, Bernhard Ströbl'
 
 __revision__ = '$Format:%H$'
 
-from PyQt4.QtCore import QLocale, QDate
+from PyQt4.QtCore import QLocale, QDate, QVariant
 from qgis.core import QgsFeatureRequest, QgsFeature, QgsGeometry
+
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
 from processing.core.ProcessingLog import ProcessingLog
@@ -91,6 +92,7 @@ class Eliminate(GeoAlgorithm):
         boundary = self.getParameterValue(self.MODE) == self.MODE_BOUNDARY
         smallestArea = self.getParameterValue(self.MODE) == self.MODE_SMALLEST_AREA
         keepSelection = self.getParameterValue(self.KEEPSELECTION)
+        processLayer = vector.duplicateInMemory(inLayer)
 
         if not keepSelection:
             # Make a selection with the values provided
@@ -102,26 +104,26 @@ class Eliminate(GeoAlgorithm):
             selectType = inLayer.fields()[selectindex].type()
             selectionError = False
 
-            if selectType == 2:
+            if selectType in [QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
                 try:
                     y = int(comparisonvalue)
                 except ValueError:
                     selectionError = True
                     msg = self.tr('Cannot convert "%s" to integer' % unicode(comparisonvalue))
-            elif selectType == 6:
+            elif selectType == QVariant.Double:
                 try:
                     y = float(comparisonvalue)
                 except ValueError:
                     selectionError = True
                     msg = self.tr('Cannot convert "%s" to float' % unicode(comparisonvalue))
-            elif selectType == 10:
-               # 10: string, boolean
+            elif selectType == QVariant.String:
+                # 10: string, boolean
                 try:
                     y = unicode(comparisonvalue)
                 except ValueError:
                     selectionError = True
                     msg = self.tr('Cannot convert "%s" to unicode' % unicode(comparisonvalue))
-            elif selectType == 14:
+            elif selectType == QVariant.Date:
                 # date
                 dateAndFormat = comparisonvalue.split(' ')
 
@@ -146,7 +148,7 @@ class Eliminate(GeoAlgorithm):
                     msg += self.tr('Enter the date and the date format, e.g. "07.26.2011" "MM.dd.yyyy".')
 
             if (comparison == 'begins with' or comparison == 'contains') \
-               and selectType != 10:
+               and selectType != QVariant.String:
                 selectionError = True
                 msg = self.tr('"%s" can only be used with string fields' % comparison)
 
@@ -162,14 +164,14 @@ class Eliminate(GeoAlgorithm):
                     if aValue is None:
                         continue
 
-                    if selectType == 2:
+                    if selectType in [QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
                         x = int(aValue)
-                    elif selectType == 6:
+                    elif selectType == QVariant.Double:
                         x = float(aValue)
-                    elif selectType == 10:
+                    elif selectType == QVariant.String:
                         # 10: string, boolean
                         x = unicode(aValue)
-                    elif selectType == 14:
+                    elif selectType == QVariant.Date:
                         # date
                         x = aValue  # should be date
 

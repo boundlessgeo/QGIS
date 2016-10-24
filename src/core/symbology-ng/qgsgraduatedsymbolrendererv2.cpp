@@ -141,7 +141,7 @@ QString QgsRendererRangeV2::dump() const
   return QString( "%1 - %2::%3::%4\n" ).arg( mLowerValue ).arg( mUpperValue ).arg( mLabel, mSymbol.data() ? mSymbol->dump() : "(no symbol)" );
 }
 
-void QgsRendererRangeV2::toSld( QDomDocument &doc, QDomElement &element, QgsStringMap props ) const
+void QgsRendererRangeV2::toSld( QDomDocument &doc, QDomElement &element, QgsStringMap props, bool firstRange ) const
 {
   if ( !mSymbol.data() || props.value( "attribute", "" ).isEmpty() )
     return;
@@ -163,9 +163,11 @@ void QgsRendererRangeV2::toSld( QDomDocument &doc, QDomElement &element, QgsStri
   ruleElem.appendChild( descrElem );
 
   // create the ogc:Filter for the range
-  QString filterFunc = QString( "%1 > %2 AND %1 <= %3" )
-                       .arg( attrName.replace( '\"', "\"\"" ) )
-                       .arg( mLowerValue ).arg( mUpperValue );
+  QString filterFunc = QString( "%1 %2 %3 AND %1 <= %4" )
+                       .arg( attrName.replace( '\"', "\"\"" ),
+                             firstRange ? ">=" : ">",
+                             qgsDoubleToString( mLowerValue ),
+                             qgsDoubleToString( mUpperValue ) );
   QgsSymbolLayerV2Utils::createFunctionElement( doc, ruleElem, filterFunc );
 
   mSymbol->toSld( doc, ruleElem, props );
@@ -559,19 +561,26 @@ QgsGraduatedSymbolRendererV2* QgsGraduatedSymbolRendererV2::clone() const
 
 void QgsGraduatedSymbolRendererV2::toSld( QDomDocument& doc, QDomElement &element ) const
 {
-  QgsStringMap props;
-  props[ "attribute" ] = mAttrName;
-  props[ "method" ] = graduatedMethodStr( mGraduatedMethod );
+  toSld( doc, element, QgsStringMap() );
+}
+
+void QgsGraduatedSymbolRendererV2::toSld( QDomDocument& doc, QDomElement &element, const QgsStringMap& props ) const
+{
+  QgsStringMap locProps( props );
+  locProps[ "attribute" ] = mAttrName;
+  locProps[ "method" ] = graduatedMethodStr( mGraduatedMethod );
   if ( mRotation.data() )
-    props[ "angle" ] = mRotation->expression();
+    locProps[ "angle" ] = mRotation->expression();
   if ( mSizeScale.data() )
-    props[ "scale" ] = mSizeScale->expression();
+    locProps[ "scale" ] = mSizeScale->expression();
 
   // create a Rule for each range
+  bool first = true;
   for ( QgsRangeList::const_iterator it = mRanges.constBegin(); it != mRanges.constEnd(); ++it )
   {
-    QgsStringMap catProps( props );
-    it->toSld( doc, element, catProps );
+    QgsStringMap catProps( locProps );
+    it->toSld( doc, element, catProps, first );
+    first = false;
   }
 }
 

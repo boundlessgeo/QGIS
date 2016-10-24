@@ -410,14 +410,17 @@ void QgsSimpleLineSymbolLayerV2::toSld( QDomDocument &doc, QDomElement &element,
   symbolizerElem.appendChild( strokeElem );
 
   Qt::PenStyle penStyle = mUseCustomDashPattern ? Qt::CustomDashLine : mPenStyle;
-  QgsSymbolLayerV2Utils::lineToSld( doc, strokeElem, penStyle, mColor, mWidth,
-                                    &mPenJoinStyle, &mPenCapStyle, &mCustomDashVector );
+  double width = QgsSymbolLayerV2Utils::rescaleUom( mWidth, mWidthUnit, props );
+  QVector<qreal> customDashVector = QgsSymbolLayerV2Utils::rescaleUom( mCustomDashVector, mCustomDashPatternUnit, props );
+  QgsSymbolLayerV2Utils::lineToSld( doc, strokeElem, penStyle, mColor, width,
+                                    &mPenJoinStyle, &mPenCapStyle, &customDashVector );
 
   // <se:PerpendicularOffset>
   if ( !qgsDoubleNear( mOffset, 0.0 ) )
   {
     QDomElement perpOffsetElem = doc.createElement( "se:PerpendicularOffset" );
-    perpOffsetElem.appendChild( doc.createTextNode( QString::number( mOffset ) ) );
+    double offset = QgsSymbolLayerV2Utils::rescaleUom( mOffset, mOffsetUnit, props );
+    perpOffsetElem.appendChild( doc.createTextNode( qgsDoubleToString( offset ) ) );
     symbolizerElem.appendChild( perpOffsetElem );
   }
 }
@@ -882,6 +885,9 @@ void QgsMarkerLineSymbolLayerV2::renderPolyline( const QPolygonF& points, QgsSym
     }
   }
 
+
+  context.renderContext().painter()->save();
+
   if ( qgsDoubleNear( offset, 0.0 ) )
   {
     if ( placement == Interval )
@@ -908,6 +914,8 @@ void QgsMarkerLineSymbolLayerV2::renderPolyline( const QPolygonF& points, QgsSym
         renderPolylineVertex( points2, context, placement );
     }
   }
+
+  context.renderContext().painter()->restore();
 }
 
 void QgsMarkerLineSymbolLayerV2::renderPolygonOutline( const QPolygonF& points, QList<QPolygonF>* rings, QgsSymbolV2RenderContext& context )
@@ -941,7 +949,6 @@ void QgsMarkerLineSymbolLayerV2::renderPolylineInterval( const QPolygonF& points
 
   QPointF lastPt = points[0];
   double lengthLeft = 0; // how much is left until next marker
-  bool first = mOffsetAlongLine ? false : true; //only draw marker at first vertex when no offset along line is set
 
   QgsRenderContext& rc = context.renderContext();
   double interval = mInterval;
@@ -988,12 +995,6 @@ void QgsMarkerLineSymbolLayerV2::renderPolylineInterval( const QPolygonF& points
       mMarker->setLineAngle( l.angle() * 180 / M_PI );
     }
 
-    // draw first marker
-    if ( first )
-    {
-      mMarker->renderPoint( lastPt, context.feature(), rc, -1, context.selected() );
-      first = false;
-    }
 
     // while we're not at the end of line segment, draw!
     while ( lengthLeft > painterUnitInterval )
@@ -1409,7 +1410,8 @@ void QgsMarkerLineSymbolLayerV2::toSld( QDomDocument &doc, QDomElement &element,
         symbolizerElem.appendChild( QgsSymbolLayerV2Utils::createVendorOptionElement( doc, "placement", "points" ) );
         break;
       default:
-        gap = QString::number( mInterval );
+        double interval = QgsSymbolLayerV2Utils::rescaleUom( mInterval, mIntervalUnit, props );
+        gap = qgsDoubleToString( interval );
         break;
     }
 
@@ -1442,14 +1444,15 @@ void QgsMarkerLineSymbolLayerV2::toSld( QDomDocument &doc, QDomElement &element,
     if ( !gap.isEmpty() )
     {
       QDomElement gapElem = doc.createElement( "se:Gap" );
-      QgsSymbolLayerV2Utils::createFunctionElement( doc, gapElem, gap );
+      QgsSymbolLayerV2Utils::createExpressionElement( doc, gapElem, gap );
       graphicStrokeElem.appendChild( gapElem );
     }
 
     if ( !qgsDoubleNear( mOffset, 0.0 ) )
     {
       QDomElement perpOffsetElem = doc.createElement( "se:PerpendicularOffset" );
-      perpOffsetElem.appendChild( doc.createTextNode( QString::number( mOffset ) ) );
+      double offset = QgsSymbolLayerV2Utils::rescaleUom( mOffset, mOffsetUnit, props );
+      perpOffsetElem.appendChild( doc.createTextNode( qgsDoubleToString( offset ) ) );
       symbolizerElem.appendChild( perpOffsetElem );
     }
   }
@@ -1550,6 +1553,7 @@ double QgsMarkerLineSymbolLayerV2::width() const
 void QgsMarkerLineSymbolLayerV2::setOutputUnit( QgsSymbolV2::OutputUnit unit )
 {
   QgsLineSymbolLayerV2::setOutputUnit( unit );
+  mMarker->setOutputUnit( unit );
   mIntervalUnit = unit;
   mOffsetUnit = unit;
   mOffsetAlongLineUnit = unit;
