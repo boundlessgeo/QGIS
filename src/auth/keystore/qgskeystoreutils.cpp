@@ -83,7 +83,7 @@ convert_hash_to_binary(
          NULL,
          NULL))
   {
-    QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+    QgsDebugMsg( QString( "Cannot convert hash to binary for hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     return false;
   }
   BYTE *pbBinary = (BYTE*) malloc(pcbBinary);
@@ -276,7 +276,7 @@ systemstore_cert_privatekey_available(
         NULL);
   if ( !pCertContext )
   {
-    QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+    QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
 
@@ -365,7 +365,7 @@ systemstore_cert_privatekey_is_exportable(
         NULL);
   if ( !pCertContext )
   {
-    QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+    QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
 
@@ -495,7 +495,7 @@ get_systemstore_cert_with_privatekey(
         storeName.toStdString().c_str());
   if(!hSystemStore)
   {
-    QgsDebugMsg( QString( "Cannot open System Store %1: Wincrypt error %X" ).arg( storeName ).arg( GetLastError(), 0, 16 ) );
+    QgsDebugMsg( QString( "Cannot open System Store %1: Wincrypt error %2" ).arg( storeName ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
 
@@ -519,7 +519,7 @@ get_systemstore_cert_with_privatekey(
         NULL);
   if ( !pCertContext )
   {
-    QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+    QgsDebugMsg( QString( "No cert found with hash %1: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
 
@@ -557,7 +557,7 @@ get_systemstore_cert_with_privatekey(
         &dwKeySpec,
         &dwKeySpecSize))
   {
-    QgsDebugMsg( QString( "Cert with hash %1 has not private key: Wincrypt error %X" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+    QgsDebugMsg( QString( "Cert with hash %1 has not private key: Wincrypt error %2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
 
