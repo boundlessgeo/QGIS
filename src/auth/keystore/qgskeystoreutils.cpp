@@ -392,10 +392,10 @@ systemstore_cert_privatekey_is_exportable(
   // check if private key is exportable
 
   // Retrieve a handle to the certificate's private key's CSP key
-  // container
+  // container. Precedence to a CNG handle respect CryptoAPI (CAPI)
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
-        CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+        CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
         NULL,
         &hCryptProvOrNCryptKey,
         &dwKeySpec,
@@ -404,42 +404,63 @@ systemstore_cert_privatekey_is_exportable(
     QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1. Skipped!: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
-
-  // export keys
-  if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
+  // look if key is exportable, doing export!
+  if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
   {
-    QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1. Skipped!").arg( certHash ) );
-    goto terminate;
-  }
+    QgsDebugMsg( QString( "Returned KeySpec in CAPI context for cert with hash %1.").arg( certHash ) );
 
-  // Retrieve a handle to the certificate's private key
-  hProv = hCryptProvOrNCryptKey;
+    // Retrieve a handle to the certificate's private key
+    hProv = hCryptProvOrNCryptKey;
 
-  if (!CryptGetUserKey(
-        hProv,
-        dwKeySpec,
-        &hKey))
-  {
-    QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    goto terminate;
-  }
+    if (!CryptGetUserKey(
+          hProv,
+          dwKeySpec,
+          &hKey))
+    {
+      QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
 
-  // try to export public/private key
-  if ( !CryptExportKey(
-         hKey,
-         0,
-         PRIVATEKEYBLOB,
-         0,
-         NULL,
-         &cbData) )
-  {
-    QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    isExportable = false;
+    // try to export public/private key
+    if ( !CryptExportKey(
+           hKey,
+           0,
+           PRIVATEKEYBLOB,
+           0,
+           NULL,
+           &cbData) )
+    {
+      QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      isExportable = false;
+    }
+    else
+    {
+      QgsDebugMsg( QString( "Private key is exportable for cert with hash %1" ).arg( certHash ));
+      isExportable = true;
+    }
   }
   else
   {
-    QgsDebugMsg( QString( "Private key is exportable for cert with hash %1" ).arg( certHash ));
-    isExportable = true;
+    QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
+
+    if ( !NCryptExportKey(
+            hCryptProvOrNCryptKey,
+            NULL,
+            LEGACY_RSAPRIVATE_BLOB,
+            NULL,
+            NULL,
+            0,
+            &cbData,
+            0)
+    {
+      QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      isExportable = false;
+    }
+    else
+    {
+      QgsDebugMsg( QString( "Private key is exportable for cert with hash %1" ).arg( certHash ));
+      isExportable = true;
+    }
   }
 
 terminate:
@@ -462,6 +483,8 @@ get_systemstore_cert_with_privatekey(
     const QString &storeName,
     const bool forceExport)
 {
+  HANDLE hFile = NULL;
+
   // QSsl section
   QSslKey privateKey = QSslKey();
   QSslCertificate localCertificate = QSslCertificate();
@@ -488,6 +511,12 @@ get_systemstore_cert_with_privatekey(
   CRYPT_DATA_BLOB cdb;
   cdb.cbData = 0;
   cdb.pbData = NULL;
+  HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hKeyNew = NULL;
+  SC_HANDLE hSCManager = NULL;
+  SC_HANDLE hService = NULL;
+  HANDLE hProcess = NULL;
+  HCERTSTORE hMemoryStore = NULL;
+  PCCERT_CONTEXT pCertContextNew = NULL;
 
   // open store
   hSystemStore = CertOpenSystemStoreA(
@@ -570,7 +599,7 @@ get_systemstore_cert_with_privatekey(
 
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
-        CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+        CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
         NULL,
         &hCryptProvOrNCryptKey,
         &dwKeySpec,
@@ -586,82 +615,299 @@ get_systemstore_cert_with_privatekey(
   BYTE* pbData = NULL;
   DWORD cbData = 0;
 
-  if (CERT_NCRYPT_KEY_SPEC == dwKeySpec)
+  if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
   {
-    QgsDebugMsg( QString( "Unexpected CERT_NCRYPT_KEY_SPEC KeySpec returned for cert with hash %1").arg( certHash ) );
-    goto terminate;
-  }
+    QgsDebugMsg( QString( "Returned KeySpec in CAPI context for cert with hash %1.").arg( certHash ) );
 
-  // entering here means that key can be:
-  // AT_KEYEXCHANGE: The key pair is a key exchange pair.
-  // AT_SIGNATURE: The key pair is a signature pair.
+    // entering here means that key can be:
+    // AT_KEYEXCHANGE: The key pair is a key exchange pair.
+    // AT_SIGNATURE: The key pair is a signature pair.
 
-  // Retrieve a handle to the certificate's private key
-  if (!CryptGetUserKey(
-        hProv,
-        dwKeySpec,
-        &hKey))
-  {
-    QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    goto terminate;
-  }
-
-  // Export the public/private key
-  // first attend in case key is exportable
-  // and to retieve the lenght, then to retrieve data
-  bool hasExported = CryptExportKey(
-        hKey,
-        0,
-        PRIVATEKEYBLOB,
-        0,
-        NULL,
-        &cbData);
-  if (!hasExported && forceExport)
-  {
-    // Mark the certificate's private key as exportable and archivable
-    // this memory structure hack derive directly from the following paper:
-    // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
-    *(ULONG_PTR*)(*(ULONG_PTR*)(*(ULONG_PTR*)
-    #if defined(_M_X64)
-      (hKey + 0x58) ^ 0xE35A172CD96214A0) + 0x0C)
-    #elif (defined(_M_IX86) || defined(_ARM_))
-      (hKey + 0x2C) ^ 0xE35A172C) + 0x08)
-    #else
-      #error Platform not supported
-    #endif
-      |= CRYPT_EXPORTABLE | CRYPT_ARCHIVABLE;
+    // Retrieve a handle to the certificate's private key
+    if (!CryptGetUserKey(
+          hProv,
+          dwKeySpec,
+          &hKey))
+    {
+      QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
 
     // Export the public/private key
-    // first to retieve the lenght, then to retrieve data
-    // second attend to get the key after the memory hack
-    hasExported = CryptExportKey(
+    // first attend in case key is exportable
+    // and to retieve the lenght, then to retrieve data
+    bool hasExported = CryptExportKey(
           hKey,
           0,
           PRIVATEKEYBLOB,
           0,
           NULL,
           &cbData);
-  }
-  // if not exported after the second attend => some error accourred
-  if (!hasExported)
-  {
-    QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    goto terminate;
-  }
+    if (!hasExported && forceExport)
+    {
+      // Mark the certificate's private key as exportable and archivable
+      // this memory structure hack derive directly from the following paper:
+      // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
 
-  // retrieve private key
-  pbData = (BYTE*)malloc(cbData);
+      // Export the public/private key
+      // first to retieve the lenght, then to retrieve data
+      // second attend to get the key after the memory hack
+      hasExported = CryptExportKey(
+            hKey,
+            0,
+            PRIVATEKEYBLOB,
+            0,
+            NULL,
+            &cbData);
+    }
+    // if not exported after the second attend => some error accourred
+    if (!hasExported)
+    {
+      QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
 
-  if (!CryptExportKey(
-        hKey,
-        0,
-        PRIVATEKEYBLOB,
-        0,
-        pbData,
-        &cbData))
+    // retrieve private key
+    pbData = (BYTE*)malloc(cbData);
+    if (!CryptExportKey(
+            hKey,
+            0,
+            PRIVATEKEYBLOB,
+            0,
+            pbData,
+            &cbData))
+    {
+      QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
+
+    // Establish a temporary key container
+    if ( !CryptAcquireContext(
+           &hProvTemp,
+           NULL,
+           NULL,
+           PROV_RSA_FULL,
+           CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET) )
+    {
+      QgsDebugMsg( QString( "Cannot create temporary KeyStore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
+
+    // Import the private key into the temporary key container
+    if ( !CryptImportKey(
+           hProvTemp,
+           pbData,
+           cbData,
+           0,
+           CRYPT_EXPORTABLE,
+           &hKeyNew) )
+    {
+      QgsDebugMsg( QString( "Cannot import key in temporary KeyStore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
+  }
+  else
   {
-    QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    goto terminate;
+    QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
+
+    SECURITY_STATUS ss = NCryptExportKey(
+                             hCryptProvOrNCryptKey,
+                             NULL,
+                             LEGACY_RSAPRIVATE_BLOB,
+                             NULL,
+                             NULL,
+                             0,
+                             &cbData,
+                             0);
+    if ( (ERROR_SUCCESS != ss) && forceExport)
+    {
+      // TODO: enter here only if the correct SECURITY_STATUS error is received
+      // that means error regarding cert that can't be exported.
+
+      // Mark the certificate's private key as exportable and archivable
+
+      // Retrieve a handle to the Service Control Manager
+      hSCManager = OpenSCManager(
+            NULL,
+            NULL,
+            SC_MANAGER_CONNECT);
+      if (!hSCManager)
+      {
+         QgsDebugMsg( QString( "Cannot open Service Control Manager for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+         goto terminate;
+      }
+
+      // Retrieve a handle to the KeyIso service
+      hService = OpenService(
+            hSCManager,
+            L"KeyIso",
+            SERVICE_QUERY_STATUS);
+      if (!hService)
+      {
+        QgsDebugMsg( QString( "Cannot open KeyIso Service for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // Retrieve the status of the KeyIso process, including its Process ID
+      SERVICE_STATUS_PROCESS ssp;
+      DWORD dwBytesNeeded;
+
+      if (!QueryServiceStatusEx(
+              hService,
+              SC_STATUS_PROCESS_INFO,
+              (BYTE*)&ssp,
+              sizeof(SERVICE_STATUS_PROCESS),
+              &dwBytesNeeded))
+      {
+        QgsDebugMsg( QString( "Cannot stat KeyIso Service status for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // Open a read-write handle to the process hosting the KeyIso service
+      hProcess = OpenProcess(
+            PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
+            FALSE,
+            ssp.dwProcessId);
+      if (!hProcess)
+      {
+        QgsDebugMsg( QString( "Cannot open process for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // this memory structure hack derive directly from the following paper:
+      // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
+
+      // Prepare the structure offsets for accessing the appropriate field
+      DWORD dwOffsetNKey;
+      DWORD dwOffsetSrvKeyInLsass;
+      DWORD dwOffsetKspKeyInLsass;
+      #if defined(_M_X64)
+        dwOffsetNKey = 0x10;
+        dwOffsetSrvKeyInLsass = 0x28;
+        dwOffsetKspKeyInLsass = 0x28;
+      #elif defined(_M_IX86)
+        dwOffsetNKey = 0x08;
+        if (!g_fWow64Process)
+        {
+          dwOffsetSrvKeyInLsass = 0x18;
+          dwOffsetKspKeyInLsass = 0x20;
+        }
+        else
+        {
+          dwOffsetSrvKeyInLsass = 0x28;
+          dwOffsetKspKeyInLsass = 0x28;
+        }
+      #else
+        // Platform not supported
+        QgsDebugMsg( QString( "Platform not supported" ) );
+        goto terminate;
+      #endif
+
+      // Mark the certificate's private key as exportable
+      DWORD pKspKeyInLsass;
+      SIZE_T sizeBytes;
+
+      if (!ReadProcessMemory(
+              hProcess,
+              (void*)(*(SIZE_T*)*(DWORD*)(hNKey + dwOffsetNKey) + dwOffsetSrvKeyInLsass),
+              &pKspKeyInLsass,
+              sizeof(DWORD),
+              &sizeBytes))
+      {
+        QgsDebugMsg( QString( "Cannot read pKspKeyInLsass in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      unsigned char ucExportable;
+      if (!ReadProcessMemory(
+              hProcess,
+              (void*)(pKspKeyInLsass + dwOffsetKspKeyInLsass),
+              &ucExportable,
+              sizeof(unsigned char),
+              &sizeBytes))
+      {
+        QgsDebugMsg( QString( "Cannot read ucExportable in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // do flag exportable
+      ucExportable |= NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
+      if (!WriteProcessMemory(
+              hProcess,
+              (void*)(pKspKeyInLsass + dwOffsetKspKeyInLsass),
+              &ucExportable,
+              sizeof(unsigned char),
+              &sizeBytes))
+      {
+        QgsDebugMsg( QString( "Cannot read ucExportable in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // Export the private key
+      ss = NCryptExportKey(
+              hNKey,
+              NULL,
+              LEGACY_RSAPRIVATE_BLOB,
+              NULL,
+              NULL,
+              0,
+              &cbData,
+              0);
+      if ( ERROR_SUCCESS != ss )
+      {
+        QgsDebugMsg( QString( "Cannot get size of private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      pbData = (BYTE*)malloc(cbData);
+      ss = NCryptExportKey(
+              hNKey,
+              NULL,
+              LEGACY_RSAPRIVATE_BLOB,
+              NULL,
+              pbData,
+              cbData,
+              &cbData,
+              0);
+      if ( ERROR_SUCCESS != ss )
+      {
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // Establish a temporary CNG key store provider
+      NCRYPT_PROV_HANDLE hProvider;
+      ss = NCryptOpenStorageProvider(
+              &hProvider,
+              MS_KEY_STORAGE_PROVIDER,
+              0);
+      if ( ERROR_SUCCESS != ss )
+      {
+        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+
+      // Import the private key into the temporary storage provider
+      ss = NCryptImportKey(
+              hProvider,
+              NULL,
+              LEGACY_RSAPRIVATE_BLOB,
+              NULL,
+              &hKeyNew,
+              pbData,
+              cbData,
+              0);
+      if ( ERROR_SUCCESS != ss )
+      {
+        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        goto terminate;
+      }
+    }
+    else
+    {
+      QgsDebugMsg( QString( "Cannot export private key and no forcing is set for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      goto terminate;
+    }
   }
 
   /***********************************************************
@@ -669,34 +915,8 @@ get_systemstore_cert_with_privatekey(
     * file container
     ************************************************************/
 
-  // Establish a temporary key container
-  if ( !CryptAcquireContext(
-         &hProvTemp,
-         NULL,
-         NULL,
-         PROV_RSA_FULL,
-         CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET) )
-  {
-    QgsDebugMsg( QString( "Cannot create temporary KeyStore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    goto terminate;
-  }
-
-  // Import the private key into the temporary key container
-  HCRYPTKEY hKeyNew = NULL; // <-- destroy with CryptDestroyKey
-  if ( !CryptImportKey(
-         hProvTemp,
-         pbData,
-         cbData,
-         0,
-         CRYPT_EXPORTABLE,
-         &hKeyNew) )
-  {
-    QgsDebugMsg( QString( "Cannot import key in temporary KeyStore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    goto terminate;
-  }
-
   // Create a temporary certificate store in memory
-  HCERTSTORE hMemoryStore = CertOpenStore(
+  hMemoryStore = CertOpenStore(
         CERT_STORE_PROV_MEMORY,
         PKCS_7_ASN_ENCODING | X509_ASN_ENCODING,
         NULL,
@@ -709,7 +929,6 @@ get_systemstore_cert_with_privatekey(
   }
 
   // Add a link to the certificate to our temporary certificate store
-  PCCERT_CONTEXT pCertContextNew = NULL;
   if ( !CertAddCertificateLinkToStore(
          hMemoryStore,
          pCertContext,
@@ -726,7 +945,7 @@ get_systemstore_cert_with_privatekey(
          pCertContext,
          CERT_HCRYPTPROV_OR_NCRYPT_KEY_HANDLE_PROP_ID,
          0,
-         (void*) hProvTemp ) )
+         (void*)( (CERT_NCRYPT_KEY_SPEC == dwKeySpec) ? hNKey : hProvTemp) ))
   {
     QgsDebugMsg( QString( "Cannot set property for temporary cert related to cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
@@ -771,8 +990,6 @@ get_systemstore_cert_with_privatekey(
   // Write the PFX data blob to disk
   // because of nature of the filename, I can safly use
   // CreateFileA (Ascii) insteand the generic alias CreateFile
-  HANDLE hFile = NULL;
-
   hFile = CreateFileA(
         wszFileName.toStdString().c_str(),
         GENERIC_WRITE,
@@ -880,6 +1097,16 @@ terminate:
     CertFreeCertificateContext(pCertContext);
   if (hSystemStore)
     CertCloseStore(hSystemStore, 0);
+  if (hProcess)
+    CloseHandle(hProcess);
+  if (hService)
+    CloseServiceHandle(hService);
+  if (hSCManager)
+    CloseServiceHandle(hSCManager);
+  if (pCertContextNew)
+    CertDeleteCertificateFromStore(pCertContextNew);
+  if (hMemoryStore)
+    CertCloseStore(hMemoryStore);
 
   return result;
 }
