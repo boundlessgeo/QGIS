@@ -751,7 +751,7 @@ get_systemstore_cert_with_privatekey(
       // Retrieve a handle to the KeyIso service
       hService = OpenService(
             hSCManager,
-            L"KeyIso",
+            _T("KeyIso"),
             SERVICE_QUERY_STATUS);
       if (!hService)
       {
