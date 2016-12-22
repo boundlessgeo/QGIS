@@ -40,6 +40,7 @@
 
 #include <windows.h>
 #include <wincrypt.h>
+#include <tchar.h>
 
 QString
 get_random_string(
