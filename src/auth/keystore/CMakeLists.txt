@@ -43,6 +43,7 @@ TARGET_LINK_LIBRARIES (keystoreauthmethod
   qgis_gui
   advapi32
   crypt32
+  ncrypt
 )
 
 INSTALL(TARGETS keystoreauthmethod
