@@ -128,8 +128,8 @@ void QgsKeyStoreEdit::on_cmbIdentityCert_currentIndexChanged( int indx )
 {
   // get hash
   QString certHash = cmbIdentityCert->itemData( indx ).toString();
-  if (certHash.isNull() || certHash.isEmpty())
-    return;
+  //if (certHash.isNull() || certHash.isEmpty())
+  //  return;
 
   // visualize or not checkbox depending if cert is exportable
   bool isCertExportable = systemstore_cert_privatekey_is_exportable( certHash, "MY" );
