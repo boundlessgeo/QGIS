@@ -240,7 +240,7 @@ systemstore_cert_privatekey_available(
   bool isAvailable = false;
 
   // wincrypt vars
-  HCERTSTORE hSystemStore;
+  HCERTSTORE hSystemStore = NULL;
   CRYPT_HASH_BLOB hashBlob;
   hashBlob.cbData = 0;
   hashBlob.pbData = NULL;
@@ -249,6 +249,8 @@ systemstore_cert_privatekey_available(
   DWORD dwKeySpecSize = sizeof(dwKeySpec);
 
   // open store
+  QgsDebugMsgLevel( QString( "Opening KeyStore %1" ).arg( storeName ), 99);
+
   hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
   if(!hSystemStore)
   {
@@ -257,6 +259,8 @@ systemstore_cert_privatekey_available(
   }
 
   // convert hash in binary hash useful to find certificate
+  QgsDebugMsgLevel( QString( "Converting hash %1 to binary" ).arg( certHash ), 99);
+
   if ( !convert_hash_to_binary(
          certHash,
          hashBlob) )
@@ -267,6 +271,8 @@ systemstore_cert_privatekey_available(
   // load cert related with the hash
   // can be available more than one cert with the same hash due to
   // multiple import and different name
+  QgsDebugMsgLevel( QString( "Finding cert with hash %1 in store %2" ).arg( certHash ).arg( storeName ), 99);
+
   pCertContext = CertFindCertificateInStore(
         hSystemStore,
         X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
@@ -281,6 +287,8 @@ systemstore_cert_privatekey_available(
   }
 
   // check if cert is RSA
+  QgsDebugMsgLevel( QString( "Checking if cert with hash %1 is RSA" ).arg( certHash ), 99);
+
   if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
               szOID_RSA,
               strlen(szOID_RSA)))
@@ -290,6 +298,8 @@ systemstore_cert_privatekey_available(
   }
 
   // check if cert has private key
+  QgsDebugMsgLevel( QString( "Checking if cert with hash %1 has private key available" ).arg( certHash ), 99);
+
   if (CertGetCertificateContextProperty(
         pCertContext,
         CERT_KEY_SPEC_PROP_ID,
@@ -307,7 +317,8 @@ terminate:
   // close store
   if(pCertContext)
     CertFreeCertificateContext(pCertContext);
-  CertCloseStore(hSystemStore, 0);
+  if (hSystemStore)
+    CertCloseStore(hSystemStore, 0);
 
   // fee allocations
   if(hashBlob.pbData)
@@ -324,7 +335,7 @@ systemstore_cert_privatekey_is_exportable(
   bool isExportable = false;
 
   // wincrypt vars
-  HCERTSTORE hSystemStore;
+  HCERTSTORE hSystemStore = NULL;
   CRYPT_HASH_BLOB hashBlob;
   hashBlob.cbData = 0;
   hashBlob.pbData = NULL;
@@ -338,6 +349,8 @@ systemstore_cert_privatekey_is_exportable(
   DWORD cbData;
 
   // open store
+  QgsDebugMsgLevel( QString( "Opening KeyStore %1" ).arg( storeName ), 99);
+
   hSystemStore = CertOpenSystemStoreA(0, storeName.toStdString().c_str());
   if(!hSystemStore)
   {
@@ -346,6 +359,8 @@ systemstore_cert_privatekey_is_exportable(
   }
 
   // convert hash in binary hash useful to find certificate
+  QgsDebugMsgLevel( QString( "Converting hash %1 to binary" ).arg( certHash ), 99);
+
   if ( !convert_hash_to_binary(
          certHash,
          hashBlob) )
@@ -356,6 +371,8 @@ systemstore_cert_privatekey_is_exportable(
   // load cert related with the hash
   // can be available more than one cert with the same hash due to
   // multiple import and different name
+  QgsDebugMsgLevel( QString( "Finding cert with hash %1 in store %2" ).arg( certHash ).arg( storeName ), 99);
+
   pCertContext = CertFindCertificateInStore(
         hSystemStore,
         X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
@@ -370,6 +387,8 @@ systemstore_cert_privatekey_is_exportable(
   }
 
   // check if cert is RSA
+  QgsDebugMsgLevel( QString( "Checking if cert with hash %1 is RSA" ).arg( certHash ), 99);
+
   if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
               szOID_RSA,
               strlen(szOID_RSA)))
@@ -379,6 +398,8 @@ systemstore_cert_privatekey_is_exportable(
   }
 
   // check if cert has private key
+  QgsDebugMsgLevel( QString( "Checking if cert with hash %1 has private key available" ).arg( certHash ), 99);
+
   if (!CertGetCertificateContextProperty(
         pCertContext,
         CERT_KEY_SPEC_PROP_ID,
@@ -393,6 +414,8 @@ systemstore_cert_privatekey_is_exportable(
 
   // Retrieve a handle to the certificate's private key's CSP key
   // container. Precedence to a CNG handle respect CryptoAPI (CAPI)
+  QgsDebugMsgLevel( QString( "Checking if cert with hash %1 has exportable private key" ).arg( certHash ), 99);
+
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
         CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
@@ -404,12 +427,14 @@ systemstore_cert_privatekey_is_exportable(
     QgsDebugMsg( QString( "Cannot retrieve handles for private key for cert with hash %1. Skipped!: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
   }
+
   // look if key is exportable, doing export!
   if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
   {
     QgsDebugMsg( QString( "Returned KeySpec in CAPI context for cert with hash %1.").arg( certHash ) );
 
     // Retrieve a handle to the certificate's private key
+    QgsDebugMsgLevel( QString( "Retrieving private key handle for cert with hash %1" ).arg( certHash ), 99);
     hProv = hCryptProvOrNCryptKey;
 
     if (!CryptGetUserKey(
@@ -422,6 +447,8 @@ systemstore_cert_privatekey_is_exportable(
     }
 
     // try to export public/private key
+    QgsDebugMsgLevel( QString( "Trying to export private key for cert with hash %1" ).arg( certHash ), 99);
+
     if ( !CryptExportKey(
            hKey,
            0,
@@ -442,6 +469,7 @@ systemstore_cert_privatekey_is_exportable(
   else
   {
     QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
+    QgsDebugMsgLevel( QString( "Trying to export private key for cert with hash %1" ).arg( certHash ), 99);
 
     SECURITY_STATUS ss = NCryptExportKey(
           hCryptProvOrNCryptKey,
@@ -468,7 +496,8 @@ terminate:
   // close store
   if(pCertContext)
     CertFreeCertificateContext(pCertContext);
-  CertCloseStore(hSystemStore, 0);
+  if (hSystemStore)
+    CertCloseStore(hSystemStore, 0);
 
   // fee allocations
   if(hashBlob.pbData)
@@ -520,6 +549,8 @@ get_systemstore_cert_with_privatekey(
   PCCERT_CONTEXT pCertContextNew = NULL;
 
   // open store
+  QgsDebugMsgLevel( QString( "Opening KeyStore %1" ).arg( storeName ), 99);
+
   hSystemStore = CertOpenSystemStoreA(
         0,
         storeName.toStdString().c_str());
@@ -530,6 +561,8 @@ get_systemstore_cert_with_privatekey(
   }
 
   // convert hash in binary hash useful to find certificate
+  QgsDebugMsgLevel( QString( "Converting hash %1 to binary" ).arg( certHash ), 99);
+
   if ( !convert_hash_to_binary(
          certHash,
          hashBlob) )
@@ -540,6 +573,8 @@ get_systemstore_cert_with_privatekey(
   // load cert related with the hash
   // can be available more than one cert with the same hash due to
   // multiple import and different name
+  QgsDebugMsgLevel( QString( "Finding cert with hash %1 in store %2" ).arg( certHash ).arg( storeName ), 99);
+
   pCertContext = CertFindCertificateInStore(
         hSystemStore,
         X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
@@ -554,6 +589,8 @@ get_systemstore_cert_with_privatekey(
   }
 
   // check if cert is RSA
+  QgsDebugMsgLevel( QString( "Checking if cert with hash %1 is RSA" ).arg( certHash ), 99);
+
   if (strncmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId,
               szOID_RSA,
               strlen(szOID_RSA)))
@@ -563,6 +600,8 @@ get_systemstore_cert_with_privatekey(
   }
 
   // create QSslCertificate from pCertContext
+  QgsDebugMsgLevel( QString( "Creating QSslCertificate from der data for cert with hash %1" ).arg( certHash ), 99);
+
   der = QByteArray(pCertContext->cbCertEncoded, 0);
   memcpy(der.data(),
          pCertContext->pbCertEncoded,
@@ -578,6 +617,8 @@ get_systemstore_cert_with_privatekey(
   result.first = localCertificate;
 
   // check if cert has private key
+  QgsDebugMsgLevel( QString( "checking if cert with hash %1 has private key" ).arg( certHash ), 99);
+
   DWORD dwKeySpec;
   DWORD dwKeySpecSize = sizeof(dwKeySpec);
 
@@ -598,6 +639,8 @@ get_systemstore_cert_with_privatekey(
   HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
   NCRYPT_KEY_HANDLE hNKey;
   BOOL fCallerFreeProvOrNCryptKey;
+
+  QgsDebugMsgLevel( QString( "Getting handle for cert with hash %1" ).arg( certHash ), 99);
 
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
@@ -627,6 +670,8 @@ get_systemstore_cert_with_privatekey(
     // AT_SIGNATURE: The key pair is a signature pair.
 
     // Retrieve a handle to the certificate's private key
+    QgsDebugMsgLevel( QString( "Getting handles for private key for cert with hash %1" ).arg( certHash ), 99);
+
     if (!CryptGetUserKey(
           hProv,
           dwKeySpec,
@@ -639,6 +684,8 @@ get_systemstore_cert_with_privatekey(
     // Export the public/private key
     // first attend in case key is exportable
     // and to retieve the lenght, then to retrieve data
+    QgsDebugMsgLevel( QString( "Frist try to get private key size for cert with hash %1" ).arg( certHash ), 99);
+
     bool hasExported = CryptExportKey(
           hKey,
           0,
@@ -664,6 +711,8 @@ get_systemstore_cert_with_privatekey(
       // Export the public/private key
       // first to retieve the lenght, then to retrieve data
       // second attend to get the key after the memory hack
+      QgsDebugMsgLevel( QString( "Second try to get private key size for cert with hash %1" ).arg( certHash ), 99);
+
       hasExported = CryptExportKey(
             hKey,
             0,
@@ -680,6 +729,8 @@ get_systemstore_cert_with_privatekey(
     }
 
     // retrieve private key
+    QgsDebugMsgLevel( QString( "Exporting private key for cert with hash %1" ).arg( certHash ), 99);
+
     pbData = (BYTE*)malloc(cbData);
     if (!CryptExportKey(
             hKey,
@@ -694,6 +745,8 @@ get_systemstore_cert_with_privatekey(
     }
 
     // Establish a temporary key container
+    QgsDebugMsgLevel( QString( "Creating temporary key container for cert with hash %1" ).arg( certHash ), 99);
+
     if ( !CryptAcquireContext(
            &hProvTemp,
            NULL,
@@ -706,6 +759,8 @@ get_systemstore_cert_with_privatekey(
     }
 
     // Import the private key into the temporary key container
+    QgsDebugMsgLevel( QString( "Importing private key in temporary container for cert with hash %1" ).arg( certHash ), 99);
+
     if ( !CryptImportKey(
            hProvTemp,
            pbData,
@@ -721,6 +776,7 @@ get_systemstore_cert_with_privatekey(
   else
   {
     QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
+    QgsDebugMsgLevel( QString( "Frist try to get private key size for cert with hash %1" ).arg( certHash ), 99);
 
     SECURITY_STATUS ss = NCryptExportKey(
                              hCryptProvOrNCryptKey,
@@ -739,6 +795,8 @@ get_systemstore_cert_with_privatekey(
       // Mark the certificate's private key as exportable and archivable
 
       // Retrieve a handle to the Service Control Manager
+      QgsDebugMsgLevel( QString( "Opening SCManager for cert with hash %1" ).arg( certHash ), 99);
+
       hSCManager = OpenSCManager(
             NULL,
             NULL,
@@ -750,6 +808,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Retrieve a handle to the KeyIso service
+      QgsDebugMsgLevel( QString( "Opening KeyIso service for cert with hash %1" ).arg( certHash ), 99);
+
       hService = OpenService(
             hSCManager,
             _T("KeyIso"),
@@ -761,6 +821,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Retrieve the status of the KeyIso process, including its Process ID
+      QgsDebugMsgLevel( QString( "Retrieving KeyIso service status for cert with hash %1" ).arg( certHash ), 99);
+
       SERVICE_STATUS_PROCESS ssp;
       DWORD dwBytesNeeded;
 
@@ -776,6 +838,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Open a read-write handle to the process hosting the KeyIso service
+      QgsDebugMsgLevel( QString( "Opening process (orw) for cert with hash %1" ).arg( certHash ), 99);
+
       hProcess = OpenProcess(
             PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
             FALSE,
@@ -816,6 +880,8 @@ get_systemstore_cert_with_privatekey(
       #endif
 
       // Mark the certificate's private key as exportable
+      QgsDebugMsgLevel( QString( "Reading pKspKeyInLsass for cert with hash %1" ).arg( certHash ), 99);
+
       DWORD pKspKeyInLsass;
       SIZE_T sizeBytes;
 
@@ -830,6 +896,7 @@ get_systemstore_cert_with_privatekey(
         goto terminate;
       }
 
+      QgsDebugMsgLevel( QString( "Reading ucExportable for cert with hash %1" ).arg( certHash ), 99);
       unsigned char ucExportable;
       if (!ReadProcessMemory(
               hProcess,
@@ -843,6 +910,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // do flag exportable
+      QgsDebugMsgLevel( QString( "Setting cert with hash %1as exportable" ).arg( certHash ), 99);
+
       ucExportable |= NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
       if (!WriteProcessMemory(
               hProcess,
@@ -856,6 +925,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Export the private key
+      QgsDebugMsgLevel( QString( "Second try to get private key size for cert with hash %1" ).arg( certHash ), 99);
+
       ss = NCryptExportKey(
               hNKey,
               NULL,
@@ -871,6 +942,7 @@ get_systemstore_cert_with_privatekey(
         goto terminate;
       }
 
+      QgsDebugMsgLevel( QString( "Exporting private key for cert with hash %1" ).arg( certHash ), 99);
       pbData = (BYTE*)malloc(cbData);
       ss = NCryptExportKey(
               hNKey,
@@ -888,6 +960,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Establish a temporary CNG key store provider
+      QgsDebugMsgLevel( QString( "Setting temporary CNG keystore provider for cert with hash %1" ).arg( certHash ), 99);
+
       NCRYPT_PROV_HANDLE hProvider;
       ss = NCryptOpenStorageProvider(
               &hProvider,
@@ -900,6 +974,8 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Import the private key into the temporary storage provider
+      QgsDebugMsgLevel( QString( "Importing private key in temporary container for cert with hash %1" ).arg( certHash ), 99);
+
       ss = NCryptImportKey(
               hProvider,
               NULL,
@@ -928,6 +1004,8 @@ get_systemstore_cert_with_privatekey(
     ************************************************************/
 
   // Create a temporary certificate store in memory
+  QgsDebugMsgLevel( QString( "Opening memory keystore for cert with hash %1" ).arg( certHash ), 99);
+
   hMemoryStore = CertOpenStore(
         CERT_STORE_PROV_MEMORY,
         PKCS_7_ASN_ENCODING | X509_ASN_ENCODING,
@@ -941,6 +1019,8 @@ get_systemstore_cert_with_privatekey(
   }
 
   // Add a link to the certificate to our temporary certificate store
+  QgsDebugMsgLevel( QString( "Linking cert to memory keystore for cert with hash %1" ).arg( certHash ), 99);
+
   if ( !CertAddCertificateLinkToStore(
          hMemoryStore,
          pCertContext,
@@ -953,6 +1033,8 @@ get_systemstore_cert_with_privatekey(
 
   // Set the key container for the linked certificate to be our temporary
   // key container
+  QgsDebugMsgLevel( QString( "Setting key container for linked cert with hash %1" ).arg( certHash ), 99);
+
   if ( !CertSetCertificateContextProperty(
          pCertContext,
          CERT_HCRYPTPROV_OR_NCRYPT_KEY_HANDLE_PROP_ID,
@@ -970,6 +1052,8 @@ get_systemstore_cert_with_privatekey(
   wsTemp = std::wstring(sTemp.begin(), sTemp.end());
 
   // Export the temporary certificate store to a PFX data blob in memory
+  QgsDebugMsgLevel( QString( "Getting PFX cert size for cert with hash %1" ).arg( certHash ), 99);
+
   if ( !PFXExportCertStoreEx(
          hMemoryStore,
          &cdb,
@@ -982,6 +1066,7 @@ get_systemstore_cert_with_privatekey(
   }
   cdb.pbData = (BYTE*)malloc(cdb.cbData);
 
+  QgsDebugMsgLevel( QString( "Exporting PFX cert for cert with hash %1" ).arg( certHash ), 99);
   if ( !PFXExportCertStoreEx(
          hMemoryStore,
          &cdb,
@@ -1002,6 +1087,8 @@ get_systemstore_cert_with_privatekey(
   // Write the PFX data blob to disk
   // because of nature of the filename, I can safly use
   // CreateFileA (Ascii) insteand the generic alias CreateFile
+  QgsDebugMsgLevel( QString( "Opening PFX cert for cert with hash %1" ).arg( certHash ), 99);
+
   hFile = CreateFileA(
         wszFileName.toStdString().c_str(),
         GENERIC_WRITE,
@@ -1016,6 +1103,7 @@ get_systemstore_cert_with_privatekey(
     goto terminate;
   }
 
+  QgsDebugMsgLevel( QString( "Writing PFX cert for cert with hash %1" ).arg( certHash ), 99);
   DWORD dwBytesWritten;
   if ( !WriteFile(
          hFile,
@@ -1041,6 +1129,8 @@ get_systemstore_cert_with_privatekey(
   }
 
   // load the bundle
+  QgsDebugMsgLevel( QString( "Loading bundle from PFX for cert with hash %1" ).arg( certHash ), 99);
+
   passarray = QCA::SecureArray( pwd.toUtf8() );
   bundle = QCA::KeyBundle( QCA::KeyBundle::fromFile(
                              wszFileName,
@@ -1070,6 +1160,8 @@ get_systemstore_cert_with_privatekey(
   }
 
   // try to get QSslKey from QCA bundle
+  QgsDebugMsgLevel( QString( "Generating QSsKey from bundle for cert with hash %1" ).arg( certHash ), 99);
+
   privateKey = QSslKey( bundle.privateKey().toRSA().toPEM().toAscii(),
                         QSsl::Rsa );
 
