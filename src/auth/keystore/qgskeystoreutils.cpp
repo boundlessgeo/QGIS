@@ -41,7 +41,6 @@
 #include <windows.h>
 #include <wincrypt.h>
 #include <tchar.h>
-
 QString
 get_random_string(
     const int size)
@@ -455,7 +454,7 @@ systemstore_cert_privatekey_is_exportable(
           0);
     if ( ERROR_SUCCESS != ss )
     {
-      QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
       isExportable = false;
     }
     else
@@ -868,7 +867,7 @@ get_systemstore_cert_with_privatekey(
               0);
       if ( ERROR_SUCCESS != ss )
       {
-        QgsDebugMsg( QString( "Cannot get size of private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot get size of private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
         goto terminate;
       }
 
@@ -884,7 +883,7 @@ get_systemstore_cert_with_privatekey(
               0);
       if ( ERROR_SUCCESS != ss )
       {
-        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
         goto terminate;
       }
 
@@ -896,7 +895,7 @@ get_systemstore_cert_with_privatekey(
               0);
       if ( ERROR_SUCCESS != ss )
       {
-        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
         goto terminate;
       }
 
@@ -912,13 +911,13 @@ get_systemstore_cert_with_privatekey(
               0);
       if ( ERROR_SUCCESS != ss )
       {
-        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
         goto terminate;
       }
     }
     else
     {
-      QgsDebugMsg( QString( "Cannot export private key and no forcing is set for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      QgsDebugMsg( QString( "Cannot export private key and no forcing is set for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
       goto terminate;
     }
   }
