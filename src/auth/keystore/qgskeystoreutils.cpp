@@ -444,15 +444,16 @@ systemstore_cert_privatekey_is_exportable(
   {
     QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
 
-    if ( !NCryptExportKey(
-            hCryptProvOrNCryptKey,
-            NULL,
-            LEGACY_RSAPRIVATE_BLOB,
-            NULL,
-            NULL,
-            0,
-            &cbData,
-            0) )
+    SECURITY_STATUS ss = NCryptExportKey(
+          hCryptProvOrNCryptKey,
+          NULL,
+          LEGACY_RSAPRIVATE_BLOB,
+          NULL,
+          NULL,
+          0,
+          &cbData,
+          0);
+    if ( ERROR_SUCCESS != ss )
     {
       QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
       isExportable = false;
