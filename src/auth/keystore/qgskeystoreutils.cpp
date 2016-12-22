@@ -1116,8 +1116,9 @@ terminate:
     CloseServiceHandle(hSCManager);
   if (pCertContextNew)
     CertDeleteCertificateFromStore(pCertContextNew);
+  // close store! this can generate errors if some related context hasn't closed
   if (hMemoryStore)
-    CertCloseStore(hMemoryStore);
+    CertCloseStore(hMemoryStore, CERT_CLOSE_STORE_FORCE_FLAG);
 
   return result;
 }
