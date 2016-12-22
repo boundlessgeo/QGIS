@@ -451,7 +451,7 @@ systemstore_cert_privatekey_is_exportable(
             NULL,
             0,
             &cbData,
-            0)
+            0) )
     {
       QgsDebugMsg( QString( "Private key is NOT exportable for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
       isExportable = false;
@@ -595,6 +595,7 @@ get_systemstore_cert_with_privatekey(
   HCRYPTPROV hProv;
   HCRYPTPROV hProvTemp;
   HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
+  NCRYPT_KEY_HANDLE hNKey;
   BOOL fCallerFreeProvOrNCryptKey;
 
   if (!CryptAcquireCertificatePrivateKey(
@@ -611,6 +612,7 @@ get_systemstore_cert_with_privatekey(
 
   // export keys
   hProv = hCryptProvOrNCryptKey;
+  hNKey = hCryptProvOrNCryptKey;
   HCRYPTKEY hKey;
   BYTE* pbData = NULL;
   DWORD cbData = 0;
