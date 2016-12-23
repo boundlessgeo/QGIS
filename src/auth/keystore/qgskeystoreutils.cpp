@@ -314,6 +314,8 @@ systemstore_cert_privatekey_available(
   }
 
 terminate:
+  QgsDebugMsgLevel( QString( "Starting function cleanup" ), 99);
+
   // close store
   if(pCertContext)
     CertFreeCertificateContext(pCertContext);
@@ -493,6 +495,8 @@ systemstore_cert_privatekey_is_exportable(
   }
 
 terminate:
+  QgsDebugMsgLevel( QString( "Starting function cleanup" ), 99);
+
   // close store
   if(pCertContext)
     CertFreeCertificateContext(pCertContext);
@@ -1179,6 +1183,8 @@ get_systemstore_cert_with_privatekey(
   result.second = privateKey;
 
 terminate:
+  QgsDebugMsgLevel( QString( "Starting function cleanup" ), 99);
+
   // close store
   if ( hFile && (hFile != INVALID_HANDLE_VALUE) )
     CloseHandle(hFile);
