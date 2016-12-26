@@ -563,7 +563,7 @@ get_systemstore_cert_with_privatekey(
   HCERTSTORE hMemoryStore = NULL;
   PCCERT_CONTEXT pCertContextNew = NULL;
   NCRYPT_PROV_HANDLE hProvider = NULL;
-  SERVICE_STATUS_PROCESS *ssp = NULL;
+  BYTE *ssp = NULL;
   DWORD dwBytesNeeded = 0;
 
 
@@ -870,12 +870,12 @@ get_systemstore_cert_with_privatekey(
       }
 
       // Open a read-write handle to the process hosting the KeyIso service
-      QgsDebugMsgLevel( QString( "Opening process (orw) id: %1 for cert with hash %2" ).arg(ssp->dwProcessId).arg( certHash ), 99);
+      QgsDebugMsgLevel( QString( "Opening process (orw) id: %1 for cert with hash %2" ).arg(((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId).arg( certHash ), 99);
 
       hProcess = OpenProcess(
             PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
             FALSE,
-            ssp->dwProcessId);
+            ((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId);
       if (!hProcess)
       {
         QgsDebugMsg( QString( "Cannot open process for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
