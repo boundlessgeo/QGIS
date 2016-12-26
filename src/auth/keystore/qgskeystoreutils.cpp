@@ -550,6 +550,8 @@ get_systemstore_cert_with_privatekey(
   PCCERT_CONTEXT pCertContext = NULL;
   BYTE *pbBinary = NULL;
   CRYPT_HASH_BLOB hashBlob;
+  hashBlob.cbData = 0;
+  hashBlob.pbData = NULL;
   CRYPT_DATA_BLOB cdb;
   cdb.cbData = 0;
   cdb.pbData = NULL;
@@ -1218,6 +1220,12 @@ terminate:
     free(cdb.pbData);
     cdb.pbData = NULL;
     cdb.cbData = 0;
+  }
+  if (hashBlob.pbData)
+  {
+    free(hashBlob.pbData);
+    hashBlob.pbData = NULL;
+    hashBlob.cbData = 0;
   }
   if(pCertContext)
     CertFreeCertificateContext(pCertContext);
