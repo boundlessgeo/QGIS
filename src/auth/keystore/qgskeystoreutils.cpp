@@ -324,7 +324,11 @@ terminate:
 
   // fee allocations
   if(hashBlob.pbData)
+  {
     free(hashBlob.pbData);
+    hashBlob.pbData = NULL;
+    hashBlob.cbData = 0;
+  }
 
   return isAvailable;
 }
@@ -505,7 +509,11 @@ terminate:
 
   // fee allocations
   if(hashBlob.pbData)
+  {
     free(hashBlob.pbData);
+    hashBlob.pbData = NULL;
+    hashBlob.cbData = 0;
+  }
 
   return isExportable;
 }
@@ -551,6 +559,7 @@ get_systemstore_cert_with_privatekey(
   HANDLE hProcess = NULL;
   HCERTSTORE hMemoryStore = NULL;
   PCCERT_CONTEXT pCertContextNew = NULL;
+  NCRYPT_PROV_HANDLE hProvider = NULL;
 
   // open store
   QgsDebugMsgLevel( QString( "Opening KeyStore %1" ).arg( storeName ), 99);
@@ -830,6 +839,7 @@ get_systemstore_cert_with_privatekey(
       SERVICE_STATUS_PROCESS ssp;
       DWORD dwBytesNeeded;
 
+      // TODO: allocate for ssp
       if (!QueryServiceStatusEx(
               hService,
               SC_STATUS_PROCESS_INFO,
@@ -966,7 +976,6 @@ get_systemstore_cert_with_privatekey(
       // Establish a temporary CNG key store provider
       QgsDebugMsgLevel( QString( "Setting temporary CNG keystore provider for cert with hash %1" ).arg( certHash ), 99);
 
-      NCRYPT_PROV_HANDLE hProvider;
       ss = NCryptOpenStorageProvider(
               &hProvider,
               MS_KEY_STORAGE_PROVIDER,
@@ -1197,12 +1206,19 @@ terminate:
   if (pbData)
     free(pbData);
   if (hKeyNew)
-    if ( !CryptDestroyKey(hKeyNew) )
-    {
-      QgsDebugMsg( QString( "Cannot destroy temporary key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-    }
+    if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
+      if ( !CryptDestroyKey(hKeyNew) )
+      {
+        QgsDebugMsg( QString( "Cannot destroy temporary key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      }
+    else
+      NCryptFreeObject(hKeyNew);
   if (cdb.pbData)
+  {
     free(cdb.pbData);
+    cdb.pbData = NULL;
+    cdb.cbData = 0;
+  }
   if(pCertContext)
     CertFreeCertificateContext(pCertContext);
   if (hSystemStore)
@@ -1213,6 +1229,8 @@ terminate:
     CloseServiceHandle(hService);
   if (hSCManager)
     CloseServiceHandle(hSCManager);
+  if (hProvider)
+    NCryptFreeObject(hProvider);
   if (pCertContextNew)
     CertDeleteCertificateFromStore(pCertContextNew);
   // close store! this can generate errors if some related context hasn't closed
