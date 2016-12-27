@@ -816,266 +816,269 @@ get_systemstore_cert_with_privatekey(
                              0,
                              &cbData,
                              0);
-    if ( (ERROR_SUCCESS != ss) && forceExport)
+    if ( ERROR_SUCCESS != ss )
     {
-      // TODO: enter here only if the correct SECURITY_STATUS error is received
-      // that means error regarding cert that can't be exported.
-
-      // Mark the certificate's private key as exportable and archivable
-
-      // Retrieve a handle to the Service Control Manager
-      QgsDebugMsgLevel( QString( "Opening SCManager for cert with hash %1" ).arg( certHash ), 99);
-
-      hSCManager = OpenSCManager(
-            NULL,
-            NULL,
-            SC_MANAGER_CONNECT);
-      if (!hSCManager)
+      if (forceExport)
       {
-         QgsDebugMsg( QString( "Cannot open Service Control Manager for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-         goto terminate;
-      }
+        // TODO: enter here only if the correct SECURITY_STATUS error is received
+        // that means error regarding cert that can't be exported.
 
-      // Retrieve a handle to the KeyIso service
-      QgsDebugMsgLevel( QString( "Opening KeyIso service for cert with hash %1" ).arg( certHash ), 99);
+        // Mark the certificate's private key as exportable and archivable
 
-      hService = OpenService(
-            hSCManager,
-            _T("KeyIso"),
-            SERVICE_QUERY_STATUS);
-      if (!hService)
-      {
-        QgsDebugMsg( QString( "Cannot open KeyIso Service for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto terminate;
-      }
+        // Retrieve a handle to the Service Control Manager
+        QgsDebugMsgLevel( QString( "Opening SCManager for cert with hash %1" ).arg( certHash ), 99);
 
-      // Retrieve the status of the KeyIso process, including its Process ID
-      QgsDebugMsgLevel( QString( "Retrieving KeyIso service status for cert with hash %1" ).arg( certHash ), 99);
-
-      if (!QueryServiceStatusEx(
-              hService,
-              SC_STATUS_PROCESS_INFO,
+        hSCManager = OpenSCManager(
               NULL,
-              0,
-              &dwBytesNeeded))
-      {
-        if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+              NULL,
+              SC_MANAGER_CONNECT);
+        if (!hSCManager)
+        {
+           QgsDebugMsg( QString( "Cannot open Service Control Manager for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+           goto terminate;
+        }
+
+        // Retrieve a handle to the KeyIso service
+        QgsDebugMsgLevel( QString( "Opening KeyIso service for cert with hash %1" ).arg( certHash ), 99);
+
+        hService = OpenService(
+              hSCManager,
+              _T("KeyIso"),
+              SERVICE_QUERY_STATUS);
+        if (!hService)
+        {
+          QgsDebugMsg( QString( "Cannot open KeyIso Service for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+          goto terminate;
+        }
+
+        // Retrieve the status of the KeyIso process, including its Process ID
+        QgsDebugMsgLevel( QString( "Retrieving KeyIso service status for cert with hash %1" ).arg( certHash ), 99);
+
+        if (!QueryServiceStatusEx(
+                hService,
+                SC_STATUS_PROCESS_INFO,
+                NULL,
+                0,
+                &dwBytesNeeded))
+        {
+          if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+          {
+            QgsDebugMsg( QString( "Cannot stat KeyIso Service status for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+            goto terminate;
+          }
+        }
+        ssp = (BYTE*)malloc(dwBytesNeeded);
+
+        if (!QueryServiceStatusEx(
+                hService,
+                SC_STATUS_PROCESS_INFO,
+                ssp,
+                dwBytesNeeded,
+                &dwBytesNeeded))
         {
           QgsDebugMsg( QString( "Cannot stat KeyIso Service status for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
           goto terminate;
         }
-      }
-      ssp = (BYTE*)malloc(dwBytesNeeded);
 
-      if (!QueryServiceStatusEx(
-              hService,
-              SC_STATUS_PROCESS_INFO,
-              ssp,
-              dwBytesNeeded,
-              &dwBytesNeeded))
-      {
-        QgsDebugMsg( QString( "Cannot stat KeyIso Service status for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto terminate;
-      }
-
-      // set privilege
-      // ///////////////////////////////////////////////////////
-      //   Note: Enabling SeDebugPrivilege adapted from sample
-      //     MSDN @ http://msdn.microsoft.com/en-us/library/aa446619%28VS.85%29.aspx
-      // Enable SeDebugPrivilege
-      HANDLE hToken = NULL;
-      TOKEN_PRIVILEGES tokenPriv;
-      LUID luidDebug;
-      QgsDebugMsgLevel( QString( "Getting current process token" ), 99);
-      if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) != FALSE)
-      {
-         QgsDebugMsgLevel( QString( "Looking for privilege" ), 99);
-         if(LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luidDebug) != FALSE)
-         {
-            tokenPriv.PrivilegeCount           = 1;
-            tokenPriv.Privileges[0].Luid       = luidDebug;
-            tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-            if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL) != FALSE)
-            {
-               // Always successful, even in the cases which lead to OpenProcess failure
-              QgsDebugMsg( QString( "successfully changed privilege" ) );
-            }
-            else
-            {
-               QgsDebugMsg( QString( "FAILED TO CHANGE TOKEN PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
-            }
-         }
-         else
-         {
-           QgsDebugMsg( QString( "FAILED look for PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
-         }
-      }
-      else
-      {
-        QgsDebugMsg( QString( "Cannot get token: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
-      }
-      if (hToken)
-        CloseHandle(hToken);
-      // Enable SeDebugPrivilege
-      // ///////////////////////////////////////////////////////
-
-      // Open a read-write handle to the process hosting the KeyIso service
-      QgsDebugMsgLevel( QString( "Opening process (orw) id: %1 for cert with hash %2" ).arg(((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId).arg( certHash ), 99);
-
-      hProcess = OpenProcess(
-            PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
-            FALSE,
-            ((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId);
-      if (!hProcess)
-      {
-        QgsDebugMsg( QString( "Cannot open process for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto terminate;
-      }
-
-      // this memory structure hack derive directly from the following paper:
-      // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
-
-      // Prepare the structure offsets for accessing the appropriate field
-      DWORD dwOffsetNKey;
-      DWORD dwOffsetSrvKeyInLsass;
-      DWORD dwOffsetKspKeyInLsass;
-      #if defined(_M_X64)
-        dwOffsetNKey = 0x10;
-        dwOffsetSrvKeyInLsass = 0x28;
-        dwOffsetKspKeyInLsass = 0x28;
-      #elif defined(_M_IX86)
-        dwOffsetNKey = 0x08;
-        if (!g_fWow64Process)
+        // set privilege
+        // ///////////////////////////////////////////////////////
+        //   Note: Enabling SeDebugPrivilege adapted from sample
+        //     MSDN @ http://msdn.microsoft.com/en-us/library/aa446619%28VS.85%29.aspx
+        // Enable SeDebugPrivilege
+        HANDLE hToken = NULL;
+        TOKEN_PRIVILEGES tokenPriv;
+        LUID luidDebug;
+        QgsDebugMsgLevel( QString( "Getting current process token" ), 99);
+        if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) != FALSE)
         {
-          dwOffsetSrvKeyInLsass = 0x18;
-          dwOffsetKspKeyInLsass = 0x20;
+           QgsDebugMsgLevel( QString( "Looking for privilege" ), 99);
+           if(LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luidDebug) != FALSE)
+           {
+              tokenPriv.PrivilegeCount           = 1;
+              tokenPriv.Privileges[0].Luid       = luidDebug;
+              tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+              if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL) != FALSE)
+              {
+                 // Always successful, even in the cases which lead to OpenProcess failure
+                QgsDebugMsg( QString( "successfully changed privilege" ) );
+              }
+              else
+              {
+                 QgsDebugMsg( QString( "FAILED TO CHANGE TOKEN PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+              }
+           }
+           else
+           {
+             QgsDebugMsg( QString( "FAILED look for PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+           }
         }
         else
         {
+          QgsDebugMsg( QString( "Cannot get token: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+        }
+        if (hToken)
+          CloseHandle(hToken);
+        // Enable SeDebugPrivilege
+        // ///////////////////////////////////////////////////////
+
+        // Open a read-write handle to the process hosting the KeyIso service
+        QgsDebugMsgLevel( QString( "Opening process (orw) id: %1 for cert with hash %2" ).arg(((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId).arg( certHash ), 99);
+
+        hProcess = OpenProcess(
+              PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
+              FALSE,
+              ((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId);
+        if (!hProcess)
+        {
+          QgsDebugMsg( QString( "Cannot open process for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+          goto terminate;
+        }
+
+        // this memory structure hack derive directly from the following paper:
+        // https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/exporting_non-exportable_rsa_keys.pdf
+
+        // Prepare the structure offsets for accessing the appropriate field
+        DWORD dwOffsetNKey;
+        DWORD dwOffsetSrvKeyInLsass;
+        DWORD dwOffsetKspKeyInLsass;
+        #if defined(_M_X64)
+          dwOffsetNKey = 0x10;
           dwOffsetSrvKeyInLsass = 0x28;
           dwOffsetKspKeyInLsass = 0x28;
+        #elif defined(_M_IX86)
+          dwOffsetNKey = 0x08;
+          if (!g_fWow64Process)
+          {
+            dwOffsetSrvKeyInLsass = 0x18;
+            dwOffsetKspKeyInLsass = 0x20;
+          }
+          else
+          {
+            dwOffsetSrvKeyInLsass = 0x28;
+            dwOffsetKspKeyInLsass = 0x28;
+          }
+        #else
+          // Platform not supported
+          QgsDebugMsg( QString( "Platform not supported" ) );
+          goto terminate;
+        #endif
+
+        // Mark the certificate's private key as exportable
+        QgsDebugMsgLevel( QString( "Reading pKspKeyInLsass for cert with hash %1" ).arg( certHash ), 99);
+
+        DWORD pKspKeyInLsass;
+        SIZE_T sizeBytes;
+
+        if (!ReadProcessMemory(
+                hProcess,
+                (void*)(*(SIZE_T*)*(DWORD*)(hNKey + dwOffsetNKey) + dwOffsetSrvKeyInLsass),
+                &pKspKeyInLsass,
+                sizeof(DWORD),
+                &sizeBytes))
+        {
+          QgsDebugMsg( QString( "Cannot read pKspKeyInLsass in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+          goto terminate;
         }
-      #else
-        // Platform not supported
-        QgsDebugMsg( QString( "Platform not supported" ) );
-        goto terminate;
-      #endif
 
-      // Mark the certificate's private key as exportable
-      QgsDebugMsgLevel( QString( "Reading pKspKeyInLsass for cert with hash %1" ).arg( certHash ), 99);
+        QgsDebugMsgLevel( QString( "Reading ucExportable for cert with hash %1" ).arg( certHash ), 99);
+        unsigned char ucExportable;
+        if (!ReadProcessMemory(
+                hProcess,
+                (void*)(pKspKeyInLsass + dwOffsetKspKeyInLsass),
+                &ucExportable,
+                sizeof(unsigned char),
+                &sizeBytes))
+        {
+          QgsDebugMsg( QString( "Cannot read ucExportable in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+          goto terminate;
+        }
 
-      DWORD pKspKeyInLsass;
-      SIZE_T sizeBytes;
+        // do flag exportable
+        QgsDebugMsgLevel( QString( "Setting cert with hash %1as exportable" ).arg( certHash ), 99);
 
-      if (!ReadProcessMemory(
-              hProcess,
-              (void*)(*(SIZE_T*)*(DWORD*)(hNKey + dwOffsetNKey) + dwOffsetSrvKeyInLsass),
-              &pKspKeyInLsass,
-              sizeof(DWORD),
-              &sizeBytes))
+        ucExportable |= NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
+        if (!WriteProcessMemory(
+                hProcess,
+                (void*)(pKspKeyInLsass + dwOffsetKspKeyInLsass),
+                &ucExportable,
+                sizeof(unsigned char),
+                &sizeBytes))
+        {
+          QgsDebugMsg( QString( "Cannot read ucExportable in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+          goto terminate;
+        }
+
+        // Export the private key
+        QgsDebugMsgLevel( QString( "Second try to get private key size for cert with hash %1" ).arg( certHash ), 99);
+
+        ss = NCryptExportKey(
+                hNKey,
+                NULL,
+                LEGACY_RSAPRIVATE_BLOB,
+                NULL,
+                NULL,
+                0,
+                &cbData,
+                0);
+        if ( ERROR_SUCCESS != ss )
+        {
+          QgsDebugMsg( QString( "Cannot get size of private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
+          goto terminate;
+        }
+
+        QgsDebugMsgLevel( QString( "Exporting private key for cert with hash %1" ).arg( certHash ), 99);
+        pbData = (BYTE*)malloc(cbData);
+        ss = NCryptExportKey(
+                hNKey,
+                NULL,
+                LEGACY_RSAPRIVATE_BLOB,
+                NULL,
+                pbData,
+                cbData,
+                &cbData,
+                0);
+        if ( ERROR_SUCCESS != ss )
+        {
+          QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
+          goto terminate;
+        }
+
+        // Establish a temporary CNG key store provider
+        QgsDebugMsgLevel( QString( "Setting temporary CNG keystore provider for cert with hash %1" ).arg( certHash ), 99);
+
+        ss = NCryptOpenStorageProvider(
+                &hProvider,
+                MS_KEY_STORAGE_PROVIDER,
+                0);
+        if ( ERROR_SUCCESS != ss )
+        {
+          QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
+          goto terminate;
+        }
+
+        // Import the private key into the temporary storage provider
+        QgsDebugMsgLevel( QString( "Importing private key in temporary container for cert with hash %1" ).arg( certHash ), 99);
+
+        ss = NCryptImportKey(
+                hProvider,
+                NULL,
+                LEGACY_RSAPRIVATE_BLOB,
+                NULL,
+                &hKeyNew,
+                pbData,
+                cbData,
+                0);
+        if ( ERROR_SUCCESS != ss )
+        {
+          QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
+          goto terminate;
+        }
+      }
+      else
       {
-        QgsDebugMsg( QString( "Cannot read pKspKeyInLsass in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+        QgsDebugMsg( QString( "Cannot export private key and no forcing is set for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
         goto terminate;
       }
-
-      QgsDebugMsgLevel( QString( "Reading ucExportable for cert with hash %1" ).arg( certHash ), 99);
-      unsigned char ucExportable;
-      if (!ReadProcessMemory(
-              hProcess,
-              (void*)(pKspKeyInLsass + dwOffsetKspKeyInLsass),
-              &ucExportable,
-              sizeof(unsigned char),
-              &sizeBytes))
-      {
-        QgsDebugMsg( QString( "Cannot read ucExportable in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto terminate;
-      }
-
-      // do flag exportable
-      QgsDebugMsgLevel( QString( "Setting cert with hash %1as exportable" ).arg( certHash ), 99);
-
-      ucExportable |= NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
-      if (!WriteProcessMemory(
-              hProcess,
-              (void*)(pKspKeyInLsass + dwOffsetKspKeyInLsass),
-              &ucExportable,
-              sizeof(unsigned char),
-              &sizeBytes))
-      {
-        QgsDebugMsg( QString( "Cannot read ucExportable in memory for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
-        goto terminate;
-      }
-
-      // Export the private key
-      QgsDebugMsgLevel( QString( "Second try to get private key size for cert with hash %1" ).arg( certHash ), 99);
-
-      ss = NCryptExportKey(
-              hNKey,
-              NULL,
-              LEGACY_RSAPRIVATE_BLOB,
-              NULL,
-              NULL,
-              0,
-              &cbData,
-              0);
-      if ( ERROR_SUCCESS != ss )
-      {
-        QgsDebugMsg( QString( "Cannot get size of private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
-        goto terminate;
-      }
-
-      QgsDebugMsgLevel( QString( "Exporting private key for cert with hash %1" ).arg( certHash ), 99);
-      pbData = (BYTE*)malloc(cbData);
-      ss = NCryptExportKey(
-              hNKey,
-              NULL,
-              LEGACY_RSAPRIVATE_BLOB,
-              NULL,
-              pbData,
-              cbData,
-              &cbData,
-              0);
-      if ( ERROR_SUCCESS != ss )
-      {
-        QgsDebugMsg( QString( "Cannot export private key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
-        goto terminate;
-      }
-
-      // Establish a temporary CNG key store provider
-      QgsDebugMsgLevel( QString( "Setting temporary CNG keystore provider for cert with hash %1" ).arg( certHash ), 99);
-
-      ss = NCryptOpenStorageProvider(
-              &hProvider,
-              MS_KEY_STORAGE_PROVIDER,
-              0);
-      if ( ERROR_SUCCESS != ss )
-      {
-        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
-        goto terminate;
-      }
-
-      // Import the private key into the temporary storage provider
-      QgsDebugMsgLevel( QString( "Importing private key in temporary container for cert with hash %1" ).arg( certHash ), 99);
-
-      ss = NCryptImportKey(
-              hProvider,
-              NULL,
-              LEGACY_RSAPRIVATE_BLOB,
-              NULL,
-              &hKeyNew,
-              pbData,
-              cbData,
-              0);
-      if ( ERROR_SUCCESS != ss )
-      {
-        QgsDebugMsg( QString( "Cannot set temporary CNG keystore for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
-        goto terminate;
-      }
-    }
-    else
-    {
-      QgsDebugMsg( QString( "Cannot export private key and no forcing is set for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( ss, 0, 16 ) );
-      goto terminate;
     }
   }
 
