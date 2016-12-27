@@ -672,8 +672,8 @@ get_systemstore_cert_with_privatekey(
 
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
-        //CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
-        CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
+        CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+        //CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
         NULL,
         &hCryptProvOrNCryptKey,
         &dwKeySpec,
