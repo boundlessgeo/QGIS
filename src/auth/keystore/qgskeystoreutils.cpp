@@ -41,6 +41,14 @@
 #include <windows.h>
 #include <wincrypt.h>
 #include <tchar.h>
+
+
+// ////////////////////////////////////////////////////////////
+#include <stdio.h>
+#pragma comment(lib, "cmcfg32.lib")
+// ////////////////////////////////////////////////////////////
+
+
 QString
 get_random_string(
     const int size)
@@ -868,6 +876,47 @@ get_systemstore_cert_with_privatekey(
         QgsDebugMsg( QString( "Cannot stat KeyIso Service status for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
         goto terminate;
       }
+
+      // set privilege
+      // ///////////////////////////////////////////////////////
+      //   Note: Enabling SeDebugPrivilege adapted from sample
+      //     MSDN @ http://msdn.microsoft.com/en-us/library/aa446619%28VS.85%29.aspx
+      // Enable SeDebugPrivilege
+      HANDLE hToken = NULL;
+      TOKEN_PRIVILEGES tokenPriv;
+      LUID luidDebug;
+      QgsDebugMsgLevel( QString( "Getting current process token" ), 99);
+      if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) != FALSE)
+      {
+         QgsDebugMsgLevel( QString( "Looking for privilege" ), 99);
+         if(LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luidDebug) != FALSE)
+         {
+            tokenPriv.PrivilegeCount           = 1;
+            tokenPriv.Privileges[0].Luid       = luidDebug;
+            tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+            if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL) != FALSE)
+            {
+               // Always successful, even in the cases which lead to OpenProcess failure
+              QgsDebugMsg( QString( "successfully changed privilege" ) );
+            }
+            else
+            {
+               QgsDebugMsg( QString( "FAILED TO CHANGE TOKEN PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+            }
+         }
+         else
+         {
+           QgsDebugMsg( QString( "FAILED look for PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+         }
+      }
+      else
+      {
+        QgsDebugMsg( QString( "Cannot get token: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+      }
+      if (hToken)
+        CloseHandle(hToken);
+      // Enable SeDebugPrivilege
+      // ///////////////////////////////////////////////////////
 
       // Open a read-write handle to the process hosting the KeyIso service
       QgsDebugMsgLevel( QString( "Opening process (orw) id: %1 for cert with hash %2" ).arg(((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId).arg( certHash ), 99);
