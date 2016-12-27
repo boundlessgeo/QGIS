@@ -923,7 +923,8 @@ get_systemstore_cert_with_privatekey(
       QgsDebugMsgLevel( QString( "Opening process (orw) id: %1 for cert with hash %2" ).arg(((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId).arg( certHash ), 99);
 
       hProcess = OpenProcess(
-            PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
+            // PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
+            PROCESS_VM_READ | PROCESS_VM_WRITE,
             FALSE,
             ((SERVICE_STATUS_PROCESS*)ssp)->dwProcessId);
       if (!hProcess)
