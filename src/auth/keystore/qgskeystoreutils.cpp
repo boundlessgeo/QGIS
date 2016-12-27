@@ -713,7 +713,7 @@ get_systemstore_cert_with_privatekey(
     // Export the public/private key
     // first attend in case key is exportable
     // and to retieve the lenght, then to retrieve data
-    QgsDebugMsgLevel( QString( "Frist try to get private key size for cert with hash %1" ).arg( certHash ), 99);
+    QgsDebugMsgLevel( QString( "First try to get private key size for cert with hash %1" ).arg( certHash ), 99);
 
     bool hasExported = CryptExportKey(
           hKey,
@@ -805,7 +805,7 @@ get_systemstore_cert_with_privatekey(
   else
   {
     QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
-    QgsDebugMsgLevel( QString( "Frist try to get private key size for cert with hash %1" ).arg( certHash ), 99);
+    QgsDebugMsgLevel( QString( "First try to get private key size for cert with hash %1" ).arg( certHash ), 99);
 
     SECURITY_STATUS ss = NCryptExportKey(
                              hCryptProvOrNCryptKey,
