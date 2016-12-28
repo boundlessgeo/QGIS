@@ -884,15 +884,15 @@ get_systemstore_cert_with_privatekey(
         TOKEN_PRIVILEGES tokenPriv;
         LUID luidDebug;
         QgsDebugMsgLevel( QString( "Getting current process token" ), 99);
-        if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) != FALSE)
+        if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
         {
            QgsDebugMsgLevel( QString( "Looking for privilege" ), 99);
-           if(LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luidDebug) != FALSE)
+           if(LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luidDebug))
            {
               tokenPriv.PrivilegeCount           = 1;
               tokenPriv.Privileges[0].Luid       = luidDebug;
               tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-              if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL) != FALSE)
+              if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
               {
                 if ( GetLastError() == ERROR_SUCCESS)
                 {
