@@ -428,8 +428,8 @@ systemstore_cert_privatekey_is_exportable(
 
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
-        //CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
-        CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
+        CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+        //CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
         NULL,
         &hCryptProvOrNCryptKey,
         &dwKeySpec,
@@ -505,6 +505,15 @@ systemstore_cert_privatekey_is_exportable(
 
 terminate:
   QgsDebugMsgLevel( QString( "Starting function cleanup" ), 99);
+
+  if (hCryptProvOrNCryptKey)
+    if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
+      if ( !CryptDestroyKey(hCryptProvOrNCryptKey) )
+      {
+        QgsDebugMsg( QString( "Cannot destroy temporary key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
+      }
+    else
+      NCryptFreeObject(hCryptProvOrNCryptKey);
 
   // close store
   if(pCertContext)
@@ -667,8 +676,8 @@ get_systemstore_cert_with_privatekey(
 
   if (!CryptAcquireCertificatePrivateKey(
         pCertContext,
-        //CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
-        CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
+        CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+        //CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
         NULL,
         &hCryptProvOrNCryptKey,
         &dwKeySpec,
