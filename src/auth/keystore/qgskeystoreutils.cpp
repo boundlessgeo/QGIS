@@ -39,15 +39,10 @@
 #include "qgsauthcertutils.h"
 
 #include <windows.h>
+#include <Winbase.h>
 #include <wincrypt.h>
 #include <tchar.h>
-
-
-// ////////////////////////////////////////////////////////////
-#include <Winbase.h>
 #include <stdio.h>
-//#pragma comment(lib, "cmcfg32.lib")
-// ////////////////////////////////////////////////////////////
 
 
 QString
@@ -904,17 +899,17 @@ get_systemstore_cert_with_privatekey(
               }
               else
               {
-                 QgsDebugMsg( QString( "FAILED TO CHANGE TOKEN PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+                 QgsDebugMsg( QString( "FAILED TO CHANGE TOKEN PRIVILEGES: Wincrypt error 0x%1" ).arg( GetLastError(), 0, 16 ) );
               }
            }
            else
            {
-             QgsDebugMsg( QString( "FAILED look for PRIVILEGES: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+             QgsDebugMsg( QString( "FAILED look for PRIVILEGES: Wincrypt error 0x%1" ).arg( GetLastError(), 0, 16 ) );
            }
         }
         else
         {
-          QgsDebugMsg( QString( "Cannot get token: Wincrypt error 0x%2" ).arg( GetLastError(), 0, 16 ) );
+          QgsDebugMsg( QString( "Cannot get token: Wincrypt error 0x%1" ).arg( GetLastError(), 0, 16 ) );
         }
         if (hToken)
           CloseHandle(hToken);
