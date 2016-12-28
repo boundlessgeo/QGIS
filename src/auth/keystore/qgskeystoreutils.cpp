@@ -894,8 +894,14 @@ get_systemstore_cert_with_privatekey(
               tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
               if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL) != FALSE)
               {
-                 // Always successful, even in the cases which lead to OpenProcess failure
-                QgsDebugMsg( QString( "successfully changed privilege: Wincrypt error 0x%1" ).arg( GetLastError(), 0, 16 ) );
+                if ( GetLastError() == ERROR_SUCCESS)
+                {
+                  QgsDebugMsg( QString( "successfully changed privilege" ) );
+                }
+                else
+                {
+                  QgsDebugMsg( QString( "FAILED TO CHANGE TOKEN PRIVILEGES: Wincrypt error 0x%1" ).arg( GetLastError(), 0, 16 ) );
+                }
               }
               else
               {
