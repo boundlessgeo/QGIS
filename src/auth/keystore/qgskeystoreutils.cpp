@@ -895,7 +895,7 @@ get_systemstore_cert_with_privatekey(
               if(AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES), NULL, NULL) != FALSE)
               {
                  // Always successful, even in the cases which lead to OpenProcess failure
-                QgsDebugMsg( QString( "successfully changed privilege" ) );
+                QgsDebugMsg( QString( "successfully changed privilege: Wincrypt error 0x%1" ).arg( GetLastError(), 0, 16 ) );
               }
               else
               {
