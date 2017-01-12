@@ -676,9 +676,9 @@ get_systemstore_cert_with_privatekey(
   HCRYPTPROV hProv;
   HCRYPTPROV hProvTemp;
   HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
+  BOOL fCallerFreeProvOrNCryptKey;
 #ifdef WITH_CNG
   NCRYPT_KEY_HANDLE hNKey;
-  BOOL fCallerFreeProvOrNCryptKey;
 #endif // WITH_CNG
 
   QgsDebugMsgLevel( QString( "Getting handle for cert with hash %1" ).arg( certHash ), 99);
@@ -698,7 +698,9 @@ get_systemstore_cert_with_privatekey(
 
   // export keys
   hProv = hCryptProvOrNCryptKey;
+#ifdef WITH_CNG
   hNKey = hCryptProvOrNCryptKey;
+#endif // WITH_CNG
   HCRYPTKEY hKey;
   BYTE* pbData = NULL;
   DWORD cbData = 0;
