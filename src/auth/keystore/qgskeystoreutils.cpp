@@ -477,6 +477,7 @@ systemstore_cert_privatekey_is_exportable(
       isExportable = true;
     }
   }
+#ifdef WITH_CNG
   else
   {
     QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
@@ -502,18 +503,22 @@ systemstore_cert_privatekey_is_exportable(
       isExportable = true;
     }
   }
+#endif // WITH_CNG
 
 terminate:
   QgsDebugMsgLevel( QString( "Starting function cleanup" ), 99);
 
   if (hCryptProvOrNCryptKey)
     if (CERT_NCRYPT_KEY_SPEC != dwKeySpec)
+      // TODO destroy depending on destroy flag, otherwise return error
       if ( !CryptDestroyKey(hCryptProvOrNCryptKey) )
       {
         QgsDebugMsg( QString( "Cannot destroy temporary key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
       }
+#ifdef WITH_CNG
     else
       NCryptFreeObject(hCryptProvOrNCryptKey);
+#endif // WITH_CNG
 
   // close store
   if(pCertContext)
@@ -570,14 +575,16 @@ get_systemstore_cert_with_privatekey(
   cdb.cbData = 0;
   cdb.pbData = NULL;
   HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hKeyNew = NULL;
-  SC_HANDLE hSCManager = NULL;
-  SC_HANDLE hService = NULL;
-  HANDLE hProcess = NULL;
   HCERTSTORE hMemoryStore = NULL;
   PCCERT_CONTEXT pCertContextNew = NULL;
+#ifdef WITH_CNG
+  HANDLE hProcess = NULL;
+  SC_HANDLE hSCManager = NULL;
+  SC_HANDLE hService = NULL;
   NCRYPT_PROV_HANDLE hProvider = NULL;
   BYTE *ssp = NULL;
   DWORD dwBytesNeeded = 0;
+#endif // WITH_CNG
 
 
   // open store
@@ -669,8 +676,10 @@ get_systemstore_cert_with_privatekey(
   HCRYPTPROV hProv;
   HCRYPTPROV hProvTemp;
   HCRYPTPROV_OR_NCRYPT_KEY_HANDLE hCryptProvOrNCryptKey;
+#ifdef WITH_CNG
   NCRYPT_KEY_HANDLE hNKey;
   BOOL fCallerFreeProvOrNCryptKey;
+#endif // WITH_CNG
 
   QgsDebugMsgLevel( QString( "Getting handle for cert with hash %1" ).arg( certHash ), 99);
 
@@ -806,6 +815,7 @@ get_systemstore_cert_with_privatekey(
       goto terminate;
     }
   }
+#ifdef WITH_CNG
   else
   {
     QgsDebugMsg( QString( "Returned KeySpec in CNG context for cert with hash %1.").arg( certHash ) );
@@ -1091,6 +1101,7 @@ get_systemstore_cert_with_privatekey(
       }
     }
   }
+#endif // WITH_CNG
 
   /***********************************************************
     * now having the key, start the process to export in a pfx
@@ -1133,7 +1144,12 @@ get_systemstore_cert_with_privatekey(
          pCertContext,
          CERT_HCRYPTPROV_OR_NCRYPT_KEY_HANDLE_PROP_ID,
          0,
+#ifdef WITH_CNG
          (void*)( (CERT_NCRYPT_KEY_SPEC == dwKeySpec) ? hNKey : hProvTemp) ))
+#else
+         (void*) hProvTemp ))
+#endif // WITH_CNG
+
   {
     QgsDebugMsg( QString( "Cannot set property for temporary cert related to cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
     goto terminate;
@@ -1292,10 +1308,18 @@ terminate:
       {
         QgsDebugMsg( QString( "Cannot destroy temporary key for cert with hash %1: Wincrypt error 0x%2" ).arg( certHash ).arg( GetLastError(), 0, 16 ) );
       }
+#ifdef WITH_CNG
     else
       NCryptFreeObject(hKeyNew);
   if (ssp)
     free(ssp);
+  if (hProcess)
+    CloseHandle(hProcess);
+  if (hService)
+    CloseServiceHandle(hService);
+  if (hSCManager)
+    CloseServiceHandle(hSCManager);
+#endif // WITH_CNG
   if (cdb.pbData)
   {
     free(cdb.pbData);
@@ -1312,14 +1336,10 @@ terminate:
     CertFreeCertificateContext(pCertContext);
   if (hSystemStore)
     CertCloseStore(hSystemStore, 0);
-  if (hProcess)
-    CloseHandle(hProcess);
-  if (hService)
-    CloseServiceHandle(hService);
-  if (hSCManager)
-    CloseServiceHandle(hSCManager);
+#ifdef WITH_CNG
   if (hProvider)
     NCryptFreeObject(hProvider);
+#endif // WITH_CNG
   if (pCertContextNew)
     CertDeleteCertificateFromStore(pCertContextNew);
   // close store! this can generate errors if some related context hasn't closed
