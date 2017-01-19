@@ -8538,8 +8538,10 @@ void QgisApp::adjustBrightnessContrast( int delta, bool updateBrightness )
 
 void QgisApp::helpContents()
 {
+  QSettings settings;
+  QString helpUrl = settings.value( "Qgis/docsUserManualUrl", "https://docs.qgis.org/%1.%2/%3/docs/user_manual/" ).toString();
   // We should really ship the HTML version of the docs local too.
-  openURL( QString( "https://docs.qgis.org/%1.%2/%3/docs/user_manual/" )
+  openURL( helpUrl
            .arg( QGis::QGIS_VERSION_INT / 10000 )
            .arg( QGis::QGIS_VERSION_INT / 100 % 100 )
            .arg( tr( "en", "documentation language" ) ),
@@ -8554,22 +8556,31 @@ void QgisApp::apiDocumentation()
   }
   else
   {
-    openURL( "https://qgis.org/api/", false );
+    QSettings settings;
+    QString QgisApiUrl = settings.value( "Qgis/QgisApiUrl", "https://qgis.org/api/" ).toString();
+    openURL( QgisApiUrl, false );
   }
 }
 
 void QgisApp::reportaBug()
 {
-  openURL( tr( "https://qgis.org/en/site/getinvolved/development/bugreporting.html" ), false );
+  QSettings settings;
+  QString reportaBugUrl = settings.value( "Qgis/reportaBugUrl", tr( "https://qgis.org/en/site/getinvolved/development/bugreporting.html" ) ).toString();
+  openURL( reportaBugUrl, false );
 }
+
 void QgisApp::supportProviders()
 {
-  openURL( tr( "https://qgis.org/en/site/forusers/commercial_support.html" ), false );
+  QSettings settings;
+  QString supportProvidersUrl = settings.value( "Qgis/supportProvidersUrl" , tr( "https://qgis.org/en/site/forusers/commercial_support.html" ) ).toString();
+  openURL( supportProvidersUrl , false );
 }
 
 void QgisApp::helpQgisHomePage()
 {
-  openURL( "https://qgis.org", false );
+  QSettings settings;
+  QString  helpQgisHomePageUrl = settings.value( "Qgis/helpQgisHomePageUrl", "https://qgis.org" ).toString();
+  openURL( helpQgisHomePageUrl, false );
 }
 
 void QgisApp::openURL( QString url, bool useQgisDocDirectory )
