@@ -79,6 +79,7 @@
 %Include qgsgenericprojectionselector.sip
 %Include qgsgeometryrubberband.sip
 %Include qgsgroupwmsdatadialog.sip
+%Include qgshelp.sip
 %Include qgshighlight.sip
 %Include qgshistogramwidget.sip
 %Include qgshtmlannotationitem.sip
