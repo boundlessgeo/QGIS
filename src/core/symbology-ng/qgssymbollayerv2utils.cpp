@@ -450,6 +450,10 @@ QString QgsSymbolLayerV2Utils::encodeSldUom( QgsSymbolV2::OutputUnit unit, doubl
       return "http://www.opengeospatial.org/se/units/metre";
 
     case QgsSymbolV2::MM:
+      if ( scaleFactor )
+        *scaleFactor = 0.001; // from millimeters to meters
+      return "http://www.opengeospatial.org/se/units/metre";
+
     default:
       // pixel is the SLD default uom. The "standardized rendering pixel
       // size" is defined to be 0.28mm × 0.28mm (millimeters).
@@ -457,7 +461,7 @@ QString QgsSymbolLayerV2Utils::encodeSldUom( QgsSymbolV2::OutputUnit unit, doubl
         *scaleFactor = 1 / 0.28;  // from millimeters to pixels
 
       // http://www.opengeospatial.org/sld/units/pixel
-      return QString();
+      return "http://www.opengeospatial.org/se/units/pixel";
   }
 }
 
@@ -467,20 +471,25 @@ QgsSymbolV2::OutputUnit QgsSymbolLayerV2Utils::decodeSldUom( const QString& str,
   {
     if ( scaleFactor )
       *scaleFactor = 1000.0;  // from meters to millimeters
-    return QgsSymbolV2::MapUnit;
+    return QgsSymbolV2::MM;
   }
   else if ( str == "http://www.opengeospatial.org/se/units/foot" )
   {
     if ( scaleFactor )
       *scaleFactor = 304.8; // from feet to meters
-    return QgsSymbolV2::MapUnit;
+    return QgsSymbolV2::MM;
+  }
+  else if ( str == "http://www.opengeospatial.org/se/units/pixel" )
+  {
+    // does not change scale factor
+    return QgsSymbolV2::Pixel;
   }
 
   // pixel is the SLD default uom. The "standardized rendering pixel
   // size" is defined to be 0.28mm x 0.28mm (millimeters).
   if ( scaleFactor )
     *scaleFactor = 1 / 0.00028; // from pixels to millimeters
-  return QgsSymbolV2::MM;
+  return QgsSymbolV2::Pixel;
 }
 
 QString QgsSymbolLayerV2Utils::encodeRealVector( const QVector<qreal>& v )
@@ -1119,6 +1128,12 @@ bool QgsSymbolLayerV2Utils::createSymbolLayerV2ListFromSld( QDomElement& element
 
   QgsSymbolLayerV2 *l = nullptr;
 
+  // check measure unit
+  double scaleFactor = 1.0; // temporaly unused
+  QString uom = (element.hasAttribute("uom"))? element.attributes().namedItem("uom").nodeValue(): "";
+  QgsSymbolV2::OutputUnit unit = decodeSldUom( uom, &scaleFactor );
+
+  // manage symbol
   QString symbolizerName = element.localName();
 
   if ( symbolizerName == "PointSymbolizer" )
@@ -1245,15 +1260,29 @@ bool QgsSymbolLayerV2Utils::createSymbolLayerV2ListFromSld( QDomElement& element
           break;
 
         case QGis::Point:
+          // save last index of symbol layer. next that will be added have to be set
+          // outputUnit
+          int oldLast;
+          oldLast = layers.count();
+
           // point layer and polygon symbolizer: draw a square marker
           convertPolygonSymbolizerToPointMarker( element, layers );
-          break;
+
+          // set outputUnit for all recently added layers
+          for ( int i = oldLast+1; i < layers.count(); i++ )
+          {
+            layers[ i ]->setOutputUnit( unit );
+          }
 
         default:
           break;
       }
     }
   }
+
+  // set unit
+  if ( l )
+    l->	setOutputUnit( unit );
 
   return true;
 }
