@@ -207,6 +207,7 @@ SET(QGIS_GUI_SRCS
   qgsgroupwmsdatadialog.cpp
   qgshighlight.cpp
   qgshistogramwidget.cpp
+  qgshelp.cpp
   qgshtmlannotationitem.cpp
   qgsidentifymenu.cpp
   qgslegendfilterbutton.cpp
@@ -564,6 +565,7 @@ SET(QGIS_GUI_HDRS
   qgsdetaileditemdata.h
   qgsexpressionbuilderdialog.h
   qgsfiledropedit.h
+  qgshelp.h
   qgshighlight.h
   qgsmapcanvasitem.h
   qgsmapcanvasmap.h

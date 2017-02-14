@@ -36,6 +36,7 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QThreadPool>
+#include <QLocale>
 
 #ifndef Q_OS_WIN
 #include <netinet/in.h>
@@ -821,6 +822,20 @@ QString QgsApplication::osName()
 QString QgsApplication::platform()
 {
   return sPlatformName;
+}
+
+QString QgsApplication::locale()
+{
+  QSettings settings;
+  bool overrideLocale = settings.value( QStringLiteral( "locale/overrideFlag" ), false ).toBool();
+  if ( overrideLocale )
+  {
+    return settings.value( QStringLiteral( "locale/userLocale" ), QString() ).toString();
+  }
+  else
+  {
+    return QLocale::system().name().left( 2 );
+  }
 }
 
 QString QgsApplication::userThemesFolder()
