@@ -180,7 +180,7 @@ ENDIF(UNIX AND NOT SIP_VERSION_NUM LESS 265984)
 
 ADD_SIP_PYTHON_MODULE(qgis._gui gui/gui.sip qgis_core qgis_gui)
 
-SET(PY_MODULES core gui analysis networkanalysis)
+SET(PY_MODULES core gui analysis networkanalysis keystore)
 
 # server module
 IF (WITH_SERVER AND WITH_SERVER_PLUGINS)
@@ -230,6 +230,18 @@ FILE(GLOB_RECURSE sip_files_network_analysis analysis/network/*.sip)
 SET(SIP_EXTRA_FILES_DEPEND ${sip_files_core} ${sip_files_network_analysis})
 SET(SIP_EXTRA_OPTIONS ${PYQT_SIP_FLAGS} -o -a ${CMAKE_BINARY_DIR}/python/qgis.networkanalysis.api)
 ADD_SIP_PYTHON_MODULE(qgis._networkanalysis analysis/network/networkanalysis.sip qgis_core qgis_networkanalysis)
+
+# keystore module
+INCLUDE_DIRECTORIES(
+  ../src/auth/
+  ../src/auth/keystore
+  ${CMAKE_BINARY_DIR}/src/auth/
+  ${CMAKE_BINARY_DIR}/src/auth/keystore
+)
+FILE(GLOB_RECURSE sip_files_keystore auth/*.sip)
+SET(SIP_EXTRA_FILES_DEPEND ${sip_files_core} ${sip_files_keystore})
+SET(SIP_EXTRA_OPTIONS ${PYQT_SIP_FLAGS} -o -a ${CMAKE_BINARY_DIR}/python/keystore.api)
+ADD_SIP_PYTHON_MODULE(keystore auth/keystore.sip keystoreauthmethod)
 
 SET(QGIS_PYTHON_DIR ${PYTHON_SITE_PACKAGES_DIR}/qgis)
 
