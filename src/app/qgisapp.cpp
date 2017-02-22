@@ -52,7 +52,6 @@
 #include <QProgressDialog>
 #include <QRegExp>
 #include <QRegExpValidator>
-#include <QSettings>
 #include <QShortcut>
 #include <QSpinBox>
 #include <QSplashScreen>
@@ -72,6 +71,7 @@
 #include <QWhatsThis>
 #include <QWidgetAction>
 
+#include <qgssettings.h>
 #include <qgsnetworkaccessmanager.h>
 #include <qgsapplication.h>
 #include <qgscomposition.h>
@@ -652,7 +652,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   mSplash->showMessage( tr( "Setting up the GUI" ), Qt::AlignHCenter | Qt::AlignBottom );
   qApp->processEvents();
 
-  QSettings settings;
+  QgsSettings settings;
 
   startProfile( "Building style sheet" );
   // set up stylesheet builder and apply saved or default style options
