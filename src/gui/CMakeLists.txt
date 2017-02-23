@@ -230,6 +230,7 @@ SET(QGIS_GUI_SRCS
   qgsgroupwmsdatadialog.cpp
   qgshighlight.cpp
   qgshistogramwidget.cpp
+  qgshelp.cpp
   qgshtmlannotationitem.cpp
   qgsidentifymenu.cpp
   qgslegendfilterbutton.cpp
@@ -651,6 +652,7 @@ SET(QGIS_GUI_HDRS
   qgsvectorlayertools.h
   qgsvertexmarker.h
   qgsfiledownloader.h
+  qgshelp.h
 
   attributetable/qgsfeaturemodel.h
 
