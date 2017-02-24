@@ -299,6 +299,7 @@
         <file>themes/default/mActionShowHideLabels.svg</file>
         <file>themes/default/mActionShowPinnedLabels.svg</file>
         <file>themes/default/mActionShowPluginManager.svg</file>
+        <file>themes/default/mActionInstallPluginFromZip.svg</file>
         <file>themes/default/mActionShowRasterCalculator.png</file>
         <file>themes/default/mActionShowSelectedLayers.png</file>
         <file>themes/default/mActionSignMinus.png</file>
