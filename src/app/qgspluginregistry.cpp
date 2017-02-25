@@ -499,6 +499,7 @@ void QgsPluginRegistry::restoreSessionPlugins( const QString& thePluginDirString
     corePlugins << "db_manager";
     corePlugins << "processing";
     corePlugins << "MetaSearch";
+    corePlugins << "boundlessconnect";
 
     // make the required core plugins enabled by default:
     Q_FOREACH ( const QString& corePlugin, corePlugins )
