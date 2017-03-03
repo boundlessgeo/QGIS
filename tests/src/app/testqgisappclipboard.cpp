@@ -28,6 +28,7 @@
 #include <qgsvectorlayer.h>
 #include "qgsgeometry.h"
 #include "qgspointv2.h"
+#include "qgssettings.h"
 
 /** \ingroup UnitTests
  * This is a unit test for the QgisApp clipboard.
@@ -66,7 +67,7 @@ TestQgisAppClipboard::TestQgisAppClipboard()
 //runs before all tests
 void TestQgisAppClipboard::initTestCase()
 {
-  // Set up the QSettings environment
+  // Set up the QgsSettings environment
   QCoreApplication::setOrganizationName( "QGIS" );
   QCoreApplication::setOrganizationDomain( "qgis.org" );
   QCoreApplication::setApplicationName( "QGIS-TEST" );
@@ -140,7 +141,7 @@ void TestQgisAppClipboard::copyToText()
   mQgisApp->clipboard()->replaceWithCopyOf( feats );
 
   // attributes only
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/qgis/copyFeatureFormat", QgsClipboard::AttributesOnly );
   QString result = mQgisApp->clipboard()->generateClipboardText();
   QCOMPARE( result, QString( "int_field\tstring_field\n9\tval\n19\tval2" ) );

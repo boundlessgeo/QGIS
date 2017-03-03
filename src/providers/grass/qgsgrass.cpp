@@ -41,11 +41,11 @@
 #include "qgslogger.h"
 #include "qgsproject.h"
 #include "qgsrectangle.h"
+#include "qgssettings.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProcess>
-#include <QSettings>
 #include <QTextStream>
 #include <QTemporaryFile>
 #include <QHash>
@@ -1393,7 +1393,7 @@ QStringList QgsGrass::vectorLayers( const QString& gisdbase, const QString& loca
   QgsDebugMsg( "standard layers listed: " + list.join( "," ) );
 
   // TODO: add option in GUI to set listTopoLayers
-  QSettings settings;
+  QgsSettings settings;
   bool listTopoLayers =  settings.value( "/GRASS/showTopoLayers", false ).toBool();
   if ( listTopoLayers )
   {
@@ -2788,7 +2788,7 @@ QString QgsGrass::defaultGisbase()
 
 QString QgsGrass::gisbase()
 {
-  QSettings settings;
+  QgsSettings settings;
   bool customGisbase = settings.value( "/GRASS/gidbase/custom", false ).toBool();
   QString customGisdbaseDir = settings.value( "/GRASS/gidbase/customDir" ).toString();
 
@@ -2810,7 +2810,7 @@ QString QgsGrass::gisbase()
 void QgsGrass::setGisbase( bool custom, const QString &customDir )
 {
   QgsDebugMsg( QString( "custom = %1 customDir = %2" ).arg( custom ).arg( customDir ) );
-  QSettings settings;
+  QgsSettings settings;
 
   bool previousCustom = settings.value( "/GRASS/gidbase/custom", false ).toBool();
   QString previousCustomDir = settings.value( "/GRASS/gidbase/customDir" ).toString();
@@ -2843,7 +2843,7 @@ QString QgsGrass::modulesConfigDefaultDirPath()
 
 QString QgsGrass::modulesConfigDirPath()
 {
-  QSettings settings;
+  QgsSettings settings;
   bool customModules = settings.value( "/GRASS/modules/config/custom", false ).toBool();
   QString customModulesDir = settings.value( "/GRASS/modules/config/customDir" ).toString();
 
@@ -2859,7 +2859,7 @@ QString QgsGrass::modulesConfigDirPath()
 
 void QgsGrass::setModulesConfig( bool custom, const QString &customDir )
 {
-  QSettings settings;
+  QgsSettings settings;
 
   bool previousCustom = settings.value( "/GRASS/modules/config/custom", false ).toBool();
   QString previousCustomDir = settings.value( "/GRASS/modules/config/customDir" ).toString();
@@ -2874,7 +2874,7 @@ void QgsGrass::setModulesConfig( bool custom, const QString &customDir )
 
 QPen QgsGrass::regionPen()
 {
-  QSettings settings;
+  QgsSettings settings;
   QPen pen;
   pen.setColor( QColor( settings.value( "/GRASS/region/color", "#ff0000" ).toString() ) );
   pen.setWidthF( settings.value( "/GRASS/region/width", 0 ).toFloat() );
@@ -2883,7 +2883,7 @@ QPen QgsGrass::regionPen()
 
 void QgsGrass::setRegionPen( const QPen & pen )
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/GRASS/region/color", pen.color().name() );
   settings.setValue( "/GRASS/region/width", pen.widthF() );
   emit regionPenChanged();
@@ -2891,13 +2891,13 @@ void QgsGrass::setRegionPen( const QPen & pen )
 
 bool QgsGrass::modulesDebug()
 {
-  QSettings settings;
+  QgsSettings settings;
   return settings.value( "/GRASS/modules/debug", false ).toBool();
 }
 
 void QgsGrass::setModulesDebug( bool debug )
 {
-  QSettings settings;
+  QgsSettings settings;
   bool previous = modulesDebug();
   settings.setValue( "/GRASS/modules/debug", debug );
   if ( previous != debug )

@@ -295,7 +295,7 @@ void QgsRelationReferenceWidget::setForeignKey( const QVariant& value )
 
 void QgsRelationReferenceWidget::deleteForeignKey()
 {
-  QVariant nullValue = QSettings().value( "qgis/nullValue", "NULL" );
+  QVariant nullValue = QgsSettings().value( "qgis/nullValue", "NULL" );
   if ( mReadOnlySelector )
   {
     QString nullText = "";
@@ -470,7 +470,7 @@ void QgsRelationReferenceWidget::init()
         mFilterComboBoxes << cb;
         mReferencedLayer->uniqueValues( idx, uniqueValues );
         cb->addItem( mReferencedLayer->attributeDisplayName( idx ) );
-        QVariant nullValue = QSettings().value( "qgis/nullValue", "NULL" );
+        QVariant nullValue = QgsSettings().value( "qgis/nullValue", "NULL" );
         cb->addItem( nullValue.toString(), QVariant( mReferencedLayer->fields().at( idx ).type() ) );
 
         qSort( uniqueValues.begin(), uniqueValues.end(), qgsVariantLessThan );
@@ -489,7 +489,7 @@ void QgsRelationReferenceWidget::init()
 
       if ( mChainFilters )
       {
-        QVariant nullValue = QSettings().value( "qgis/nullValue", "NULL" );
+        QVariant nullValue = QgsSettings().value( "qgis/nullValue", "NULL" );
 
         QgsFeature ft;
         QgsFeatureIterator fit = layerCache->getFeatures();
@@ -537,7 +537,7 @@ void QgsRelationReferenceWidget::init()
 
     mComboBox->setModel( mFeatureListModel );
 
-    QVariant nullValue = QSettings().value( "qgis/nullValue", "NULL" );
+    QVariant nullValue = QgsSettings().value( "qgis/nullValue", "NULL" );
 
     if ( mChainFilters && mFeature.isValid() )
     {
@@ -632,7 +632,7 @@ void QgsRelationReferenceWidget::highlightFeature( QgsFeature f, CanvasExtent ca
   // highlight
   deleteHighlight();
   mHighlight = new QgsHighlight( mCanvas, f, mReferencedLayer );
-  QSettings settings;
+  QgsSettings settings;
   QColor color = QColor( settings.value( "/Map/highlight/color", QGis::DEFAULT_HIGHLIGHT_COLOR.name() ).toString() );
   int alpha = settings.value( "/Map/highlight/colorAlpha", QGis::DEFAULT_HIGHLIGHT_COLOR.alpha() ).toInt();
   double buffer = settings.value( "/Map/highlight/buffer", QGis::DEFAULT_HIGHLIGHT_BUFFER_MM ).toDouble();
@@ -783,7 +783,7 @@ void QgsRelationReferenceWidget::mapToolDeactivated()
 
 void QgsRelationReferenceWidget::filterChanged()
 {
-  QVariant nullValue = QSettings().value( "qgis/nullValue", "NULL" );
+  QVariant nullValue = QgsSettings().value( "qgis/nullValue", "NULL" );
 
   QStringList filters;
   QgsAttributeList attrs;

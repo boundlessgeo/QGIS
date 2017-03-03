@@ -21,6 +21,7 @@
 #include "qgssnappingutils.h"
 #include "qgsvectorlayer.h"
 #include "qgsvertexmarker.h"
+#include "qgssettings.h"
 
 #include <QGraphicsProxyWidget>
 #include <QMouseEvent>
@@ -90,7 +91,7 @@ void QgsMapToolOffsetCurve::canvasReleaseEvent( QgsMapMouseEvent* e )
     snapping->defaultSettings( oldType, oldSearchRadius, oldSearchRadiusUnit );
 
     // setup new settings (temporary)
-    QSettings settings;
+    QgsSettings settings;
     snapping->setSnapToMapMode( QgsSnappingUtils::SnapAllLayers );
     snapping->setDefaultSettings( QgsPointLocator::Edge,
                                   settings.value( "/qgis/digitizing/search_radius_vertex_edit", 10 ).toDouble(),
@@ -388,7 +389,7 @@ void QgsMapToolOffsetCurve::setOffsetForRubberBand( double offset )
   const GEOSGeometry* geosGeom = geomCopy.asGeos();
   if ( geosGeom )
   {
-    QSettings s;
+    QgsSettings s;
     int joinStyle = s.value( "/qgis/digitizing/offset_join_style", 0 ).toInt();
     int quadSegments = s.value( "/qgis/digitizing/offset_quad_seg", 8 ).toInt();
     double mitreLimit = s.value( "/qgis/digitizing/offset_miter_limit", 5.0 ).toDouble();

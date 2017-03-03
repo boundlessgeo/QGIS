@@ -27,6 +27,7 @@
 #include "qgsmessagebar.h"
 #include "qgsmessagebaritem.h"
 #include "qgstabwidget.h"
+#include "qgssettings.h"
 
 #include <QDir>
 #include <QTextStream>
@@ -41,7 +42,6 @@
 #include <QScrollArea>
 #include <QUiLoader>
 #include <QMessageBox>
-#include <QSettings>
 #include <QToolButton>
 #include <QMenu>
 #include <QSvgWidget>
@@ -1907,7 +1907,7 @@ void QgsAttributeForm::setMessageBar( QgsMessageBar* messageBar )
 
 int QgsAttributeForm::messageTimeout()
 {
-  QSettings settings;
+  QgsSettings settings;
   return settings.value( "/qgis/messageTimeout", 5 ).toInt();
 }
 

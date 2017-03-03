@@ -26,7 +26,6 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 #include <QTextStream>
 
 // override setData to emit signal when edited. By default the itemChanged signal fires way too often
@@ -69,7 +68,7 @@ QgsSingleBandPseudoColorRendererWidget::QgsSingleBandPseudoColorRendererWidget( 
     , mMinMaxWidget( nullptr )
     , mMinMaxOrigin( 0 )
 {
-  QSettings settings;
+  QgsSettings settings;
 
   setupUi( this );
 
@@ -552,7 +551,7 @@ void QgsSingleBandPseudoColorRendererWidget::on_mClassificationModeComboBox_curr
 void QgsSingleBandPseudoColorRendererWidget::on_mColorRampComboBox_currentIndexChanged( int index )
 {
   Q_UNUSED( index );
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Raster/defaultPalette", mColorRampComboBox->currentText() );
 
   QgsVectorColorRampV2* ramp = mColorRampComboBox->currentColorRamp();
@@ -612,7 +611,7 @@ void QgsSingleBandPseudoColorRendererWidget::on_mLoadFromFileButton_clicked()
   int lineCounter = 0;
   bool importError = false;
   QString badLines;
-  QSettings settings;
+  QgsSettings settings;
   QString lastDir = settings.value( "lastColorMapDir", QDir::homePath() ).toString();
   QString fileName = QFileDialog::getOpenFileName( this, tr( "Open file" ), lastDir, tr( "Textfile (*.txt)" ) );
   QFile inputFile( fileName );
@@ -699,7 +698,7 @@ void QgsSingleBandPseudoColorRendererWidget::on_mLoadFromFileButton_clicked()
 
 void QgsSingleBandPseudoColorRendererWidget::on_mExportToFileButton_clicked()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString lastDir = settings.value( "lastColorMapDir", QDir::homePath() ).toString();
   QString fileName = QFileDialog::getSaveFileName( this, tr( "Save file" ), lastDir, tr( "Textfile (*.txt)" ) );
   if ( !fileName.isEmpty() )

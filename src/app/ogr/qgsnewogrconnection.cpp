@@ -14,7 +14,6 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include <QSettings>
 #include <QMessageBox>
 
 #include "qgsnewogrconnection.h"
@@ -22,6 +21,8 @@
 #include "qgslogger.h"
 #include "qgsproviderregistry.h"
 #include "qgsogrhelperfunctions.h"
+#include "qgssettings.h"
+
 #include <ogr_api.h>
 #include <cpl_error.h>
 
@@ -37,7 +38,7 @@ QgsNewOgrConnection::QgsNewOgrConnection( QWidget *parent, const QString& connTy
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/OGRDatabaseConnection/geometry" ).toByteArray() );
 
   //add database drivers
@@ -73,7 +74,7 @@ QgsNewOgrConnection::QgsNewOgrConnection( QWidget *parent, const QString& connTy
 
 QgsNewOgrConnection::~QgsNewOgrConnection()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/OGRDatabaseConnection/geometry", saveGeometry() );
 }
 
@@ -103,7 +104,7 @@ void QgsNewOgrConnection::testConnection()
 /** Autoconnected SLOTS **/
 void QgsNewOgrConnection::accept()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString baseKey = '/' + cmbDatabaseTypes->currentText() + "/connections/";
   settings.setValue( baseKey + "selected", txtName->text() );
 

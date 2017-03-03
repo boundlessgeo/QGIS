@@ -29,17 +29,13 @@ import re
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QCoreApplication, QSettings
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtWidgets import QDialog, QMenu, QAction, QFileDialog
 from qgis.PyQt.QtGui import QCursor
 from qgis.gui import QgsEncodingFileDialog, QgsExpressionBuilderDialog
 from qgis.core import (QgsDataSourceURI,
                        QgsCredentials,
-                       QgsExpressionContext,
-                       QgsExpressionContextUtils,
-                       QgsExpression,
-                       QgsExpressionContextScope)
-
+                       QgsSettings)
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.outputs import OutputVector
 from processing.core.outputs import OutputDirectory
@@ -110,7 +106,7 @@ class OutputSelectionPanel(BASE, WIDGET):
                 actionSaveToPostGIS = QAction(
                     self.tr('Save to PostGIS table...'), self.btnSelect)
                 actionSaveToPostGIS.triggered.connect(self.saveToPostGIS)
-                settings = QSettings()
+                settings = QgsSettings()
                 settings.beginGroup('/PostgreSQL/connections/')
                 names = settings.childGroups()
                 settings.endGroup()
@@ -142,7 +138,7 @@ class OutputSelectionPanel(BASE, WIDGET):
         dlg = PostgisTableSelector(self, self.output.name.lower())
         dlg.exec_()
         if dlg.connection:
-            settings = QSettings()
+            settings = QgsSettings()
             mySettings = '/PostgreSQL/connections/' + dlg.connection
             dbname = settings.value(mySettings + '/database')
             user = settings.value(mySettings + '/username')
@@ -163,7 +159,7 @@ class OutputSelectionPanel(BASE, WIDGET):
     def saveToSpatialite(self):
         fileFilter = self.output.tr('Spatialite files(*.sqlite)', 'OutputFile')
 
-        settings = QSettings()
+        settings = QgsSettings()
         if settings.contains('/Processing/LastOutputPath'):
             path = settings.value('/Processing/LastOutputPath')
         else:
@@ -200,7 +196,7 @@ class OutputSelectionPanel(BASE, WIDGET):
     def selectFile(self):
         fileFilter = self.output.getFileFilter(self.alg)
 
-        settings = QSettings()
+        settings = QgsSettings()
         if settings.contains('/Processing/LastOutputPath'):
             path = settings.value('/Processing/LastOutputPath')
         else:

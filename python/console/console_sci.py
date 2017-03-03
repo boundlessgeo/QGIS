@@ -19,7 +19,7 @@ email                : lrssvtml (at) gmail (dot) com
 Some portions of code were taken from https://code.google.com/p/pydee/
 """
 
-from qgis.PyQt.QtCore import Qt, QSettings, QByteArray, QCoreApplication, QFile, QSize
+from qgis.PyQt.QtCore import Qt, QByteArray, QCoreApplication, QFile, QSize
 from qgis.PyQt.QtWidgets import QDialog, QMenu, QShortcut, QApplication
 from qgis.PyQt.QtGui import QColor, QKeySequence, QFont, QFontMetrics, QStandardItemModel, QStandardItem, QClipboard
 from qgis.PyQt.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
@@ -31,7 +31,7 @@ import codecs
 import re
 import traceback
 
-from qgis.core import QgsApplication
+from qgis.core import QgsApplication, QgsSettings
 from .ui_console_history_dlg import Ui_HistoryDialogPythonConsole
 
 _init_commands = ["from qgis.core import *", "import qgis.utils",
@@ -50,7 +50,7 @@ class ShellScintilla(QsciScintilla, code.InteractiveInterpreter):
         self.opening = ['(', '{', '[', "'", '"']
         self.closing = [')', '}', ']', "'", '"']
 
-        self.settings = QSettings()
+        self.settings = QgsSettings()
 
         # Enable non-ascii chars for editor
         self.setUtf8(True)

@@ -24,6 +24,7 @@
 #include "qgsnetworkaccessmanager.h"
 #include "qgsproviderregistry.h"
 #include "qgsexpression.h"
+#include "qgssettings.h"
 
 #include <QDir>
 #include <QFile>
@@ -32,7 +33,6 @@
 #include <QMessageBox>
 #include <QPalette>
 #include <QProcess>
-#include <QSettings>
 #include <QIcon>
 #include <QPixmap>
 #include <QThreadPool>
@@ -228,7 +228,7 @@ void QgsApplication::init( QString customConfigPath )
   QCoreApplication::addLibraryPath( pluginPath() );
 
   // set max. thread count to -1
-  // this should be read from QSettings but we don't know where they are at this point
+  // this should be read from QgsSettings but we don't know where they are at this point
   // so we read actual value in main.cpp
   ABISYM( mMaxThreads ) = -1;
 }
@@ -705,7 +705,7 @@ QStringList QgsApplication::svgPaths()
 {
   //local directories to search when looking for an SVG with a given basename
   //defined by user in options dialog
-  QSettings settings;
+  QgsSettings settings;
   QStringList myPathList;
   QString myPaths = settings.value( "svg/searchPathsForSVG", QString() ).toString();
   if ( !myPaths.isEmpty() )
@@ -736,7 +736,7 @@ QStringList QgsApplication::composerTemplatePaths()
 {
   //local directories to search when looking for an SVG with a given basename
   //defined by user in options dialog
-  QSettings settings;
+  QgsSettings settings;
   QStringList myPathList;
   QString myPaths = settings.value( "composer/searchPathsForTemplates", QString() ).toString();
   if ( !myPaths.isEmpty() )
@@ -848,7 +848,7 @@ QString QgsApplication::platform()
 
 QString QgsApplication::locale()
 {
-  QSettings settings;
+  QgsSettings settings;
   bool overrideLocale = settings.value( QStringLiteral( "locale/overrideFlag" ), false ).toBool();
   if ( overrideLocale )
   {

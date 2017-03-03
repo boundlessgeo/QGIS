@@ -27,10 +27,9 @@ __revision__ = '$Format:%H$'
 
 import os
 
-from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QMenu, QPushButton, QLineEdit, QSizePolicy, QAction, QFileDialog
 from qgis.PyQt.QtGui import QCursor
-
+from qgis.core import QgsSetting
 from processing.gui.MultipleInputDialog import MultipleInputDialog
 
 from processing.core.parameters import ParameterMultipleInput
@@ -114,7 +113,7 @@ class BatchInputSelectionPanel(QWidget):
                                               self.col).setText(layers[layeridx].name())
 
     def showFileSelectionDialog(self):
-        settings = QSettings()
+        settings = QgsSettings()
         text = unicode(self.text.text())
         if os.path.isdir(text):
             path = text

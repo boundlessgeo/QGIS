@@ -19,7 +19,8 @@
 #include "qgssymbollayerv2utils.h"
 #include "qgscursors.h"
 #include "qgsapplication.h"
-#include <QSettings>
+#include "qgssettings.h"
+
 #include <QPushButton>
 #include <QMenu>
 #include <QToolButton>
@@ -52,7 +53,7 @@ QgsCompoundColorWidget::QgsCompoundColorWidget( QWidget *parent, const QColor& c
     setLayout( newLayout );
   }
 
-  QSettings settings;
+  QgsSettings settings;
 
   mSchemeList->header()->hide();
   mSchemeList->setColumnWidth( 0, 44 );
@@ -263,7 +264,7 @@ void QgsCompoundColorWidget::setAllowAlpha( const bool allowAlpha )
 
 void QgsCompoundColorWidget::importColors()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastDir = s.value( "/UI/lastGplPaletteDir", QDir::homePath() ).toString();
   QString filePath = QFileDialog::getOpenFileName( this, tr( "Select palette file" ), lastDir, "GPL (*.gpl);;All files (*.*)" );
   activateWindow();
@@ -305,7 +306,7 @@ void QgsCompoundColorWidget::refreshSchemeComboBox()
 
 void QgsCompoundColorWidget::importPalette()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastDir = s.value( "/UI/lastGplPaletteDir", QDir::homePath() ).toString();
   QString filePath = QFileDialog::getOpenFileName( this, tr( "Select palette file" ), lastDir, "GPL (*.gpl);;All files (*.*)" );
   activateWindow();
@@ -447,7 +448,7 @@ QString QgsCompoundColorWidget::gplFilePath()
 
 void QgsCompoundColorWidget::exportColors()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastDir = s.value( "/UI/lastGplPaletteDir", QDir::homePath() ).toString();
   QString fileName = QFileDialog::getSaveFileName( this, tr( "Palette file" ), lastDir, "GPL (*.gpl)" );
   activateWindow();
@@ -604,7 +605,7 @@ void QgsCompoundColorWidget::saveSettings()
     mSchemeList->saveColorsToScheme();
   }
 
-  QSettings settings;
+  QgsSettings settings;
 
   //record active component
   int activeRadio = 0;

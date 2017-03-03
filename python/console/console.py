@@ -20,7 +20,7 @@ Some portions of code were taken from https://code.google.com/p/pydee/
 """
 import os
 
-from qgis.PyQt.QtCore import Qt, QTimer, QSettings, QCoreApplication, QSize, QByteArray, QFileInfo, QUrl, QDir
+from qgis.PyQt.QtCore import Qt, QTimer, QCoreApplication, QSize, QByteArray, QFileInfo, QUrl, QDir
 from qgis.PyQt.QtWidgets import QDockWidget, QToolBar, QToolButton, QWidget, QSplitter, QTreeWidget, QAction, QFileDialog, QCheckBox, QSizePolicy, QMenu, QGridLayout, QApplication, QShortcut
 from qgis.PyQt.QtGui import QDesktopServices, QKeySequence
 from qgis.PyQt.QtWidgets import QVBoxLayout
@@ -29,7 +29,7 @@ from .console_sci import ShellScintilla
 from .console_output import ShellOutputScintilla
 from .console_editor import EditorTabWidget
 from .console_settings import optionsDialog
-from qgis.core import QgsApplication, QgsContextHelp
+from qgis.core import QgsApplication, QgsContextHelp, QgsSettings
 from qgis.gui import QgsFilterLineEdit
 from functools import partial
 
@@ -53,8 +53,9 @@ def show_console():
         # set focus to the console so the user can start typing
         if _console.isVisible():
             _console.activate()
-    ## Shows help on first launch of the console
-    settings = QSettings()
+
+    # Shows help on first launch of the console
+    settings = QgsSettings()
     if settings.value('pythonConsole/contextHelpOnFirstLaunch', True, type=bool):
         QgsContextHelp.run("PythonConsole")
         settings.setValue('pythonConsole/contextHelpOnFirstLaunch', False)
@@ -104,7 +105,7 @@ class PythonConsoleWidget(QWidget):
         QWidget.__init__(self, parent)
         self.setWindowTitle(QCoreApplication.translate("PythonConsole", "Python Console"))
 
-        self.settings = QSettings()
+        self.settings = QgsSettings()
 
         self.shell = ShellScintilla(self)
         self.setFocusProxy(self.shell)

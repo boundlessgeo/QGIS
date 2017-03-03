@@ -19,9 +19,9 @@
 #include "qgsgeometryrubberband.h"
 #include "qgsrubberband.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 #include <QKeyEvent>
-#include <QSettings>
 
 
 QgsMapToolEdit::QgsMapToolEdit( QgsMapCanvas* canvas )
@@ -36,7 +36,7 @@ QgsMapToolEdit::~QgsMapToolEdit()
 
 QgsRubberBand* QgsMapToolEdit::createRubberBand( QGis::GeometryType geometryType, bool alternativeBand )
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsRubberBand* rb = new QgsRubberBand( mCanvas, geometryType );
   rb->setWidth( settings.value( "/qgis/digitizing/line_width", 1 ).toInt() );
   QColor color(
@@ -99,7 +99,7 @@ int QgsMapToolEdit::addTopologicalPoints( const QList<QgsPoint>& geom )
 
 QgsGeometryRubberBand* QgsMapToolEdit::createGeometryRubberBand( QGis::GeometryType geometryType, bool alternativeBand ) const
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsGeometryRubberBand* rb = new QgsGeometryRubberBand( mCanvas, geometryType );
   QColor color( settings.value( "/qgis/digitizing/line_color_red", 255 ).toInt(),
                 settings.value( "/qgis/digitizing/line_color_green", 0 ).toInt(),

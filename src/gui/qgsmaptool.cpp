@@ -19,6 +19,8 @@
 #include "qgsmaptopixel.h"
 #include "qgsmaprenderer.h"
 #include "qgsrendercontext.h"
+#include "qgssettings.h"
+
 #include <QAction>
 #include <QAbstractButton>
 
@@ -206,7 +208,7 @@ QgsMapCanvas* QgsMapTool::canvas()
 
 double QgsMapTool::searchRadiusMM()
 {
-  QSettings settings;
+  QgsSettings settings;
   double radius = settings.value( "/Map/searchRadiusMM", QGis::DEFAULT_SEARCH_RADIUS_MM ).toDouble();
 
   if ( radius > 0 )

@@ -97,13 +97,13 @@ QgsOrganizeTableColumnsDialog::QgsOrganizeTableColumnsDialog( const QgsVectorLay
   }
 
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/QgsOrganizeTableColumnsDialog/geometry" ).toByteArray() );
 }
 
 QgsOrganizeTableColumnsDialog::~QgsOrganizeTableColumnsDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/QgsOrganizeTableColumnsDialog/geometry", saveGeometry() );
 }
 

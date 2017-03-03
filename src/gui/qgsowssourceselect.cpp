@@ -48,10 +48,8 @@
 #include <QMap>
 #include <QMessageBox>
 #include <QPicture>
-#include <QSettings>
 #include <QUrl>
 #include <QValidator>
-
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
@@ -119,14 +117,14 @@ QgsOWSSourceSelect::QgsOWSSourceSelect( const QString& service, QWidget * parent
   // set up the WMS connections we already know about
   populateConnectionList();
 
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "restoring geometry" );
   restoreGeometry( settings.value( "/Windows/WMSSourceSelect/geometry" ).toByteArray() );
 }
 
 QgsOWSSourceSelect::~QgsOWSSourceSelect()
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "saving geometry" );
   settings.setValue( "/Windows/WMSSourceSelect/geometry", saveGeometry() );
 }
@@ -603,7 +601,7 @@ void QgsOWSSourceSelect::addDefaultServers()
   // Nice to have the qgis users map, but I'm not sure of the URL at the moment.
   //  exampleServers["Qgis users map"] = "http://qgis.org/wms.cgi";
 
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "/Qgis/connections-" + mService.toLower() );
   QMap<QString, QString>::const_iterator i = exampleServers.constBegin();
   for ( ; i != exampleServers.constEnd(); ++i )
@@ -657,7 +655,7 @@ void QgsOWSSourceSelect::on_mSearchButton_clicked()
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
-  QSettings settings;
+  QgsSettings settings;
   // geopole.org (geopole.ch) 25.4.2012 : 503 Service Unavailable, archive: Recently added 20 Jul 2011
   QString mySearchUrl = settings.value( "/qgis/WMSSearchUrl", "http://geopole.org/wms/search?search=%1&type=rss" ).toString();
   QUrl url( mySearchUrl.arg( mSearchTermLineEdit->text() ) );

@@ -24,7 +24,7 @@ from qgis.core import QgsVectorLayer, QgsPoint, QgsFeature
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 from providertestbase import ProviderTestCase
-from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtCore import QgsSettings
 
 try:
     from pyspatialite import dbapi2 as sqlite3
@@ -138,10 +138,10 @@ class TestQgsSpatialiteProvider(unittest.TestCase, ProviderTestCase):
         pass
 
     def enableCompiler(self):
-        QSettings().setValue(u'/qgis/compileExpressions', True)
+        QgsSettings().setValue(u'/qgis/compileExpressions', True)
 
     def disableCompiler(self):
-        QSettings().setValue(u'/qgis/compileExpressions', False)
+        QgsSettings().setValue(u'/qgis/compileExpressions', False)
 
     def uncompiledFilters(self):
         return set(['cnt = 10 ^ 2',

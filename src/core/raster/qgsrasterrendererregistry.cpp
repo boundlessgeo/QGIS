@@ -23,8 +23,8 @@
 #include "qgssinglebandpseudocolorrenderer.h"
 #include "qgshillshaderenderer.h"
 #include "qgsapplication.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QIcon>
 
 QgsRasterRendererRegistryEntry::QgsRasterRendererRegistryEntry( const QString& theName, const QString& theVisibleName,
@@ -186,7 +186,7 @@ QgsRasterRenderer* QgsRasterRendererRegistry::defaultRendererForDrawingStyle( Qg
     }
     case QgsRaster::MultiBandColor:
     {
-      QSettings s;
+      QgsSettings s;
 
       int redBand = s.value( "/Raster/defaultRedBand", 1 ).toInt();
       if ( redBand < 0 || redBand > provider->bandCount() )
@@ -242,7 +242,7 @@ bool QgsRasterRendererRegistry::minMaxValuesForBand( int band, QgsRasterDataProv
   minValue = 0;
   maxValue = 0;
 
-  QSettings s;
+  QgsSettings s;
   if ( s.value( "/Raster/useStandardDeviation", false ).toBool() )
   {
     QgsRasterBandStats stats = provider->bandStatistics( band, QgsRasterBandStats::Mean | QgsRasterBandStats::StdDev );

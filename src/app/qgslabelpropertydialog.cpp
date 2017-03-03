@@ -25,10 +25,10 @@
 #include "qgisapp.h"
 #include "qgsmapcanvas.h"
 #include "qgsvectorlayerlabeling.h"
+#include "qgssettings.h"
 
 #include <QColorDialog>
 #include <QFontDatabase>
-#include <QSettings>
 #include <QDialogButtonBox>
 
 
@@ -41,13 +41,13 @@ QgsLabelPropertyDialog::QgsLabelPropertyDialog( const QString& layerId, const QS
 
   init( layerId, providerId, featureId, labelText );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( QString( "/Windows/ChangeLabelProps/geometry" ) ).toByteArray() );
 }
 
 QgsLabelPropertyDialog::~QgsLabelPropertyDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( QString( "/Windows/ChangeLabelProps/geometry" ), saveGeometry() );
 
   qDeleteAll( mDataDefinedProperties );

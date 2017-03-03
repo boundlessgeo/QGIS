@@ -162,7 +162,7 @@ class QgsProject : QObject
 
     /** Key value accessors
      *
-     * keys would be the familiar QSettings-like '/' delimited entries,
+     * keys would be the familiar QgsSettings-like '/' delimited entries,
      * implying a hierarchy of keys and corresponding values
      *
      */
@@ -179,13 +179,13 @@ class QgsProject : QObject
 
     /** Return keys with values -- do not return keys that contain other keys
      *
-     * @note equivalent to QSettings entryList()
+     * @note equivalent to QgsSettings entryList()
      */
     QStringList entryList( const QString & scope, const QString & key ) const;
 
     /** Return keys with keys -- do not return keys that contain only values
      *
-     * @note equivalent to QSettings subkeyList()
+     * @note equivalent to QgsSettings subkeyList()
      */
     QStringList subkeyList( const QString & scope, const QString & key ) const;
 

@@ -250,7 +250,7 @@ void QgsComposerArrowWidget::on_mEndMarkerLineEdit_textChanged( const QString & 
 
 void QgsComposerArrowWidget::on_mStartMarkerToolButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString openDir;
 
   if ( !mStartMarkerLineEdit->text().isEmpty() )
@@ -277,7 +277,7 @@ void QgsComposerArrowWidget::on_mStartMarkerToolButton_clicked()
 
 void QgsComposerArrowWidget::on_mEndMarkerToolButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString openDir;
 
   if ( !mEndMarkerLineEdit->text().isEmpty() )

@@ -51,6 +51,7 @@
 #include "qgsdatasourceuri.h"
 #include "qgsrendererv2.h"
 #include "qgsexpressioncontext.h"
+#include "qgssettings.h"
 
 #include <QMessageBox>
 #include <QDir>
@@ -58,7 +59,6 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFontDialog>
-#include <QSettings>
 #include <QComboBox>
 #include <QCheckBox>
 #include <QHeaderView>
@@ -297,7 +297,7 @@ QgsVectorLayerProperties::QgsVectorLayerProperties(
     )
   );
 
-  QSettings settings;
+  QgsSettings settings;
   // if dialog hasn't been opened/closed yet, default to Styles tab, which is used most often
   // this will be read by restoreOptionsBaseUi()
   if ( !settings.contains( QString( "/Windows/VectorLayerProperties/tab" ) ) )
@@ -881,8 +881,8 @@ void QgsVectorLayerProperties::saveDefaultStyle_clicked()
 
 void QgsVectorLayerProperties::loadStyle_clicked()
 {
-  QSettings myQSettings;  // where we keep last used filter in persistent state
-  QString myLastUsedDir = myQSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
+  QgsSettings myQSettings;  // where we keep last used filter in persistent state
+  QString myLastUsedDir = myQgsSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
 
   QString myFileName = QFileDialog::getOpenFileName( this, tr( "Load layer properties from style file" ), myLastUsedDir,
                        tr( "QGIS Layer Style File" ) + " (*.qml);;" + tr( "SLD File" ) + " (*.sld)" );
@@ -918,7 +918,7 @@ void QgsVectorLayerProperties::loadStyle_clicked()
 
   QFileInfo myFI( myFileName );
   QString myPath = myFI.path();
-  myQSettings.setValue( "style/lastStyleDir", myPath );
+  myQgsSettings.setValue( "style/lastStyleDir", myPath );
 
   activateWindow(); // set focus back to properties dialog
 }
@@ -944,8 +944,8 @@ void QgsVectorLayerProperties::saveStyleAsMenuTriggered( QAction *action )
 
 void QgsVectorLayerProperties::saveStyleAs( StyleType styleType )
 {
-  QSettings myQSettings;  // where we keep last used filter in persistent state
-  QString myLastUsedDir = myQSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
+  QgsSettings myQSettings;  // where we keep last used filter in persistent state
+  QString myLastUsedDir = myQgsSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
 
   if ( styleType == DB )
   {
@@ -1037,7 +1037,7 @@ void QgsVectorLayerProperties::saveStyleAs( StyleType styleType )
     QFileInfo myFI( myOutputFileName );
     QString myPath = myFI.path();
     // Persist last used dir
-    myQSettings.setValue( "style/lastStyleDir", myPath );
+    myQgsSettings.setValue( "style/lastStyleDir", myPath );
   }
 }
 
@@ -1297,7 +1297,7 @@ void QgsVectorLayerProperties::openPanel( QgsPanelWidget *panel )
 {
   QDialog* dlg = new QDialog();
   QString key =  QString( "/UI/paneldialog/%1" ).arg( panel->panelTitle() );
-  QSettings settings;
+  QgsSettings settings;
   dlg->restoreGeometry( settings.value( key ).toByteArray() );
   dlg->setWindowTitle( panel->panelTitle() );
   dlg->setLayout( new QVBoxLayout() );

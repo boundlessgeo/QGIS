@@ -28,7 +28,7 @@ from qgis.core import (
     QgsTransactionGroup,
     NULL
 )
-from qgis.PyQt.QtCore import QSettings, QDate, QTime, QDateTime, QVariant
+from qgis.PyQt.QtCore import QgsSettings, QDate, QTime, QDateTime, QVariant
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 from providertestbase import ProviderTestCase
@@ -67,10 +67,10 @@ class TestPyQgsPostgresProvider(unittest.TestCase, ProviderTestCase):
         self.con.commit()
 
     def enableCompiler(self):
-        QSettings().setValue(u'/qgis/compileExpressions', True)
+        QgsSettings().setValue(u'/qgis/compileExpressions', True)
 
     def disableCompiler(self):
-        QSettings().setValue(u'/qgis/compileExpressions', False)
+        QgsSettings().setValue(u'/qgis/compileExpressions', False)
 
     def uncompiledFilters(self):
         return set(['intersects($geometry,geom_from_wkt( \'Polygon ((-72.2 66.1, -65.2 66.1, -65.2 72.0, -72.2 72.0, -72.2 66.1))\'))'])

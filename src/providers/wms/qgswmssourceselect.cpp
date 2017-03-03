@@ -48,7 +48,6 @@
 #include <QMap>
 #include <QMessageBox>
 #include <QPicture>
-#include <QSettings>
 #include <QUrl>
 #include <QValidator>
 
@@ -146,14 +145,14 @@ QgsWMSSourceSelect::QgsWMSSourceSelect( QWidget * parent, Qt::WindowFlags fl, bo
   // set up the WMS connections we already know about
   populateConnectionList();
 
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "restoring geometry" );
   restoreGeometry( settings.value( "/Windows/WMSSourceSelect/geometry" ).toByteArray() );
 }
 
 QgsWMSSourceSelect::~QgsWMSSourceSelect()
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "saving geometry" );
   settings.setValue( "/Windows/WMSSourceSelect/geometry", saveGeometry() );
 }
@@ -1098,7 +1097,7 @@ void QgsWMSSourceSelect::addDefaultServers()
   exampleServers["QGIS Server Demo - Alaska"] = "http://demo.qgis.org/cgi-bin/qgis_mapserv.fcgi?map=/web/demos/alaska/alaska_map.qgs";
   exampleServers["GeoServer Demo - World"] = "http://tiles.boundlessgeo.com/";
 
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "/Qgis/connections-wms" );
   QMap<QString, QString>::const_iterator i = exampleServers.constBegin();
   for ( ; i != exampleServers.constEnd(); ++i )
@@ -1152,7 +1151,7 @@ void QgsWMSSourceSelect::on_btnSearch_clicked()
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
-  QSettings settings;
+  QgsSettings settings;
   QString mySearchUrl = settings.value( "/qgis/WMSSearchUrl", "http://geopole.org/wms/search?search=%1&type=rss" ).toString();
   QUrl url( mySearchUrl.arg( leSearchTerm->text() ) );
   QgsDebugMsg( url.toString() );
@@ -1219,7 +1218,7 @@ void QgsWMSSourceSelect::on_btnAddWMS_clicked()
   QString wmsTitle = tableWidgetWMSList->item( selectedRow, 0 )->text();
   QString wmsUrl = tableWidgetWMSList->item( selectedRow, 2 )->text();
 
-  QSettings settings;
+  QgsSettings settings;
   if ( settings.contains( QString( "Qgis/connections-wms/%1/url" ).arg( wmsTitle ) ) )
   {
     QString msg = tr( "The %1 connection already exists. Do you want to overwrite it?" ).arg( wmsTitle );

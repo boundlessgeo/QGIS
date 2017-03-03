@@ -18,6 +18,7 @@
 #include <qgsapplication.h>
 #include <qgsproject.h>
 #include "qgsunittypes.h"
+#include "qgssettings.h"
 
 
 class TestQgsProject : public QObject
@@ -47,7 +48,7 @@ void TestQgsProject::initTestCase()
 {
   // Runs once before any tests are run
 
-  // Set up the QSettings environment
+  // Set up the QgsSettings environment
   QCoreApplication::setOrganizationName( "QGIS" );
   QCoreApplication::setOrganizationDomain( "qgis.org" );
   QCoreApplication::setApplicationName( "QGIS-TEST" );
@@ -91,7 +92,7 @@ void TestQgsProject::testProjectUnits()
   // DISTANCE
 
   //first set a default QGIS distance unit
-  QSettings s;
+  QgsSettings s;
   s.setValue( "/qgis/measure/displayunits", QgsUnitTypes::encodeUnit( QGis::Feet ) );
 
   QgsProject* prj = QgsProject::instance();

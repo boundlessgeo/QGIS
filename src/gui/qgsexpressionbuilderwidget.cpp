@@ -22,7 +22,6 @@
 #include "qgsgeometry.h"
 #include "qgsfeature.h"
 
-#include <QSettings>
 #include <QMenu>
 #include <QFile>
 #include <QTextStream>
@@ -77,7 +76,7 @@ QgsExpressionBuilderWidget::QgsExpressionBuilderWidget( QWidget *parent )
   mValuesListView->setModel( mProxyValues );
   txtSearchEditValues->setPlaceholderText( tr( "Search" ) );
 
-  QSettings settings;
+  QgsSettings settings;
   splitter->restoreState( settings.value( "/windows/QgsExpressionBuilderWidget/splitter" ).toByteArray() );
   editorSplit->restoreState( settings.value( "/windows/QgsExpressionBuilderWidget/editorsplitter" ).toByteArray() );
   functionsplit->restoreState( settings.value( "/windows/QgsExpressionBuilderWidget/functionsplitter" ).toByteArray() );
@@ -107,7 +106,7 @@ QgsExpressionBuilderWidget::QgsExpressionBuilderWidget( QWidget *parent )
 
 QgsExpressionBuilderWidget::~QgsExpressionBuilderWidget()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/windows/QgsExpressionBuilderWidget/splitter", splitter->saveState() );
   settings.setValue( "/windows/QgsExpressionBuilderWidget/editorsplitter", editorSplit->saveState() );
   settings.setValue( "/windows/QgsExpressionBuilderWidget/functionsplitter", functionsplit->saveState() );
@@ -401,7 +400,7 @@ bool QgsExpressionBuilderWidget::isExpressionValid()
 
 void QgsExpressionBuilderWidget::saveToRecent( const QString& collection )
 {
-  QSettings settings;
+  QgsSettings settings;
   QString location = QString( "/expressions/recent/%1" ).arg( collection );
   QStringList expressions = settings.value( location ).toStringList();
   expressions.removeAll( this->expressionText() );
@@ -427,7 +426,7 @@ void QgsExpressionBuilderWidget::loadRecent( const QString& collection )
     node->removeRows( 0, node->rowCount() );
   }
 
-  QSettings settings;
+  QgsSettings settings;
   QString location = QString( "/expressions/recent/%1" ).arg( collection );
   QStringList expressions = settings.value( location ).toStringList();
   int i = 0;

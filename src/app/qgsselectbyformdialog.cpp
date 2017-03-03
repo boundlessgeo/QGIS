@@ -15,8 +15,10 @@
 
 #include "qgsselectbyformdialog.h"
 #include "qgsattributeform.h"
+#include "qgsmapcanvas.h"
+#include "qgssettings.h"
+
 #include <QLayout>
-#include <QSettings>
 
 QgsSelectByFormDialog::QgsSelectByFormDialog( QgsVectorLayer* layer, const QgsAttributeEditorContext& context, QWidget* parent, Qt::WindowFlags fl )
     : QDialog( parent, fl )
@@ -37,7 +39,7 @@ QgsSelectByFormDialog::QgsSelectByFormDialog( QgsVectorLayer* layer, const QgsAt
 
   connect( mForm, SIGNAL( closed() ), this, SLOT( close() ) );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/SelectByForm/geometry" ).toByteArray() );
 
   setWindowTitle( tr( "Select features by value" ) );
@@ -45,7 +47,7 @@ QgsSelectByFormDialog::QgsSelectByFormDialog( QgsVectorLayer* layer, const QgsAt
 
 QgsSelectByFormDialog::~QgsSelectByFormDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/SelectByForm/geometry", saveGeometry() );
 }
 
@@ -53,3 +55,4 @@ void QgsSelectByFormDialog::setMessageBar( QgsMessageBar* messageBar )
 {
   mForm->setMessageBar( messageBar );
 }
+

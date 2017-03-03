@@ -27,7 +27,7 @@
 #include <QTimer>
 
 
-QgsOptionsDialogBase::QgsOptionsDialogBase( const QString& settingsKey, QWidget* parent, const Qt::WindowFlags& fl, QSettings* settings )
+QgsOptionsDialogBase::QgsOptionsDialogBase( const QString& settingsKey, QWidget* parent, const Qt::WindowFlags& fl, QgsSettings* settings )
     : QDialog( parent, fl )
     , mOptsKey( settingsKey )
     , mInit( false )
@@ -61,13 +61,13 @@ QgsOptionsDialogBase::~QgsOptionsDialogBase()
 
 void QgsOptionsDialogBase::initOptionsBase( bool restoreUi, const QString& title )
 {
-  // use pointer to app QSettings if no custom QSettings specified
-  // custom QSettings object may be from Python plugin
+  // use pointer to app QgsSettings if no custom QgsSettings specified
+  // custom QgsSettings object may be from Python plugin
   mDelSettings = false;
 
   if ( !mSettings )
   {
-    mSettings = new QSettings();
+    mSettings = new QgsSettings();
     mDelSettings = true; // only delete obj created by class
   }
 
@@ -136,7 +136,7 @@ void QgsOptionsDialogBase::initOptionsBase( bool restoreUi, const QString& title
     restoreOptionsBaseUi( mDialogTitle );
 }
 
-void QgsOptionsDialogBase::setSettings( QSettings* settings )
+void QgsOptionsDialogBase::setSettings( QgsSettings* settings )
 {
   if ( mDelSettings ) // local settings obj to delete
   {

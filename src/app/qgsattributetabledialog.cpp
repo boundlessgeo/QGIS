@@ -101,7 +101,7 @@ QgsAttributeTableDialog::QgsAttributeTableDialog( QgsVectorLayer *theLayer, QWid
   layout()->setContentsMargins( 0, 0, 0, 0 );
   static_cast< QGridLayout* >( layout() )->setVerticalSpacing( 0 );
 
-  QSettings settings;
+  QgsSettings settings;
 
   int size = settings.value( "/IconSize", 16 ).toInt();
   if ( size > 32 )
@@ -359,7 +359,7 @@ void QgsAttributeTableDialog::closeEvent( QCloseEvent* event )
 
   if ( !mDock )
   {
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( "/Windows/BetterAttributeTable/geometry", saveGeometry() );
   }
 }
@@ -736,7 +736,7 @@ void QgsAttributeTableDialog::on_mMainView_currentChanged( int viewMode )
   if ( viewMode == 0 )
     mActionSearchForm->setChecked( false );
 
-  QSettings s;
+  QgsSettings s;
   s.setValue( "/qgis/attributeTableLastView", static_cast< int >( viewMode ) );
 }
 

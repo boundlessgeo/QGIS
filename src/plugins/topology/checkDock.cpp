@@ -357,7 +357,7 @@ void checkDock::runTests( ValidateType type )
       TopolError* te = *it;
       te->conflict();
 
-      QSettings settings;
+      QgsSettings settings;
       if ( te->conflict()->type() == QGis::Polygon )
       {
         rb = new QgsRubberBand( qgsInterface->mapCanvas(), QGis::Polygon );

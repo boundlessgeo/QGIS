@@ -26,10 +26,10 @@
 #include "qgsvectordataprovider.h"
 #include "qgsattributeeditor.h"
 #include "qgsstatisticalsummary.h"
+#include "qgssettings.h"
 
 #include <limits>
 #include <QComboBox>
-#include <QSettings>
 
 QList< QgsStatisticalSummary::Statistic > QgsMergeAttributesDialog::mDisplayStats =
   QList< QgsStatisticalSummary::Statistic > () << QgsStatisticalSummary::Count
@@ -69,7 +69,7 @@ QgsMergeAttributesDialog::QgsMergeAttributesDialog( const QgsFeatureList &featur
   mFromSelectedPushButton->setIcon( QgsApplication::getThemeIcon( "mActionFromSelectedFeature.png" ) );
   mRemoveFeatureFromSelectionButton->setIcon( QgsApplication::getThemeIcon( "mActionRemoveSelectedFeature.png" ) );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/MergeAttributes/geometry" ).toByteArray() );
 
   connect( mSkipAllButton, SIGNAL( clicked() ), this, SLOT( setAllToSkip() ) );
@@ -84,13 +84,13 @@ QgsMergeAttributesDialog::QgsMergeAttributesDialog()
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/MergeAttributes/geometry" ).toByteArray() );
 }
 
 QgsMergeAttributesDialog::~QgsMergeAttributesDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/MergeAttributes/geometry", saveGeometry() );
 
   delete mSelectionRubberBand;

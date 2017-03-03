@@ -29,7 +29,7 @@ import os
 
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QObject, pyqtSignal
 from qgis.PyQt.QtGui import QIcon
-from qgis.core import NULL
+from qgis.core import NULL, QgsSettings
 from processing.tools.system import defaultOutputFolder
 import processing.tools.dataobjects
 
@@ -293,14 +293,14 @@ class Setting:
         self.validator(value)
         self.value = value
 
-    def read(self, qsettings=QSettings()):
+    def read(self, qsettings=QgsSettings()):
         value = qsettings.value(self.qname, None)
         if value is not None:
             if isinstance(self.value, bool):
                 value = unicode(value).lower() == unicode(True).lower()
             self.value = value
 
-    def save(self, qsettings=QSettings()):
+    def save(self, qsettings=QgsSettings()):
         qsettings.setValue(self.qname, self.value)
 
     def __str__(self):

@@ -19,9 +19,9 @@
 
 #include <QMenu>
 #include <QMessageBox>
-#include <QSettings>
 #include <QSqlTableModel>
 
+#include "qgssettings.h"
 #include "qgsauthmanager.h"
 #include "qgsauthconfigedit.h"
 #include "qgsauthguiutils.h"
@@ -286,7 +286,7 @@ QgsMessageBar * QgsAuthConfigEditor::messageBar()
 
 int QgsAuthConfigEditor::messageTimeout()
 {
-  QSettings settings;
+  QgsSettings settings;
   return settings.value( "/qgis/messageTimeout", 5 ).toInt();
 }
 

@@ -16,9 +16,10 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QSettings>
+#include <QgsSettings>
 #include <QSharedPointer>
 
+#include "qgssettings.h"
 #include "qgsfield.h"
 
 class TestQgsField: public QObject
@@ -47,7 +48,7 @@ class TestQgsField: public QObject
 
 void TestQgsField::initTestCase()
 {
-  // Set up the QSettings environment
+  // Set up the QgsSettings environment
   QCoreApplication::setOrganizationName( "QGIS" );
   QCoreApplication::setOrganizationDomain( "qgis.org" );
   QCoreApplication::setApplicationName( "QGIS-TEST" );
@@ -213,7 +214,7 @@ void TestQgsField::displayString()
   QCOMPARE( stringField.displayString( test ), test );
 
   //test NULL
-  QSettings s;
+  QgsSettings s;
   s.setValue( "qgis/nullValue", "TEST NULL" );
   QVariant nullString = QVariant( QVariant::String );
   QCOMPARE( stringField.displayString( nullString ), QString( "TEST NULL" ) );

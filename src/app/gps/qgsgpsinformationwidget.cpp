@@ -37,6 +37,7 @@
 #include "qgsvectorlayer.h"
 #include "qgswkbptr.h"
 #include "qgscrscache.h"
+#include "qgssettings.h"
 
 // QWT Charting widget
 
@@ -58,7 +59,6 @@
 #endif
 
 #include <QMessageBox>
-#include <QSettings>
 #include <QFileInfo>
 #include <QColorDialog>
 #include <QFileDialog>
@@ -173,7 +173,7 @@ QgsGPSInformationWidget::QgsGPSInformationWidget( QgsMapCanvas * thepCanvas, QWi
   mpPlot->replot();
 
   // Restore state
-  QSettings mySettings;
+  QgsSettings mySettings;
   mGroupShowMarker->setChecked( mySettings.value( "/gps/showMarker", "true" ).toBool() );
   mSliderMarkerSize->setValue( mySettings.value( "/gps/markerSize", "12" ).toInt() );
   mSpinTrackWidth->setValue( mySettings.value( "/gps/trackWidth", "2" ).toInt() );
@@ -261,7 +261,7 @@ QgsGPSInformationWidget::~QgsGPSInformationWidget()
   delete mpSatellitesGrid;
 #endif
 
-  QSettings mySettings;
+  QgsSettings mySettings;
   mySettings.setValue( "/gps/lastPort", mCboDevices->itemData( mCboDevices->currentIndex() ).toString() );
   mySettings.setValue( "/gps/trackWidth", mSpinTrackWidth->value() );
   mySettings.setValue( "/gps/trackColor", mTrackColor );
@@ -999,7 +999,7 @@ void QgsGPSInformationWidget::populateDevices()
   }
 
   // remember the last ports used
-  QSettings settings;
+  QgsSettings settings;
   QString lastPort = settings.value( "/gps/lastPort", "" ).toString();
 
   int idx = mCboDevices->findData( lastPort );
@@ -1023,7 +1023,7 @@ void QgsGPSInformationWidget::on_mBtnLogFile_clicked()
 //=========================
   // This does not allow for an extension other than ".nmea"
   // Retrieve last used log file dir from persistent settings
-  QSettings settings;
+  QgsSettings settings;
   QString settingPath( "/gps/lastLogFileDir" );
   QString lastUsedDir = settings.value( settingPath, QDir::homePath() ).toString();
   QString saveFilePath = QFileDialog::getSaveFileName( this, tr( "Save GPS log file as" ), lastUsedDir, tr( "NMEA files" ) + " (*.nmea)" );

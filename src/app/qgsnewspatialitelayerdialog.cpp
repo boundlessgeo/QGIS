@@ -32,9 +32,9 @@
 #include "qgscrscache.h"
 
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QPushButton>
-#include <QSettings>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -47,7 +47,7 @@ QgsNewSpatialiteLayerDialog::QgsNewSpatialiteLayerDialog( QWidget *parent, Qt::W
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/NewSpatiaLiteLayer/geometry" ).toByteArray() );
 
   mAddAttributeButton->setIcon( QgsApplication::getThemeIcon( "/mActionNewAttribute.svg" ) );
@@ -94,7 +94,7 @@ QgsNewSpatialiteLayerDialog::QgsNewSpatialiteLayerDialog( QWidget *parent, Qt::W
 
 QgsNewSpatialiteLayerDialog::~QgsNewSpatialiteLayerDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/NewSpatiaLiteLayer/geometry", saveGeometry() );
 }
 
@@ -313,7 +313,7 @@ bool QgsNewSpatialiteLayerDialog::createDb()
 
   QString key = "/SpatiaLite/connections/" + fi.fileName() + "/sqlitepath";
 
-  QSettings settings;
+  QgsSettings settings;
   if ( !settings.contains( key ) )
   {
     settings.setValue( "/SpatiaLite/connections/selected", fi.fileName() + tr( "@" ) + fi.canonicalFilePath() );

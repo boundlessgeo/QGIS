@@ -30,7 +30,7 @@ void QgsRuntimeProfiler::endGroup()
 {
   if ( mGroupStack.isEmpty() )
   {
-    qWarning( "QSettings::endGroup: No matching beginGroup()" );
+    qWarning( "QgsSettings::endGroup: No matching beginGroup()" );
     return;
   }
 

@@ -26,6 +26,7 @@
 #include "qgsdistancearea.h"
 #include "qgsfontutils.h"
 #include "qgsexpressioncontext.h"
+#include "qgssettings.h"
 
 #include "qgswebview.h"
 #include "qgswebframe.h"
@@ -35,7 +36,6 @@
 #include <QDate>
 #include <QDomElement>
 #include <QPainter>
-#include <QSettings>
 #include <QTimer>
 #include <QEventLoop>
 
@@ -56,7 +56,7 @@ QgsComposerLabel::QgsComposerLabel( QgsComposition *composition )
   mHtmlUnitsToMM = htmlUnitsToMM();
 
   //get default composer font from settings
-  QSettings settings;
+  QgsSettings settings;
   QString defaultFontString = settings.value( "/Composer/defaultFont" ).toString();
   if ( !defaultFontString.isEmpty() )
   {

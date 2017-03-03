@@ -24,10 +24,7 @@
 #include "qgsmimedatautils.h"
 #include "qgsvectorlayerimport.h"
 
-#include <QSettings>
 #include <QMessageBox>
-//#include <QtSql/QSqlDatabase>
-//#include <QtSql/QSqlError>
 #include <QProgressDialog>
 
 static const QString PROVIDER_KEY = "DB2";
@@ -104,7 +101,7 @@ bool QgsDb2ConnectionItem::ConnInfoFromSettings( const QString connName,
     QString &connInfo, QString &errorMsg )
 {
   QgsDebugMsg( QString( "Get settings for connection '%1'" ).arg( connInfo ) );
-  QSettings settings;
+  QgsSettings settings;
   QString key = "/DB2/connections/" + connName;
 
   bool rc = QgsDb2ConnectionItem::ConnInfoFromParameters(
@@ -277,7 +274,7 @@ void QgsDb2ConnectionItem::editConnection()
 void QgsDb2ConnectionItem::deleteConnection()
 {
   QString key = "/DB2/connections/" + mName;
-  QSettings settings;
+  QgsSettings settings;
   settings.remove( key + "/service" );
   settings.remove( key + "/driver" );
   settings.remove( key + "/port" );
@@ -431,7 +428,7 @@ QgsDb2RootItem::~QgsDb2RootItem()
 QVector<QgsDataItem*> QgsDb2RootItem::createChildren()
 {
   QVector<QgsDataItem*> connections;
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "/DB2/connections" );
   Q_FOREACH ( const QString& connName, settings.childGroups() )
   {

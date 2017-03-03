@@ -22,7 +22,6 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QLibrary>
-#include <QSettings>
 #include <QStandardItem>
 #include <QPushButton>
 #include <QRegExp>
@@ -43,6 +42,7 @@
 #include "qgisplugin.h"
 #include "qgslogger.h"
 #include "qgspluginitemdelegate.h"
+#include "qgssettings.h"
 
 // Do we need this?
 // #define TESTLIB
@@ -98,7 +98,7 @@ QgsPluginManager::QgsPluginManager( QWidget * parent, bool pluginsAreEnabled, Qt
   leFilter->setFocus( Qt::MouseFocusReason );
   wvDetails->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
 
-  // Don't restore the last used tab from QSettings
+  // Don't restore the last used tab from QgsSettings
   mOptionsListWidget->setCurrentRow( 0 );
 
   // Connect other signals
@@ -181,7 +181,7 @@ void QgsPluginManager::setPythonUtils( QgsPythonUtils* pythonUtils )
   connect( actionSortByVote, SIGNAL( triggered() ), mModelProxy, SLOT( sortPluginsByVote() ) );
   connect( actionSortByStatus, SIGNAL( triggered() ), mModelProxy, SLOT( sortPluginsByStatus() ) );
 
-  // get the QSettings group from the installer
+  // get the QgsSettings group from the installer
   QString settingsGroup;
   QgsPythonRunner::eval( "pyplugin_installer.instance().exportSettingsGroup()", settingsGroup );
 
@@ -189,7 +189,7 @@ void QgsPluginManager::setPythonUtils( QgsPythonUtils* pythonUtils )
   mCheckingOnStartIntervals << 0 << 1 << 3 << 7 << 14 << 30;
 
   // Initialize the "Settings" tab widgets
-  QSettings settings;
+  QgsSettings settings;
   if ( settings.value( settingsGroup + "/checkOnStart", false ).toBool() )
   {
     ckbCheckUpdates->setChecked( true );
@@ -1065,7 +1065,7 @@ void QgsPluginManager::reject()
 {
   if ( mPythonUtils && mPythonUtils->isEnabled() )
   {
-    // get the QSettings group from the installer
+    // get the QgsSettings group from the installer
     QString settingsGroup;
     QgsPythonRunner::eval( "pyplugin_installer.instance().exportSettingsGroup()", settingsGroup );
     QSettings settings;

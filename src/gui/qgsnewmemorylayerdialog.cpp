@@ -26,7 +26,6 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QLibrary>
-#include <QSettings>
 #include <QUuid>
 #include <QFileDialog>
 
@@ -83,7 +82,7 @@ QgsNewMemoryLayerDialog::QgsNewMemoryLayerDialog( QWidget *parent, const Qt::Win
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/NewMemoryLayer/geometry" ).toByteArray() );
 
   mPointRadioButton->setChecked( true );
@@ -97,7 +96,7 @@ QgsNewMemoryLayerDialog::QgsNewMemoryLayerDialog( QWidget *parent, const Qt::Win
 
 QgsNewMemoryLayerDialog::~QgsNewMemoryLayerDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/NewMemoryLayer/geometry", saveGeometry() );
 }
 

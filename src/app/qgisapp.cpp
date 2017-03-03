@@ -431,7 +431,7 @@ void QgisApp::emitCustomSrsValidation( QgsCoordinateReferenceSystem &srs )
 void QgisApp::layerTreeViewDoubleClicked( const QModelIndex& index )
 {
   Q_UNUSED( index )
-  QSettings settings;
+  QgsSettings settings;
   switch ( settings.value( "/qgis/legendDoubleClickAction", 0 ).toInt() )
   {
     case 0:
@@ -501,7 +501,7 @@ void QgisApp::activeLayerChanged( QgsMapLayer* layer )
 void QgisApp::validateSrs( QgsCoordinateReferenceSystem &srs )
 {
   static QString authid = QString::null;
-  QSettings mySettings;
+  QgsSettings mySettings;
   QString myDefaultProjectionOption = mySettings.value( "/Projections/defaultBehaviour", "prompt" ).toString();
   if ( myDefaultProjectionOption == "prompt" )
   {
@@ -1431,7 +1431,7 @@ QgisAppStyleSheet* QgisApp::styleSheetBuilder()
 
 void QgisApp::readRecentProjects()
 {
-  QSettings settings;
+  QgsSettings settings;
   mRecentProjects.clear();
 
   settings.beginGroup( "/UI" );
@@ -1479,7 +1479,7 @@ void QgisApp::readRecentProjects()
 
 void QgisApp::readSettings()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString themename = settings.value( "UI/UITheme", "default" ).toString();
   setTheme( themename );
 
@@ -1884,7 +1884,7 @@ void QgisApp::setAppStyleSheet( const QString& stylesheet )
 
 int QgisApp::messageTimeout()
 {
-  QSettings settings;
+  QgsSettings settings;
   return settings.value( "/qgis/messageTimeout", 5 ).toInt();
 }
 
@@ -2012,7 +2012,7 @@ void QgisApp::createMenus()
 
 void QgisApp::createToolBars()
 {
-  QSettings settings;
+  QgsSettings settings;
   // QSize myIconSize ( 32,32 ); //large icons
   // Note: we need to set each object name to ensure that
   // qmainwindow::saveState and qmainwindow::restoreState
@@ -2368,7 +2368,7 @@ void QgisApp::createStatusBar()
   mMagnifierWidget->setFont( myFont );
   connect( mMapCanvas, SIGNAL( magnificationChanged( double ) ), mMagnifierWidget, SLOT( updateMagnification( double ) ) );
   connect( mMagnifierWidget, SIGNAL( magnificationChanged( double ) ), mMapCanvas, SLOT( setMagnificationFactor( double ) ) );
-  mMagnifierWidget->updateMagnification( QSettings().value( "/qgis/magnifier_factor_default", 1.0 ).toDouble() );
+  mMagnifierWidget->updateMagnification( QgsSettings().value( "/qgis/magnifier_factor_default", 1.0 ).toDouble() );
   statusBar()->addPermanentWidget( mMagnifierWidget, 0 );
 
   if ( QgsMapCanvas::rotationEnabled() )
@@ -2894,7 +2894,7 @@ void QgisApp::createOverview()
   mOverviewCanvas = new QgsMapOverviewCanvas( nullptr, mMapCanvas );
 
   //set canvas color to default
-  QSettings settings;
+  QgsSettings settings;
   int red = settings.value( "/qgis/default_canvas_color_red", 255 ).toInt();
   int green = settings.value( "/qgis/default_canvas_color_green", 255 ).toInt();
   int blue = settings.value( "/qgis/default_canvas_color_blue", 255 ).toInt();
@@ -2918,7 +2918,7 @@ void QgisApp::createOverview()
   mMapCanvas->enableOverviewMode( mOverviewCanvas );
 
   // moved here to set anti aliasing to both map canvas and overview
-  QSettings mySettings;
+  QgsSettings mySettings;
   // Anti Aliasing enabled by default as of QGIS 1.7
   mMapCanvas->enableAntiAliasing( mySettings.value( "/qgis/enable_anti_aliasing", true ).toBool() );
 
@@ -3120,7 +3120,7 @@ void QgisApp::initLayerTreeView()
   connect( QgsProject::instance(), SIGNAL( writeProject( QDomDocument& ) ), mLayerTreeCanvasBridge, SLOT( writeProject( QDomDocument& ) ) );
   connect( QgsProject::instance(), SIGNAL( readProject( QDomDocument ) ), mLayerTreeCanvasBridge, SLOT( readProject( QDomDocument ) ) );
 
-  bool otfTransformAutoEnable = QSettings().value( "/Projections/otfTransformAutoEnable", true ).toBool();
+  bool otfTransformAutoEnable = QgsSettings().value( "/Projections/otfTransformAutoEnable", true ).toBool();
   mLayerTreeCanvasBridge->setAutoEnableCrsTransform( otfTransformAutoEnable );
 
   mMapLayerOrder = new QgsCustomLayerOrderWidget( mLayerTreeCanvasBridge, this );
@@ -3140,7 +3140,7 @@ void QgisApp::initLayerTreeView()
 
 void QgisApp::setupLayerTreeViewFromSettings()
 {
-  QSettings s;
+  QgsSettings s;
 
   QgsLayerTreeModel* model = mLayerTreeView->layerTreeModel();
   model->setFlag( QgsLayerTreeModel::ShowRasterPreviewIcon, s.value( "/qgis/createRasterLegendIcons", false ).toBool() );
@@ -3272,7 +3272,7 @@ void QgisApp::saveRecentProjectPath( const QString& projectPath, bool savePrevie
   // projects when multiple QGIS sessions are open
   readRecentProjects();
 
-  QSettings settings;
+  QgsSettings settings;
 
   // Get canonical absolute path
   QFileInfo myFileInfo( projectPath );
@@ -3349,7 +3349,7 @@ void QgisApp::saveRecentProjectPath( const QString& projectPath, bool savePrevie
 void QgisApp::updateProjectFromTemplates()
 {
   // get list of project files in template dir
-  QSettings settings;
+  QgsSettings settings;
   QString templateDirName = settings.value( "/qgis/projectTemplateDir",
                             QgsApplication::qgisSettingsDirPath() + "project_templates" ).toString();
   QDir templateDir( templateDirName );
@@ -3375,7 +3375,7 @@ void QgisApp::updateProjectFromTemplates()
 void QgisApp::saveWindowState()
 {
   // store window and toolbar positions
-  QSettings settings;
+  QgsSettings settings;
   // store the toolbar/dock widget settings using Qt4 settings API
   settings.setValue( "/UI/state", saveState() );
 
@@ -3390,7 +3390,7 @@ void QgisApp::saveWindowState()
 void QgisApp::restoreWindowState()
 {
   // restore the toolbar and dock widgets positions using Qt4 settings API
-  QSettings settings;
+  QgsSettings settings;
 
   if ( !restoreState( settings.value( "/UI/state", QByteArray::fromRawData( reinterpret_cast< const char * >( defaultUIstate ), sizeof defaultUIstate ) ).toByteArray() ) )
   {
@@ -3516,7 +3516,7 @@ QString QgisApp::crsAndFormatAdjustedLayerUri( const QString &uri, const QString
   }
 
   // Use the last used image format
-  QString lastImageEncoding = QSettings().value( "/qgis/lastWmsImageEncoding", "image/png" ).toString();
+  QString lastImageEncoding = QgsSettings().value( "/qgis/lastWmsImageEncoding", "image/png" ).toString();
   Q_FOREACH ( const QString& fmt, supportedFormats )
   {
     if ( fmt == lastImageEncoding )
@@ -3694,7 +3694,7 @@ bool QgisApp::askUserForZipItemLayers( QString path )
   bool ok = false;
   QVector<QgsDataItem*> childItems;
   QgsZipItem *zipItem = nullptr;
-  QSettings settings;
+  QgsSettings settings;
   int promptLayers = settings.value( "/qgis/promptForRasterSublayers", 1 ).toInt();
 
   QgsDebugMsg( "askUserForZipItemLayers( " + path + ')' );
@@ -3813,7 +3813,7 @@ void QgisApp::askUserForGDALSublayers( QgsRasterLayer *layer )
     return;
 
   // if promptLayers=Load all, load all sublayers without prompting
-  QSettings settings;
+  QgsSettings settings;
   if ( settings.value( "/qgis/promptForRasterSublayers", 1 ).toInt() == 3 )
   {
     loadGDALSublayers( layer->source(), sublayers );
@@ -3901,7 +3901,7 @@ bool QgisApp::shouldAskUserForGDALSublayers( QgsRasterLayer *layer )
   if ( !layer || layer->providerType() != "gdal" || layer->subLayers().size() < 1 )
     return false;
 
-  QSettings settings;
+  QgsSettings settings;
   int promptLayers = settings.value( "/qgis/promptForRasterSublayers", 1 ).toInt();
   // 0 = Always -> always ask (if there are existing sublayers)
   // 1 = If needed -> ask if layer has no bands, but has sublayers
@@ -4422,7 +4422,7 @@ void QgisApp::fileNew( bool thePromptToSaveFlag, bool forceBlank )
 
   mProjectLastModified = QDateTime();
 
-  QSettings settings;
+  QgsSettings settings;
 
   closeProject();
 
@@ -4578,7 +4578,7 @@ void QgisApp::fileOpenAfterLaunch()
 
   // fileNewBlank() has already been called in QgisApp constructor
   // loaded project is either a new blank one, or one from command line/filesystem
-  QSettings settings;
+  QgsSettings settings;
   QString autoOpenMsgTitle = tr( "Auto-open Project" );
 
   // get path of project file to open, or was attempted
@@ -4673,7 +4673,7 @@ void QgisApp::fileOpenAfterLaunch()
 
 void QgisApp::fileOpenedOKAfterLaunch()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/qgis/projOpenedOKAtLaunch", QVariant( true ) );
 }
 
@@ -4688,7 +4688,7 @@ void QgisApp::fileNewFromTemplateAction( QAction * qAction )
   }
   else
   {
-    QSettings settings;
+    QgsSettings settings;
     QString templateDirName = settings.value( "/qgis/projectTemplateDir",
                               QgsApplication::qgisSettingsDirPath() + "project_templates" ).toString();
     fileNewFromTemplate( templateDirName + QDir::separator() + qAction->text() );
@@ -4814,7 +4814,7 @@ void QgisApp::fileOpen()
   if ( saveDirty() )
   {
     // Retrieve last used project dir from persistent settings
-    QSettings settings;
+    QgsSettings settings;
     QString lastUsedDir = settings.value( "/UI/lastProjectDir", QDir::homePath() ).toString();
     QString fullPath = QFileDialog::getOpenFileName( this,
                        tr( "Choose a QGIS project file to open" ),
@@ -4928,7 +4928,7 @@ bool QgisApp::addProject( const QString& projectFile )
 
   mActionFilterLegend->setChecked( QgsProject::instance()->readBoolEntry( "Legend", "filterByMap" ) );
 
-  QSettings settings;
+  QgsSettings settings;
 
   // does the project have any macros?
   if ( mPythonUtils && mPythonUtils->isEnabled() )
@@ -4995,7 +4995,7 @@ bool QgisApp::fileSave()
   if ( QgsProject::instance()->fileName().isNull() )
   {
     // Retrieve last used project dir from persistent settings
-    QSettings settings;
+    QgsSettings settings;
     QString lastUsedDir = settings.value( "/UI/lastProjectDir", QDir::homePath() ).toString();
 
     QString path = QFileDialog::getSaveFileName(
@@ -5073,7 +5073,7 @@ bool QgisApp::fileSave()
 void QgisApp::fileSaveAs()
 {
   // Retrieve last used project dir from persistent settings
-  QSettings settings;
+  QgsSettings settings;
   QString lastUsedDir = settings.value( "/UI/lastProjectDir", QDir::homePath() ).toString();
 
   QString path = QFileDialog::getSaveFileName( this,
@@ -6016,7 +6016,7 @@ void QgisApp::saveAsRasterFile()
   if ( d.exec() == QDialog::Rejected )
     return;
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/UI/lastRasterFileDir", QFileInfo( d.outputFileName() ).absolutePath() );
 
   QgsRasterFileWriter fileWriter( d.outputFileName() );
@@ -6251,7 +6251,7 @@ void QgisApp::saveAsVectorFileGeneral( QgsVectorLayer* vlayer, bool symbologyOpt
       ct = new QgsCoordinateTransform( vlayer->crs(), destCRS );
 
       //ask user about datum transformation
-      QSettings settings;
+      QgsSettings settings;
       QList< QList< int > > dt = QgsCoordinateTransform::datumTransformations( vlayer->crs(), destCRS );
       if ( dt.size() > 1 && settings.value( "/Projections/showDatumTransformDialog", false ).toBool() )
       {
@@ -7835,7 +7835,7 @@ void QgisApp::toggleMapTips( bool enabled )
 {
   mMapTipsVisible = enabled;
   // Store if maptips are active
-  QSettings().setValue( "/qgis/enableMapTips", mMapTipsVisible );
+  QgsSettings().setValue( "/qgis/enableMapTips", mMapTipsVisible );
 
   // if off, stop the timer
   if ( !mMapTipsVisible )
@@ -7898,7 +7898,7 @@ bool QgisApp::toggleEditing( QgsMapLayer *layer, bool allowCancel )
 
     vlayer->startEditing();
 
-    QSettings settings;
+    QgsSettings settings;
     QString markerType = settings.value( "/qgis/digitizing/marker_style", "Cross" ).toString();
     bool markSelectedOnly = settings.value( "/qgis/digitizing/marker_only_for_selected", false ).toBool();
 
@@ -8360,7 +8360,7 @@ void QgisApp::removeLayer()
     return;
   }
 
-  bool promptConfirmation = QSettings().value( "qgis/askToDeleteLayers", true ).toBool();
+  bool promptConfirmation = QgsSettings().value( "qgis/askToDeleteLayers", true ).toBool();
   bool shiftHeld = QApplication::queryKeyboardModifiers().testFlag( Qt::ShiftModifier );
   //display a warning
   if ( !shiftHeld && promptConfirmation && QMessageBox::warning( this, tr( "Remove layers and groups" ), tr( "Remove %n legend entries?", "number of legend items to remove", selectedNodes.count() ), QMessageBox::Ok | QMessageBox::Cancel ) == QMessageBox::Cancel )
@@ -8968,7 +8968,7 @@ void QgisApp::options()
 
 void QgisApp::showOptionsDialog( QWidget *parent, const QString& currentPage )
 {
-  QSettings mySettings;
+  QgsSettings mySettings;
   QString oldScales = mySettings.value( "Map/scales", PROJECT_SCALES ).toString();
 
   bool oldCapitalise = mySettings.value( "/qgis/capitaliseLayerName", QVariant( false ) ).toBool();
@@ -9170,7 +9170,7 @@ void QgisApp::adjustBrightnessContrast( int delta, bool updateBrightness )
 
 void QgisApp::helpContents()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString helpUrl = settings.value( "Qgis/docsUserManualUrl", "https://docs.qgis.org/%1.%2/%3/docs/user_manual/" ).toString();
   // We should really ship the HTML version of the docs local too.
   openURL( helpUrl
@@ -9188,7 +9188,7 @@ void QgisApp::apiDocumentation()
   }
   else
   {
-    QSettings settings;
+    QgsSettings settings;
     QString QgisApiUrl = settings.value( "Qgis/QgisApiUrl", "https://qgis.org/api/" ).toString();
     openURL( QgisApiUrl, false );
   }
@@ -9196,21 +9196,21 @@ void QgisApp::apiDocumentation()
 
 void QgisApp::reportaBug()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString reportaBugUrl = settings.value( "Qgis/reportaBugUrl", tr( "https://qgis.org/en/site/getinvolved/development/bugreporting.html" ) ).toString();
   openURL( reportaBugUrl, false );
 }
 
 void QgisApp::supportProviders()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString supportProvidersUrl = settings.value( "Qgis/supportProvidersUrl" , tr( "https://qgis.org/en/site/forusers/commercial_support.html" ) ).toString();
   openURL( supportProvidersUrl , false );
 }
 
 void QgisApp::helpQgisHomePage()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString  helpQgisHomePageUrl = settings.value( "Qgis/helpQgisHomePageUrl", "https://qgis.org" ).toString();
   openURL( helpQgisHomePageUrl, false );
 }
@@ -9495,7 +9495,7 @@ bool QgisApp::saveDirty()
   //QgsDebugMsg(QString("Project is %1dirty").arg( QgsProject::instance()->isDirty() ? "" : "not "));
   //QgsDebugMsg(QString("Map canvas is %1dirty").arg(mMapCanvas->isDirty() ? "" : "not "));
 
-  QSettings settings;
+  QgsSettings settings;
   bool askThem = settings.value( "qgis/askToSaveProjectChanges", true ).toBool();
 
   if ( askThem && QgsProject::instance()->isDirty() && QgsMapLayerRegistry::instance()->count() > 0 )
@@ -10528,7 +10528,7 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer* layer )
     mActionSelectPolygon->setEnabled( false );
     mActionSelectFreehand->setEnabled( false );
     mActionSelectRadius->setEnabled( false );
-    mActionIdentify->setEnabled( QSettings().value( "/Map/identifyMode", 0 ).toInt() != 0 );
+    mActionIdentify->setEnabled( QgsSettings().value( "/Map/identifyMode", 0 ).toInt() != 0 );
     mActionSelectByExpression->setEnabled( false );
     mActionSelectByForm->setEnabled( false );
     mActionLabeling->setEnabled( false );
@@ -10868,7 +10868,7 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer* layer )
     //but turn off if data provider exists and has no Identify capabilities
     mActionIdentify->setEnabled( true );
 
-    QSettings settings;
+    QgsSettings settings;
     int identifyMode = settings.value( "/Map/identifyMode", 0 ).toInt();
     if ( identifyMode == 0 )
     {
@@ -11318,7 +11318,7 @@ void QgisApp::showBookmarks()
 void QgisApp::oldProjectVersionWarning( const QString& oldVersion )
 {
   Q_UNUSED( oldVersion );
-  QSettings settings;
+  QgsSettings settings;
 
   if ( settings.value( "/qgis/warnOldProjectVersion", QVariant( true ) ).toBool() )
   {
@@ -11601,7 +11601,7 @@ void QgisApp::namAuthenticationRequired( QNetworkReply *inReply, QAuthenticator 
 
 void QgisApp::namProxyAuthenticationRequired( const QNetworkProxy &proxy, QAuthenticator *auth )
 {
-  QSettings settings;
+  QgsSettings settings;
   if ( !settings.value( "proxy/proxyEnabled", false ).toBool() ||
        settings.value( "proxy/proxyType", "" ).toString() == "DefaultProxy" )
   {
@@ -11721,7 +11721,7 @@ void QgisApp::namSslErrors( QNetworkReply *reply, const QList<QSslError> &errors
   // restart network request timeout timer
   if ( reply )
   {
-    QSettings s;
+    QgsSettings s;
     QTimer *timer = reply->findChild<QTimer *>( "timeoutTimer" );
     if ( timer )
     {
@@ -11806,7 +11806,7 @@ void QgisApp::toolButtonActionTriggered( QAction *action )
   if ( !bt )
     return;
 
-  QSettings settings;
+  QgsSettings settings;
   if ( action == mActionSelectFeatures )
     settings.setValue( "/UI/selectTool", 1 );
   else if ( action == mActionSelectRadius )

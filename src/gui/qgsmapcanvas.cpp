@@ -30,7 +30,6 @@ email                : sherman at mrcc.com
 #include <QPaintEvent>
 #include <QPixmap>
 #include <QRect>
-#include <QSettings>
 #include <QTextStream>
 #include <QResizeEvent>
 #include <QString>
@@ -244,7 +243,7 @@ QgsMapCanvas::QgsMapCanvas( QWidget * parent, const char *name )
   mSettings.setFlag( QgsMapSettings::RenderPartialOutput );
 
   //segmentation parameters
-  QSettings settings;
+  QgsSettings settings;
   double segmentationTolerance = settings.value( "/qgis/segmentationTolerance", "0.01745" ).toDouble();
   QgsAbstractGeometryV2::SegmentationToleranceType toleranceType = QgsAbstractGeometryV2::SegmentationToleranceType( settings.value( "/qgis/segmentationToleranceType", 0 ).toInt() );
   mSettings.setSegmentationTolerance( segmentationTolerance );
@@ -776,7 +775,7 @@ void QgsMapCanvas::rendererJobFinished()
     QPainter p( &img );
     emit renderComplete( &p );
 
-    QSettings settings;
+    QgsSettings settings;
     if ( settings.value( "/Map/logCanvasRefreshEvent", false ).toBool() )
     {
       QString logMsg = tr( "Canvas refresh: %1 ms" ).arg( mJob->renderingTime() );
@@ -2054,7 +2053,7 @@ void QgsMapCanvas::getDatumTransformInfo( const QgsMapLayer* ml, const QString& 
   }
 
   //check if default datum transformation available
-  QSettings s;
+  QgsSettings s;
   QString settingsString = "/Projections/" + srcAuthId + "//" + destAuthId;
   QVariant defaultSrcTransform = s.value( settingsString + "_srcTransform" );
   QVariant defaultDestTransform = s.value( settingsString + "_destTransform" );
@@ -2175,12 +2174,12 @@ bool QgsMapCanvas::event( QEvent * e )
 
 bool QgsMapCanvas::rotationEnabled()
 {
-  return QSettings().value( "/qgis/canvasRotation", true ).toBool();
+  return QgsSettings().value( "/qgis/canvasRotation", true ).toBool();
 }
 
 void QgsMapCanvas::enableRotation( bool enable )
 {
-  QSettings().setValue( "/qgis/canvasRotation", enable );
+  QgsSettings().setValue( "/qgis/canvasRotation", enable );
 }
 
 void QgsMapCanvas::refreshAllLayers()

@@ -41,6 +41,7 @@ email                : tim at linfiniti.com
 #include "qgssinglebandcolordatarenderer.h"
 #include "qgssinglebandgrayrenderer.h"
 #include "qgssinglebandpseudocolorrenderer.h"
+#include "qgssettings.h"
 
 #include <cmath>
 #include <cstdio>
@@ -65,7 +66,6 @@ email                : tim at linfiniti.com
 #include <QPainter>
 #include <QPixmap>
 #include <QRegExp>
-#include <QSettings>
 #include <QSlider>
 #include <QTime>
 
@@ -903,7 +903,7 @@ void QgsRasterLayer::setContrastEnhancement( QgsContrastEnhancement::ContrastEnh
       }
       else if ( theLimits == QgsRaster::ContrastEnhancementCumulativeCut )
       {
-        QSettings mySettings;
+        QgsSettings mySettings;
         double myLower = mySettings.value( "/Raster/cumulativeCutLower", QString::number( CUMULATIVE_CUT_LOWER ) ).toDouble();
         double myUpper = mySettings.value( "/Raster/cumulativeCutUpper", QString::number( CUMULATIVE_CUT_UPPER ) ).toDouble();
         QgsDebugMsgLevel( QString( "myLower = %1 myUpper = %2" ).arg( myLower ).arg( myUpper ), 4 );
@@ -943,7 +943,7 @@ void QgsRasterLayer::setDefaultContrastEnhancement()
 {
   QgsDebugMsgLevel( "Entered", 4 );
 
-  QSettings mySettings;
+  QgsSettings mySettings;
 
   QString myKey;
   QString myDefault;

@@ -21,6 +21,7 @@
 #include "qgssymbollayerv2utils.h"
 #include "qgscomposerframe.h"
 #include "qgsfontutils.h"
+#include "qgssettings.h"
 
 //
 // QgsComposerTableStyle
@@ -68,7 +69,7 @@ QgsComposerTableV2::QgsComposerTableV2( QgsComposition *composition, bool create
   }
 
   //get default composer font from settings
-  QSettings settings;
+  QgsSettings settings;
   QString defaultFontString = settings.value( "/Composer/defaultFont" ).toString();
   if ( !defaultFontString.isEmpty() )
   {

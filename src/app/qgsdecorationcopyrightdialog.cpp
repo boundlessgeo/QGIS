@@ -14,12 +14,12 @@
 #include "qgsdecorationcopyright.h"
 
 #include "qgscontexthelp.h"
+#include "qgssettings.h"
 
 //qt includes
 #include <QColorDialog>
 #include <QColor>
 #include <QFont>
-#include <QSettings>
 #include <QDialogButtonBox>
 #include <QPushButton>
 
@@ -29,7 +29,7 @@ QgsDecorationCopyrightDialog::QgsDecorationCopyrightDialog( QgsDecorationCopyrig
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/DecorationCopyright/geometry" ).toByteArray() );
 
   QPushButton* applyButton = buttonBox->button( QDialogButtonBox::Apply );
@@ -62,7 +62,7 @@ QgsDecorationCopyrightDialog::QgsDecorationCopyrightDialog( QgsDecorationCopyrig
 
 QgsDecorationCopyrightDialog::~QgsDecorationCopyrightDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/DecorationCopyright/geometry", saveGeometry() );
 }
 

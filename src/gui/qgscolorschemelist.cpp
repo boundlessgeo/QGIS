@@ -18,6 +18,8 @@
 #include "qgslogger.h"
 #include "qgssymbollayerv2utils.h"
 #include "qgscolordialog.h"
+#include "qgssettings.h"
+
 #include <QPainter>
 #include <QColorDialog>
 #include <QMimeData>

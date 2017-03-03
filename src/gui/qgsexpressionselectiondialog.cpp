@@ -17,7 +17,6 @@
 #include "qgsapplication.h"
 #include "qgsexpression.h"
 
-#include <QSettings>
 
 QgsExpressionSelectionDialog::QgsExpressionSelectionDialog( QgsVectorLayer* layer, const QString& startText, QWidget* parent )
     : QDialog( parent )
@@ -49,7 +48,7 @@ QgsExpressionSelectionDialog::QgsExpressionSelectionDialog( QgsVectorLayer* laye
   << QgsExpressionContextUtils::layerScope( mLayer );
   mExpressionBuilder->setExpressionContext( context );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/ExpressionSelectionDialog/geometry" ).toByteArray() );
 }
 
@@ -106,7 +105,7 @@ void QgsExpressionSelectionDialog::closeEvent( QCloseEvent *closeEvent )
 {
   QDialog::closeEvent( closeEvent );
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/ExpressionSelectionDialog/geometry", saveGeometry() );
 }
 

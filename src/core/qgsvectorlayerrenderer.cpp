@@ -34,7 +34,6 @@
 #include "qgspainteffect.h"
 #include "qgsfeaturefilterprovider.h"
 
-#include <QSettings>
 #include <QPicture>
 
 // TODO:
@@ -68,7 +67,7 @@ QgsVectorLayerRenderer::QgsVectorLayerRenderer( QgsVectorLayer* layer, QgsRender
   mSimplifyMethod = layer->simplifyMethod();
   mSimplifyGeometry = layer->simplifyDrawingCanbeApplied( mContext, QgsVectorSimplifyMethod::GeometrySimplification );
 
-  QSettings settings;
+  QgsSettings settings;
   mVertexMarkerOnlyForSelection = settings.value( "/qgis/digitizing/marker_only_for_selected", false ).toBool();
 
   QString markerTypeString = settings.value( "/qgis/digitizing/marker_style", "Cross" ).toString();

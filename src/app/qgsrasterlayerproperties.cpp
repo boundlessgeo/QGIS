@@ -51,6 +51,7 @@
 #include "qgssinglebandpseudocolorrendererwidget.h"
 #include "qgshuesaturationfilter.h"
 #include "qgshillshaderendererwidget.h"
+#include "qgssettings.h"
 
 #include <QTableWidgetItem>
 #include <QHeaderView>
@@ -64,7 +65,6 @@
 #include <QPolygonF>
 #include <QColorDialog>
 #include <QList>
-#include <QSettings>
 #include <QMouseEvent>
 #include <QVector>
 
@@ -187,7 +187,7 @@ QgsRasterLayerProperties::QgsRasterLayerProperties( QgsMapLayer* lyr, QgsMapCanv
 
     // keep it in sync with qgsrasterpyramidsoptionwidget.cpp
     QString prefix = provider->name() + "/driverOptions/_pyramids/";
-    QSettings mySettings;
+    QgsSettings mySettings;
     QString defaultMethod = mySettings.value( prefix + "resampling", "AVERAGE" ).toString();
     int idx = cboResamplingMethod->findData( defaultMethod );
     if ( idx >= 0 )
@@ -419,7 +419,7 @@ QgsRasterLayerProperties::QgsRasterLayerProperties( QgsMapLayer* lyr, QgsMapCanv
   // update based on lyr's current state
   sync();
 
-  QSettings settings;
+  QgsSettings settings;
   // if dialog hasn't been opened/closed yet, default to Styles tab, which is used most often
   // this will be read by restoreOptionsBaseUi()
   if ( !settings.contains( QString( "/Windows/RasterLayerProperties/tab" ) ) )
@@ -588,7 +588,7 @@ void QgsRasterLayerProperties::setRendererWidget( const QString& rendererName )
 */
 void QgsRasterLayerProperties::sync()
 {
-  QSettings myQSettings;
+  QgsSettings myQgsSettings;
 
   if ( mRasterLayer->dataProvider()->dataType( 1 ) == QGis::ARGB32
        || mRasterLayer->dataProvider()->dataType( 1 ) == QGis::ARGB32_Premultiplied )
@@ -1013,7 +1013,7 @@ void QgsRasterLayerProperties::on_buttonBuildPyramids_clicked()
 
   // keep it in sync with qgsrasterpyramidsoptionwidget.cpp
   QString prefix = provider->name() + "/driverOptions/_pyramids/";
-  QSettings mySettings;
+  QgsSettings mySettings;
   QString resamplingMethod( cboResamplingMethod->itemData( cboResamplingMethod->currentIndex() ).toString() );
   mySettings.setValue( prefix + "resampling", resamplingMethod );
 
@@ -1268,8 +1268,8 @@ void QgsRasterLayerProperties::adjustTransparencyCellWidth( int row, int column 
 
 void QgsRasterLayerProperties::on_pbnExportTransparentPixelValues_clicked()
 {
-  QSettings myQSettings;
-  QString myLastDir = myQSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
+  QgsSettings myQSettings;
+  QString myLastDir = myQgsSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
   QString myFileName = QFileDialog::getSaveFileName( this, tr( "Save file" ), myLastDir, tr( "Textfile" ) + " (*.txt)" );
   if ( !myFileName.isEmpty() )
   {
@@ -1434,8 +1434,8 @@ void QgsRasterLayerProperties::on_pbnImportTransparentPixelValues_clicked()
   int myLineCounter = 0;
   bool myImportError = false;
   QString myBadLines;
-  QSettings myQSettings;
-  QString myLastDir = myQSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
+  QgsSettings myQSettings;
+  QString myLastDir = myQgsSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
   QString myFileName = QFileDialog::getOpenFileName( this, tr( "Open file" ), myLastDir, tr( "Textfile" ) + " (*.txt)" );
   QFile myInputFile( myFileName );
   if ( myInputFile.open( QFile::ReadOnly ) )
@@ -1727,7 +1727,7 @@ void QgsRasterLayerProperties::saveDefaultStyle_clicked()
 
 void QgsRasterLayerProperties::loadStyle_clicked()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString lastUsedDir = settings.value( "style/lastStyleDir", QDir::homePath() ).toString();
 
   QString fileName = QFileDialog::getOpenFileName(
@@ -1760,7 +1760,7 @@ void QgsRasterLayerProperties::loadStyle_clicked()
 
 void QgsRasterLayerProperties::saveStyleAs_clicked()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString lastUsedDir = settings.value( "style/lastStyleDir", QDir::homePath() ).toString();
 
   QString outputFileName = QFileDialog::getSaveFileName(

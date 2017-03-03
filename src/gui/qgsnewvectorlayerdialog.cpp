@@ -28,7 +28,6 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QLibrary>
-#include <QSettings>
 #include <QFileDialog>
 
 
@@ -37,7 +36,7 @@ QgsNewVectorLayerDialog::QgsNewVectorLayerDialog( QWidget *parent, const Qt::Win
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/NewVectorLayer/geometry" ).toByteArray() );
 
   mAddAttributeButton->setIcon( QgsApplication::getThemeIcon( "/mActionNewAttribute.svg" ) );
@@ -70,7 +69,7 @@ QgsNewVectorLayerDialog::QgsNewVectorLayerDialog( QWidget *parent, const Qt::Win
   mFileEncoding->addItems( QgsVectorDataProvider::availableEncodings() );
 
   // Use default encoding if none supplied
-  QString enc = QSettings().value( "/UI/encoding", "System" ).toString();
+  QString enc = QgsSettings().value( "/UI/encoding", "System" ).toString();
 
   // The specified decoding is added if not existing alread, and then set current.
   // This should select it.
@@ -99,7 +98,7 @@ QgsNewVectorLayerDialog::QgsNewVectorLayerDialog( QWidget *parent, const Qt::Win
 
 QgsNewVectorLayerDialog::~QgsNewVectorLayerDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/NewVectorLayer/geometry", saveGeometry() );
 }
 
@@ -244,7 +243,7 @@ QString QgsNewVectorLayerDialog::runAndCreateLayer( QWidget* parent, QString* pE
   QList< QPair<QString, QString> > attributes;
   geomDialog.attributes( attributes );
 
-  QSettings settings;
+  QgsSettings settings;
   QString lastUsedDir = settings.value( "/UI/lastVectorFileFilterDir", QDir::homePath() ).toString();
   QString filterString = QgsVectorFileWriter::filterForDriver( fileformat );
   QString fileName = QFileDialog::getSaveFileName( nullptr, tr( "Save layer as..." ), lastUsedDir, filterString );

@@ -290,7 +290,7 @@ void GlobePlugin::run()
   QgsGlobeTileStatistics* tileStats = new QgsGlobeTileStatistics();
   connect( tileStats, SIGNAL( changed( int, int ) ), this, SLOT( updateTileStats( int, int ) ) );
 #endif
-  QSettings settings;
+  QgsSettings settings;
 
 //    osgEarth::setNotifyLevel( osg::DEBUG_INFO );
 
@@ -739,7 +739,7 @@ void GlobePlugin::setupControls()
 
 void GlobePlugin::setupProxy()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "proxy" );
   if ( settings.value( "/proxyEnabled" ).toBool() )
   {

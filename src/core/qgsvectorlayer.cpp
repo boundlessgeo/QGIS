@@ -28,11 +28,11 @@
 #include <QPainterPath>
 #include <QPolygonF>
 #include <QProgressDialog>
-#include <QSettings>
 #include <QString>
 #include <QDomNode>
 #include <QVector>
 
+#include "qgssettings.h"
 #include "qgsvectorlayer.h"
 #include "qgsactionmanager.h"
 #include "qgis.h" //for globals
@@ -163,7 +163,7 @@ QgsVectorLayer::QgsVectorLayer( const QString& vectorLayerPath,
   connect( this, SIGNAL( selectionChanged( QgsFeatureIds, QgsFeatureIds, bool ) ), this, SIGNAL( repaintRequested() ) );
 
   // Default simplify drawing settings
-  QSettings settings;
+  QgsSettings settings;
   mSimplifyMethod.setSimplifyHints( static_cast< QgsVectorSimplifyMethod::SimplifyHints >( settings.value( "/qgis/simplifyDrawingHints", static_cast< int>( mSimplifyMethod.simplifyHints() ) ).toInt() ) );
   mSimplifyMethod.setSimplifyAlgorithm( static_cast< QgsVectorSimplifyMethod::SimplifyAlgorithm >( settings.value( "/qgis/simplifyAlgorithm", static_cast< int>( mSimplifyMethod.simplifyAlgorithm() ) ).toInt() ) );
   mSimplifyMethod.setThreshold( settings.value( "/qgis/simplifyDrawingTol", mSimplifyMethod.threshold() ).toFloat() );

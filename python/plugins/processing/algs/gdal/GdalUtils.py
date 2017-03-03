@@ -31,9 +31,8 @@ import platform
 
 from osgeo import gdal
 
-from qgis.PyQt.QtCore import QSettings
-from qgis.core import QgsApplication, QgsVectorFileWriter
-from processing.core.ProcessingLog import ProcessingLog
+from qgis.core import QgsApplication, QgsVectorFileWriter, QgsSettings
+rom processing.core.ProcessingLog import ProcessingLog
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.SilentProgress import SilentProgress
 from processing.tools.system import isWindows, isMac
@@ -68,7 +67,7 @@ class GdalUtils:
             os.environ['DYLD_LIBRARY_PATH'] = os.path.join(QgsApplication.prefixPath(), "lib")
         else:
             # Other platforms should use default gdal finder codepath
-            settings = QSettings()
+            settings = QgsSettings()
             path = settings.value('/GdalTools/gdalPath', '')
             if not path.lower() in envval.lower().split(os.pathsep):
                 envval += '{}{}'.format(os.pathsep, path)

@@ -32,7 +32,6 @@
 #include <QItemDelegate>
 #include <QListWidgetItem>
 #include <QMessageBox>
-#include <QSettings>
 #include <QFileDialog>
 #include <QRadioButton>
 #include <QImageReader>
@@ -79,7 +78,7 @@ QgsSourceSelectDialog::QgsSourceSelectDialog( const QString& serviceName, Servic
 
   treeView->setItemDelegate( new QgsSourceSelectItemDelegate( treeView ) );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/SourceSelectDialog/geometry" ).toByteArray() );
   cbxUseTitleLayerName->setChecked( settings.value( "/Windows/SourceSelectDialog/UseTitleLayerName", false ).toBool() );
 
@@ -110,7 +109,7 @@ QgsSourceSelectDialog::QgsSourceSelectDialog( const QString& serviceName, Servic
 
 QgsSourceSelectDialog::~QgsSourceSelectDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/SourceSelectDialog/geometry", saveGeometry() );
   settings.setValue( "/Windows/SourceSelectDialog/UseTitleLayerName", cbxUseTitleLayerName->isChecked() );
 

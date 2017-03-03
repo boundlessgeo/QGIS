@@ -17,8 +17,8 @@
 #include "qgsmapcanvas.h"
 #include "qgslogger.h"
 #include "qgsunittypes.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <cmath>
 
 QgsDisplayAngle::QgsDisplayAngle( QgsMapToolMeasureAngle * tool, Qt::WindowFlags f )
@@ -41,7 +41,7 @@ void QgsDisplayAngle::setValueInRadians( double value )
 
 void QgsDisplayAngle::updateUi()
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsUnitTypes::AngleUnit unit = QgsUnitTypes::decodeAngleUnit( settings.value( "/qgis/measure/angleunits", QgsUnitTypes::encodeUnit( QgsUnitTypes::AngleDegrees ) ).toString() );
   int decimals = settings.value( "/qgis/measure/decimalplaces", "3" ).toInt();
   mAngleLineEdit->setText( QgsUnitTypes::formatAngle( mValue * QgsUnitTypes::fromUnitToUnitFactor( QgsUnitTypes::Radians, unit ), decimals, unit ) );

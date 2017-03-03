@@ -29,6 +29,7 @@
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
 #include "qgsfieldexpressionwidget.h"
+#include "qgssettings.h"
 
 #include <QTreeWidgetItem>
 #include <QWidget>
@@ -37,7 +38,6 @@
 #include <QPushButton>
 #include <QTableWidgetItem>
 #include <QMessageBox>
-#include <QSettings>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -55,7 +55,7 @@ QgsFieldsProperties::QgsFieldsProperties( QgsVectorLayer *layer, QWidget* parent
   setupUi( this );
   setupEditTypes();
 
-  mSplitter->restoreState( QSettings().value( "/Windows/VectorLayerProperties/FieldsProperties/SplitState" ).toByteArray() );
+  mSplitter->restoreState( QgsSettings().value( "/Windows/VectorLayerProperties/FieldsProperties/SplitState" ).toByteArray() );
 
   // Init as hidden by default, it will be enabled if project is set to
   mAttributeEditorOptionsWidget->setVisible( false );
@@ -132,7 +132,7 @@ QgsFieldsProperties::QgsFieldsProperties( QgsVectorLayer *layer, QWidget* parent
 
 QgsFieldsProperties::~QgsFieldsProperties()
 {
-  QSettings().setValue( "/Windows/VectorLayerProperties/FieldsProperties/SplitState", mSplitter->saveState() );
+  QgsSettings().setValue( "/Windows/VectorLayerProperties/FieldsProperties/SplitState", mSplitter->saveState() );
 }
 
 void QgsFieldsProperties::init()
@@ -931,30 +931,30 @@ QgsAttributeEditorElement* QgsFieldsProperties::createAttributeEditorWidget( QTr
 
 void QgsFieldsProperties::on_pbtnSelectInitFilePath_clicked()
 {
-  QSettings myQSettings;
-  QString lastUsedDir = myQSettings.value( "style/lastInitFilePathDir", "." ).toString();
+  QgsSettings myQSettings;
+  QString lastUsedDir = myQgsSettings.value( "style/lastInitFilePathDir", "." ).toString();
   QString pyfilename = QFileDialog::getOpenFileName( this, tr( "Select Python file" ), lastUsedDir, tr( "Python file" )  + " (*.py)" );
 
   if ( pyfilename.isNull() )
     return;
 
   QFileInfo fi( pyfilename );
-  myQSettings.setValue( "style/lastInitFilePathDir", fi.path() );
+  myQgsSettings.setValue( "style/lastInitFilePathDir", fi.path() );
   mInitFilePathLineEdit->setText( pyfilename );
 }
 
 
 void QgsFieldsProperties::on_pbnSelectEditForm_clicked()
 {
-  QSettings myQSettings;
-  QString lastUsedDir = myQSettings.value( "style/lastUIDir", QDir::homePath() ).toString();
+  QgsSettings myQSettings;
+  QString lastUsedDir = myQgsSettings.value( "style/lastUIDir", QDir::homePath() ).toString();
   QString uifilename = QFileDialog::getOpenFileName( this, tr( "Select edit form" ), lastUsedDir, tr( "UI file" )  + " (*.ui)" );
 
   if ( uifilename.isNull() )
     return;
 
   QFileInfo fi( uifilename );
-  myQSettings.setValue( "style/lastUIDir", fi.path() );
+  myQgsSettings.setValue( "style/lastUIDir", fi.path() );
   mEditFormLineEdit->setText( uifilename );
 }
 

@@ -21,11 +21,10 @@
 #include "qgsrasterformatsaveoptionswidget.h"
 #include "qgsgenericprojectionselector.h"
 
-#include "gdal.h"
+#include <gdal.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 
 QgsRasterLayerSaveAsDialog::QgsRasterLayerSaveAsDialog( QgsRasterLayer* rasterLayer,
     QgsRasterDataProvider* sourceProvider, const QgsRectangle& currentExtent,
@@ -162,7 +161,7 @@ void QgsRasterLayerSaveAsDialog::on_mBrowseButton_clicked()
 {
   QString fileName;
 
-  QSettings settings;
+  QgsSettings settings;
   QString dirName = mSaveAsLineEdit->text().isEmpty() ? settings.value( "/UI/lastRasterFileDir", QDir::homePath() ).toString() : mSaveAsLineEdit->text();
 
   if ( mTileModeCheckBox->isChecked() )

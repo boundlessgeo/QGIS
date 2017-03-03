@@ -21,7 +21,6 @@
 #include "qgscursors.h"
 
 #include <QPainter>
-#include <QSettings>
 #include <QTemporaryFile>
 #include <QMouseEvent>
 #include <QMenu>
@@ -97,7 +96,7 @@ const QPixmap& QgsColorButton::transpBkgrd()
 void QgsColorButton::onButtonClicked()
 {
   QColor newColor;
-  QSettings settings;
+  QgsSettings settings;
 
   //using native color dialogs?
   bool useNative = settings.value( "/qgis/native_color_dialogs", false ).toBool();

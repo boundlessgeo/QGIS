@@ -32,7 +32,6 @@
 #include "qgsgeometryengine.h"
 
 #include <QFile>
-#include <QSettings>
 #include <QFileInfo>
 #include <QDir>
 #include <QTextCodec>
@@ -376,7 +375,7 @@ void QgsVectorFileWriter::init( QString vectorFileName,
   {
     QgsDebugMsg( "error finding QTextCodec for " + fileEncoding );
 
-    QSettings settings;
+    QgsSettings settings;
     QString enc = settings.value( "/UI/encoding", "System" ).toString();
     mCodec = QTextCodec::codecForName( enc.toLocal8Bit().constData() );
     if ( !mCodec )
@@ -431,7 +430,7 @@ void QgsVectorFileWriter::init( QString vectorFileName,
     options = nullptr;
   }
 
-  QSettings settings;
+  QgsSettings settings;
   if ( !settings.value( "/qgis/ignoreShapeEncoding", true ).toBool() )
   {
     CPLSetConfigOption( "SHAPE_ENCODING", nullptr );

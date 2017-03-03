@@ -17,8 +17,7 @@ email                : jef at norbit dot de
 #include "qgsgeometryvalidator.h"
 #include "qgsgeometry.h"
 #include "qgslogger.h"
-
-#include <QSettings>
+#include "qgssettings.h"
 
 QgsGeometryValidator::QgsGeometryValidator( const QgsGeometry *g, QList<QgsGeometry::Error> *errors )
     : QThread()
@@ -218,7 +217,7 @@ void QgsGeometryValidator::run()
   mErrorCount = 0;
 #if defined(GEOS_VERSION_MAJOR) && defined(GEOS_VERSION_MINOR) && \
     ( (GEOS_VERSION_MAJOR==3 && GEOS_VERSION_MINOR>=3) || GEOS_VERSION_MAJOR>3)
-  QSettings settings;
+  QgsSettings settings;
   if ( settings.value( "/qgis/digitizing/validate_geometries", 1 ).toInt() == 2 )
   {
     char *r = nullptr;

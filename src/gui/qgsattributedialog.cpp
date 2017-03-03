@@ -21,8 +21,7 @@
 #include "qgshighlight.h"
 #include "qgsapplication.h"
 #include "qgsactionmenu.h"
-
-#include <QSettings>
+#include "qgssettings.h"
 
 
 QgsAttributeDialog::QgsAttributeDialog( QgsVectorLayer* vl, QgsFeature* thepFeature, bool featureOwner, const QgsDistanceArea &myDa, QWidget* parent, bool showDialogButtons )
@@ -60,12 +59,12 @@ QgsAttributeDialog::~QgsAttributeDialog()
 
 void QgsAttributeDialog::saveGeometry()
 {
-  QSettings().setValue( mSettingsPath + "geometry", QDialog::saveGeometry() );
+  QgsSettings().setValue( mSettingsPath + "geometry", QDialog::saveGeometry() );
 }
 
 void QgsAttributeDialog::restoreGeometry()
 {
-  QDialog::restoreGeometry( QSettings().value( mSettingsPath + "geometry" ).toByteArray() );
+  QDialog::restoreGeometry( QgsSettings().value( mSettingsPath + "geometry" ).toByteArray() );
 }
 
 void QgsAttributeDialog::setHighlight( QgsHighlight* h )
