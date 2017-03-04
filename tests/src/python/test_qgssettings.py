@@ -217,6 +217,12 @@ class TestQgsSettings(unittest.TestCase):
         self.settings.setValue('testqgissettings/name3', 'qgisrocks3')
         self.assertTrue(self.settings.contains('testqgissettings/name3'))
 
+    def test_remove(self):
+        self.settings.setValue('testQgisSettings/temp', True)
+        self.assertEqual(self.settings.value('testqgissettings/temp'), True)
+        self.settings.remove('testQgisSettings/temp')
+        self.assertEqual(self.settings.value('testqgissettings/temp'), None)
+
 
 if __name__ == '__main__':
     unittest.main()
