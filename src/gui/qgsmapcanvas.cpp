@@ -825,8 +825,11 @@ QgsRectangle QgsMapCanvas::imageRect( const QImage& img, const QgsMapSettings& m
 
 void QgsMapCanvas::mapUpdateTimeout()
 {
-  const QImage& img = mJob->renderedImage();
-  mMap->setContent( img, imageRect( img, mSettings ) );
+  if ( mJob )
+  {
+    const QImage& img = mJob->renderedImage();
+    mMap->setContent( img, imageRect( img, mSettings ) );
+  }
 }
 
 void QgsMapCanvas::stopRendering()
@@ -835,8 +838,10 @@ void QgsMapCanvas::stopRendering()
   {
     QgsDebugMsg( "CANVAS stop rendering!" );
     mJobCancelled = true;
-    mJob->cancel();
-    Q_ASSERT( !mJob ); // no need to delete here: already deleted in finished()
+    disconnect( mJob, SIGNAL( finished() ), this, SLOT( rendererJobFinished() ) );
+    connect( mJob, SIGNAL( finished() ), mJob, SLOT( deleteLater() ) );
+    mJob->cancelWithoutBlocking();
+    mJob = nullptr;
   }
 }
 

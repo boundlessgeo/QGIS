@@ -142,6 +142,32 @@ void QgsWFSCapabilities::capabilitiesReplyFinished()
   // Note: for conveniency, we do not use the elementsByTagNameNS() method as
   // the WFS and OWS namespaces URI are not the same in all versions
 
+  if ( mCaps.version.startsWith( QLatin1String( "1.0" ) ) )
+  {
+    QDomElement capabilityElem = doc.firstChildElement( "Capability" );
+    if ( !capabilityElem.isNull() )
+    {
+      QDomElement requestElem = capabilityElem.firstChildElement( "Request" );
+      if ( !requestElem.isNull() )
+      {
+        QDomElement getFeatureElem = requestElem.firstChildElement( "GetFeature" );
+        if ( !getFeatureElem.isNull() )
+        {
+          QDomElement resultFormatElem = getFeatureElem.firstChildElement( "ResultFormat" );
+          if ( !resultFormatElem.isNull() )
+          {
+            QDomElement child = resultFormatElem.firstChildElement();
+            while ( !child.isNull() )
+            {
+              mCaps.outputFormats << child.tagName();
+              child = child.nextSiblingElement();
+            }
+          }
+        }
+      }
+    }
+  }
+
   // find <ows:OperationsMetadata>
   QDomElement operationsMetadataElem = doc.firstChildElement( "OperationsMetadata" );
   if ( !operationsMetadataElem.isNull() )
@@ -229,6 +255,15 @@ void QgsWFSCapabilities::capabilitiesReplyFinished()
                 QgsDebugMsg( "Support hits" );
                 break;
               }
+            }
+          }
+          else if ( parameter.attribute( "name" ) == QLatin1String( "outputFormat" ) )
+          {
+            QDomNodeList valueList = parameter.elementsByTagName( "Value" );
+            for ( int k = 0; k < valueList.size(); ++k )
+            {
+              QDomElement value = valueList.at( k ).toElement();
+              mCaps.outputFormats << value.text();
             }
           }
         }
