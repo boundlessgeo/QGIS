@@ -4,16 +4,20 @@
 # Packages
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
-OPTION(WITH_INTERNAL_O2 "Locally build o2 library as external project" ON)
+IF(NOT QTKEYCHAIN_FOUND)
+  FIND_PACKAGE(QtKeychain REQUIRED)
+ENDIF()
+OPTION(WITH_INTERNAL_O2 "Download and locally include source of o2 library" ON)
 
 IF(WITH_INTERNAL_O2)
-  INCLUDE(External_O2)
+  INCLUDE(DownloadO2)
+  SET(O2_SOURCE_DIR ${O2_INCLUDE_DIR})
 ELSE()
   FIND_PACKAGE(O2 REQUIRED)
 ENDIF()
 
 ########################################################
-# Files
+# Source files
 
 SET(OAUTH2_SRCS
   qgso2.cpp
@@ -22,6 +26,19 @@ SET(OAUTH2_SRCS
   qgsauthoauth2edit.cpp
   qjsonwrapper/Json.cpp
 )
+IF(WITH_INTERNAL_O2)
+  SET(O2_SRCS
+    ${O2_SOURCE_DIR}/o0baseauth.cpp
+    ${O2_SOURCE_DIR}/o0keychainstore.cpp
+    ${O2_SOURCE_DIR}/o0settingsstore.cpp
+    ${O2_SOURCE_DIR}/o2.cpp
+    ${O2_SOURCE_DIR}/o2reply.cpp
+    ${O2_SOURCE_DIR}/o2replyserver.cpp
+    ${O2_SOURCE_DIR}/o2requestor.cpp
+    ${O2_SOURCE_DIR}/o2simplecrypt.cpp
+  )
+  SET(OAUTH2_SRCS ${OAUTH2_SRCS} ${O2_SRCS})
+ENDIF()
 
 SET(OAUTH2_HDRS
   qgso2.h
@@ -30,6 +47,23 @@ SET(OAUTH2_HDRS
   qgsauthoauth2edit.h
   qjsonwrapper/Json.h
 )
+IF(WITH_INTERNAL_O2)
+  SET(O2_HDRS
+    ${O2_INCLUDE_DIR}/o0abstractstore.h
+    ${O2_INCLUDE_DIR}/o0baseauth.h
+    ${O2_INCLUDE_DIR}/o0export.h
+    ${O2_INCLUDE_DIR}/o0globals.h
+    ${O2_INCLUDE_DIR}/o0keychainstore.h
+    ${O2_INCLUDE_DIR}/o0requestparameter.h
+    ${O2_INCLUDE_DIR}/o0settingsstore.h
+    ${O2_INCLUDE_DIR}/o0simplecrypt.h
+    ${O2_INCLUDE_DIR}/o2.h
+    ${O2_INCLUDE_DIR}/o2reply.h
+    ${O2_INCLUDE_DIR}/o2replyserver.h
+    ${O2_INCLUDE_DIR}/o2requestor.h
+  )
+  SET(OAUTH2_HDRS ${OAUTH2_HDRS} ${O2_HDRS})
+ENDIF()
 
 SET(OAUTH2_MOC_HDRS
   qgso2.h
@@ -37,6 +71,19 @@ SET(OAUTH2_MOC_HDRS
   qgsauthoauth2method.h
   qgsauthoauth2edit.h
 )
+IF(WITH_INTERNAL_O2)
+  SET(O2_MOC_HDRS
+    ${O2_INCLUDE_DIR}/o0abstractstore.h
+    ${O2_INCLUDE_DIR}/o0baseauth.h
+    ${O2_INCLUDE_DIR}/o0keychainstore.h
+    ${O2_INCLUDE_DIR}/o0settingsstore.h
+    ${O2_INCLUDE_DIR}/o2.h
+    ${O2_INCLUDE_DIR}/o2reply.h
+    ${O2_INCLUDE_DIR}/o2replyserver.h
+    ${O2_INCLUDE_DIR}/o2requestor.h
+  )
+  SET(OAUTH2_MOC_HDRS ${OAUTH2_MOC_HDRS} ${O2_MOC_HDRS})
+ENDIF()
 
 SET(OAUTH2_UIS qgsauthoauth2edit.ui)
 
@@ -49,6 +96,7 @@ INCLUDE_DIRECTORIES (
 )
 INCLUDE_DIRECTORIES (SYSTEM
   ${QCA_INCLUDE_DIR}
+  ${QTKEYCHAIN_INCLUDE_DIR}
   ${O2_INCLUDE_DIR}
 )
 INCLUDE_DIRECTORIES (
@@ -65,11 +113,24 @@ INCLUDE_DIRECTORIES (
   ${CMAKE_BINARY_DIR}/src/auth/oauth2
 )
 
+############################################################
+# Generate files
+IF(WITH_INTERNAL_O2 AND CMAKE_GENERATOR MATCHES "Ninja")
+  # handle `cmake --help-policy CMP0058`
+  #  "Ninja requires custom command byproducts to be explicit,"
+  #   which the downloaded o2 source files are not. Add phony command target...
+  ADD_CUSTOM_COMMAND(
+    OUTPUT ${O2_HDRS}
+    COMMAND
+  )
+ENDIF()
 QT4_WRAP_UI(OAUTH2_UIS_H ${OAUTH2_UIS})
 
 QT4_WRAP_CPP(OAUTH2_MOC_SRCS ${OAUTH2_MOC_HDRS})
 
 QT4_ADD_RESOURCES(OAUTH2_RCC_SRCS ${OAUTH2_RCCS})
+############################################################
+# Set up plugin targets
 
 ADD_LIBRARY (oauth2authmethod MODULE
   ${OAUTH2_SRCS}
@@ -89,14 +150,17 @@ ADD_LIBRARY (oauth2authmethod_static STATIC
 )
 
 # Common linked libs
-IF(NOT "${O2_LIBRARY_STATIC}" STREQUAL "")
-  # prefer static linking, so newer o2 lib does not need separately packaged
-  SET(OAUTH2_TARGET_LIBS ${O2_LIBRARY_STATIC})
-ELSE()
-  SET(OAUTH2_TARGET_LIBS ${O2_LIBRARY})
-ENDIF()
+SET(OAUTH2_TARGET_LIBS ${QTKEYCHAIN_LIBRARY})
 
-#message(STATUS "OAUTH2_TARGET_LIBS: ${OAUTH2_TARGET_LIBS}")
+IF(NOT WITH_INTERNAL_O2)
+  IF(NOT "${O2_LIBRARY}" STREQUAL "")
+    # prefer dynamic linking
+    SET(OAUTH2_TARGET_LIBS ${OAUTH2_TARGET_LIBS} ${O2_LIBRARY})
+  ELSE()
+    SET(OAUTH2_TARGET_LIBS ${OAUTH2_TARGET_LIBS} ${O2_LIBRARY_STATIC})
+  ENDIF()
+  #message(STATUS "OAUTH2_TARGET_LIBS: ${OAUTH2_TARGET_LIBS}")
+ENDIF()
 
 SET(OAUTH2_TARGET_LIBS
   qgis_core
@@ -111,9 +175,8 @@ TARGET_LINK_LIBRARIES (oauth2authmethod_static
   ${OAUTH2_TARGET_LIBS}
 )
 
-IF(WITH_INTERNAL_O2)
-  ADD_DEPENDENCIES(oauth2authmethod external_o2)
-  ADD_DEPENDENCIES(oauth2authmethod_static external_o2)
+if(WIN32)
+  add_definitions(-DO2_DLL_EXPORT)
 ENDIF()
 
 ########################################################
