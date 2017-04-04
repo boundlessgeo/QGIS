@@ -77,104 +77,9 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tabDefined">
-       <attribute name="title">
-        <string>Defined</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <property name="spacing">
-         <number>6</number>
-        </property>
-        <property name="leftMargin">
-         <number>3</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QListWidget" name="lstwdgDefinedConfigs">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>4</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>13</pointsize>
-           </font>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
-          </property>
-          <property name="showDropIndicator" stdset="0">
-           <bool>false</bool>
-          </property>
-          <property name="alternatingRowColors">
-           <bool>true</bool>
-          </property>
-          <property name="verticalScrollMode">
-           <enum>QAbstractItemView::ScrollPerItem</enum>
-          </property>
-          <property name="spacing">
-           <number>2</number>
-          </property>
-          <property name="uniformItemSizes">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLineEdit" name="leDefinedDirPath">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="btnGetDefinedDirPath">
-            <property name="toolTip">
-             <string>Add extra config directory to parse</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
-            <property name="text">
-             <string>...</string>
-            </property>
-            <property name="icon">
-             <iconset resource="oauth2_resources.qrc">
-              <normaloff>:/oauth2method/oauth2_resources/fileopen.svg</normaloff>:/oauth2method/oauth2_resources/fileopen.svg</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>20</width>
-              <height>14</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
       <widget class="QWidget" name="tabCustom">
        <attribute name="title">
-        <string>Custom</string>
+        <string>Configure</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="spacing">
@@ -720,6 +625,129 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tabDefined">
+       <attribute name="title">
+        <string>Defined</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="3,1">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="lstwdgDefinedConfigs">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>4</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOn</enum>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="verticalScrollMode">
+             <enum>QAbstractItemView::ScrollPerItem</enum>
+            </property>
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="uniformItemSizes">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPlainTextEdit" name="pteDefinedDesc">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="undoRedoEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+            <property name="plainText">
+             <string>Defined configurations are JSON-formatted files, with a single configuration per file. This allows configurations to be swapped out via filesystem tools without affecting user configurations. It is recommended to use the Configure tab’s export function, then edit the resulting file. See QGIS documentation for further details.</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="leDefinedDirPath">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="btnGetDefinedDirPath">
+            <property name="toolTip">
+             <string>Add extra config directory to parse</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="oauth2_resources.qrc">
+              <normaloff>:/oauth2method/oauth2_resources/fileopen.svg</normaloff>:/oauth2method/oauth2_resources/fileopen.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>20</width>
+              <height>14</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QgsCollapsibleGroupBoxBasic" name="grpbxAdvanced">
       <property name="sizePolicy">
@@ -918,22 +946,30 @@
   <tabstop>leRequestUrl</tabstop>
   <tabstop>leTokenUrl</tabstop>
   <tabstop>leRefreshTokenUrl</tabstop>
+  <tabstop>spnbxRedirectPort</tabstop>
+  <tabstop>leRedirectUrl</tabstop>
   <tabstop>leClientId</tabstop>
   <tabstop>leClientSecret</tabstop>
   <tabstop>leUsername</tabstop>
   <tabstop>lePassword</tabstop>
   <tabstop>leScope</tabstop>
   <tabstop>leState</tabstop>
-  <tabstop>tblwdgQueryPairs</tabstop>
-  <tabstop>lstwdgDefinedConfigs</tabstop>
-  <tabstop>btnGetDefinedDirPath</tabstop>
-  <tabstop>leDefinedDirPath</tabstop>
+  <tabstop>leApiKey</tabstop>
+  <tabstop>chkbxTokenPersist</tabstop>
+  <tabstop>cmbbxAccessMethod</tabstop>
+  <tabstop>spnbxRequestTimeout</tabstop>
   <tabstop>scrollAreaAdvanced</tabstop>
-  <tabstop>btnImport</tabstop>
-  <tabstop>btnExport</tabstop>
-  <tabstop>tabConfigs</tabstop>
+  <tabstop>tblwdgQueryPairs</tabstop>
   <tabstop>btnAddQueryPair</tabstop>
   <tabstop>btnRemoveQueryPair</tabstop>
+  <tabstop>btnExport</tabstop>
+  <tabstop>btnImport</tabstop>
+  <tabstop>leDefinedDirPath</tabstop>
+  <tabstop>tabConfigs</tabstop>
+  <tabstop>scrollAreaCustom</tabstop>
+  <tabstop>btnGetDefinedDirPath</tabstop>
+  <tabstop>lstwdgDefinedConfigs</tabstop>
+  <tabstop>pteDefinedDesc</tabstop>
  </tabstops>
  <resources>
   <include location="oauth2_resources.qrc"/>

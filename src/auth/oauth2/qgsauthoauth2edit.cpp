@@ -67,7 +67,7 @@ void QgsAuthOAuth2Edit::initGui()
 
   // TODO: add messagebar to notify frame?
 
-  tabConfigs->setCurrentIndex( definedTab() );
+  tabConfigs->setCurrentIndex( customTab() );
 
   btnExport->setEnabled( false );
 
@@ -349,6 +349,8 @@ void QgsAuthOAuth2Edit::clearConfig()
 {
   // restore defaults to config objs
   mOAuthConfigCustom->setToDefaults();
+
+  mDefinedId.clear();
 
   clearQueryPairs();
 

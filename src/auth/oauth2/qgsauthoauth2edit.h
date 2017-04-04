@@ -98,8 +98,8 @@ class QgsAuthOAuth2Edit : public QgsAuthMethodEdit, private Ui::QgsAuthOAuth2Edi
     void addQueryPairRow( const QString &key, const QString &val );
     QVariantMap queryPairs() const;
 
-    int customTab() const { return 1; }
-    int definedTab() const { return 0; }
+    int customTab() const { return 0; }
+    int definedTab() const { return 1; }
     bool onCustomTab() const;
     bool onDefinedTab() const;
 
