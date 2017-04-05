@@ -10,10 +10,10 @@
 
 # NOTE: These are temporary source code provenance endpoints, until necessary
 #       commits are done upstream to support the OAuth2 plugin
-set(_o2_commit b84a433947a9e423365a807f2438d7d179674860)
+set(_o2_commit 60ed084de1330ef540bbb8c7c94b14d21d7c8c8c)
 set(_o2_url "https://github.com/MonsantoCo/o2/archive/${_o2_commit}.tar.gz")
 set(_o2_dl_file "${CMAKE_BINARY_DIR}/o2-${_o2_commit}.tar.gz")
-set(_o2_dl_sha1 1abe4866ecd10ef6ca2c0e6e6c6f8eafab0d2cbd)
+set(_o2_dl_sha1 5fbf91683ed7e639906c1dd7076940a698f37a9d)
 set(_o2_dl_timeout 45)
 set(_o2_dl_inactive_timeout 30)
 
