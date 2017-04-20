@@ -1,18 +1,18 @@
 {
  "accessMethod" : 0,
  "apiKey" : "",
- "clientId" : "myapp.apps.googleusercontent.com",
- "clientSecret" : "bh02HkMPpfHkd7DMuTJopN06",
+ "clientId" : "472500469801-unfr9po4f9b1fthdlvmn7c9fo559n4td.apps.googleusercontent.com",
+ "clientSecret" : "PkDMuT5h04JopN0KWgfH4d54",
  "configType" : 1,
- "description" : "Example Google OAuth2 configuration",
+ "description" : "Example Google OAuth2 auth code grant flow configuration",
  "grantFlow" : 0,
- "id" : "nchu3w6",
- "name" : "Work - OAuth2 login",
+ "id" : "60020rv",
+ "name" : "OAuth2 - Google - authcode",
+ "objectName" : "",
  "password" : "",
  "persistToken" : true,
  "queryPairs" :  {
-  "somekey" : "somevalue",
-  "somekey2" : "somevalue2"
+
  },
  "redirectPort" : 7077,
  "redirectUrl" : "",
