@@ -23,6 +23,8 @@ import tempfile
 import urllib
 import stat
 import json
+import time
+import random
 
 __author__ = 'Alessandro Pasotti'
 __date__ = '20/04/2017'
@@ -38,7 +40,6 @@ from qgis.core import (
     QgsAuthMethodConfig,
     QgsVectorLayer,
     QgsRasterLayer,
-    QgsAuthCertUtils,
 )
 
 from qgis.PyQt.QtNetwork import QSslCertificate
@@ -136,6 +137,10 @@ class TestAuthManager(unittest.TestCase):
         os.environ['QGIS_SERVER_OAUTH2_USERNAME'] = cls.username
         os.environ['QGIS_SERVER_OAUTH2_PASSWORD'] = cls.password
         os.environ['QGIS_SERVER_OAUTH2_AUTHORITY'] = cls.server_rootcert
+        # Set default token expiration to 2 seconds, note that this can be
+        # also controlled when issuing token requests by adding ttl=<int>
+        # to the query string
+        os.environ['QGIS_SERVER_OAUTH2_TOKEN_EXPIRES_IN'] = '2'
 
     @classmethod
     def setUpClass(cls):
@@ -170,7 +175,10 @@ class TestAuthManager(unittest.TestCase):
         # We need a valid port before we setup the oauth configuration
         cls.token_uri = '%s://%s:%s/token' % (cls.protocol, cls.hostname, cls.port)
         cls.refresh_token_uri = '%s://%s:%s/refresh' % (cls.protocol, cls.hostname, cls.port)
-        cls.authcfg_id = setup_oauth(cls.username, cls.password, cls.token_uri, cls.refresh_token_uri)
+        # Need a random authcfg or the cache will bites us back!
+        cls.authcfg_id = setup_oauth(cls.username, cls.password, cls.token_uri, cls.refresh_token_uri, str(random.randint(0, 10000000)))
+        # This is to test wrong credentials
+        cls.wrong_authcfg_id = setup_oauth('wrong', 'wrong', cls.token_uri, cls.refresh_token_uri, str(random.randint(0, 10000000)))
         # Get the authentication configuration instance:
         cls.auth_config = QgsAuthManager.instance().availableAuthMethodConfigs()[cls.authcfg_id]
         assert cls.auth_config.isValid()
@@ -181,7 +189,7 @@ class TestAuthManager(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         """Run after all tests"""
-        cls.server.terminate()
+        cls.server.kill()
         rmtree(QGIS_AUTH_DB_DIR_PATH)
         del cls.server
 
@@ -237,10 +245,24 @@ class TestAuthManager(unittest.TestCase):
         wms_layer = QgsRasterLayer(uri, layer_name, 'wms')
         return wms_layer
 
+    def testNoAuthAccess(self):
+        """
+        Access the protected layer with no credentials
+        """
+        wms_layer = self._getWMSLayer('testlayer_èé')
+        self.assertFalse(wms_layer.isValid())
+
+    def testInvalidAuthAccess(self):
+        """
+        Access the protected layer with wrong credentials
+        """
+        wms_layer = self._getWMSLayer('testlayer_èé', authcfg=self.wrong_authcfg_id)
+        self.assertFalse(wms_layer.isValid())
+
     def testValidAuthAccess(self):
         """
         Access the protected layer with valid credentials
-        Note: cannot test invalid access in a separate test  because
+        Note: cannot test invalid access WFS in a separate test  because
               it would fail the subsequent (valid) calls due to cached connections
         """
         wfs_layer = self._getWFSLayer('testlayer_èé', authcfg=self.auth_config.id())

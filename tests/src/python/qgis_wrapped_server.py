@@ -65,6 +65,13 @@ OAuth2 Resource Owner Grant Flow with HTTPS can be enabled with:
   * QGIS_SERVER_OAUTH2_PASSWORD (default ="password")
   * QGIS_SERVER_OAUTH2_TOKEN_EXPIRES_IN (default = 3600)
 
+Available endpoints:
+
+  - /token (returns a new access_token),
+            optionally specify an expiration time in seconds with ?ttl=<int>
+  - /refresh (returns a new access_token from a refresh token),
+             optionally specify an expiration time in seconds with ?ttl=<int>
+  - /result (check the Bearer token and returns a short sentence if it validates)
 
 
 Sample runs
@@ -109,6 +116,7 @@ import os
 import sys
 import signal
 import ssl
+import copy
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from qgis.core import QgsApplication
@@ -231,8 +239,8 @@ if QGIS_SERVER_OAUTH2_AUTH:
             # the authorization code. Don't forget to save both the
             # access_token and the refresh_token and set expiration for the
             # access_token to now + expires_in seconds.
-            token['expiration'] = datetime.now().timestamp() + int(token['expires_in'])
-            _tokens[token['access_token']] = token
+            _tokens[token['access_token']] = copy.copy(token)
+            _tokens[token['access_token']]['expiration'] = datetime.now().timestamp() + int(token['expires_in'])
 
         def validate_bearer_token(self, token, scopes, request):
             """Check the token"""
@@ -256,7 +264,10 @@ if QGIS_SERVER_OAUTH2_AUTH:
         """This filter provides testing endpoint for OAuth2 Resource Owner Grant Flow
 
         Available endpoints:
-        - /token (returns a new access_token)
+        - /token (returns a new access_token),
+                 optionally specify an expiration time in seconds with ?ttl=<int>
+        - /refresh (returns a new access_token from a refresh token),
+                 optionally specify an expiration time in seconds with ?ttl=<int>
         - /result (check the Bearer token and returns a short sentence if it validates)
         """
 
@@ -264,16 +275,30 @@ if QGIS_SERVER_OAUTH2_AUTH:
             request = self.serverInterface().requestHandler()
             print("Request URI: %s" % self.serverInterface().getEnv('REQUEST_URI'))
 
-            # Issue a new token
-            if self.serverInterface().getEnv('REQUEST_URI').find('/token') == 0:
+            def _token(ttl):
+                """Common code for new and refresh token"""
                 request.clear()
                 body = self.serverInterface().getEnv('REQUEST_BODY')
+                old_expires_in = oauth_server.default_token_type.expires_in
+                # Hacky way to dynamically set token expiration time
+                oauth_server.default_token_type.expires_in = ttl
                 headers, payload, code = oauth_server.create_token_response('/token', 'post', body, {})
-                print(_tokens)
+                oauth_server.default_token_type.expires_in = old_expires_in
                 for k, v in headers.items():
                     request.setHeader(k, v)
                 request.setHeader('Status', '%s' % code)
                 request.appendBody(payload.encode('utf-8'))
+
+            # Token expiration
+            ttl = request.parameterMap().get('TTL', QGIS_SERVER_OAUTH2_TOKEN_EXPIRES_IN)
+            # Issue a new token
+            if self.serverInterface().getEnv('REQUEST_URI').find('/token') == 0:
+                _token(ttl)
+                return
+
+            # Refresh token
+            if self.serverInterface().getEnv('REQUEST_URI').find('/refresh') == 0:
+                _token(ttl)
                 return
 
             # Check for valid token
