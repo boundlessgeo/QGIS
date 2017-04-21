@@ -15,7 +15,6 @@
 #include "qgsauthoauth2config.h"
 
 #include <QDir>
-#include <QSettings>
 
 #include "qjsonwrapper/Json.h"
 

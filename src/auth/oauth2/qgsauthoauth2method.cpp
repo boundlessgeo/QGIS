@@ -26,12 +26,12 @@
 #include "qgsnetworkaccessmanager.h"
 #include "qgslogger.h"
 #include "qgsmessagelog.h"
+#include "qgssettings.h"
 
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
 #include <QEventLoop>
-#include <QSettings>
 #include <QString>
 
 
@@ -175,8 +175,8 @@ bool QgsAuthOAuth2Method::updateNetworkRequest( QNetworkRequest &request, const 
     connect( o2, &QgsO2::refreshFinished, this, &QgsAuthOAuth2Method::onRefreshFinished, Qt::UniqueConnection );
 
 
-    QSettings settings;
-    QString timeoutkey = QStringLiteral( "/qgis/networkAndProxy/networkTimeout" );
+    QgsSettings settings;
+    QString timeoutkey = QStringLiteral( "qgis/networkAndProxy/networkTimeout" );
     int prevtimeout = settings.value( timeoutkey, QStringLiteral( "-1" ) ).toInt();
     int reqtimeout = o2->oauth2config()->requestTimeout() * 1000;
     settings.setValue( timeoutkey, reqtimeout );
