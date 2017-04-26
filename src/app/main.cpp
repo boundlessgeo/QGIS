@@ -647,7 +647,7 @@ int main( int argc, char *argv[] )
       {
         customizationfile = QDir::toNativeSeparators( QFileInfo( args[++i] ).absoluteFilePath() );
       }
-      else if ( i + 1 < argc && ( arg == "--globalsettingsfile"  || arg == "-g"  ) )
+      else if ( i + 1 < argc && ( arg == "--globalsettingsfile"  || arg == "-g" ) )
       {
         globalsettingsfile = QDir::toNativeSeparators( QFileInfo( args[++i] ).absoluteFilePath() );
       }
@@ -667,7 +667,7 @@ int main( int argc, char *argv[] )
 
         if ( coords.size() != 4 )
         {
-		  std::cerr << "invalid dxf extent " << ext.toStdString() << std::endl;
+          std::cerr << "invalid dxf extent " << ext.toStdString() << std::endl;
           return 2;
         }
 
