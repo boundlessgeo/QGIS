@@ -20,6 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgis.h" // GEO_EPSG_CRS_ID
 #include "qgscontexthelp.h"
 #include "qgscoordinatereferencesystem.h"

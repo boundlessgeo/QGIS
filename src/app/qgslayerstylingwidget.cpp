@@ -20,6 +20,7 @@
 #include <QUndoStack>
 #include <QListWidget>
 
+#include "qgssettings.h"
 #include "qgsapplication.h"
 #include "qgslabelingwidget.h"
 #include "qgslayerstylingwidget.h"

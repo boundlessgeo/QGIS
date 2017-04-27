@@ -22,6 +22,7 @@
 #define QGSPROJECT_H
 
 #include <memory>
+#include "qgssettings.h"
 #include "qgsprojectversion.h"
 #include <QHash>
 #include <QList>

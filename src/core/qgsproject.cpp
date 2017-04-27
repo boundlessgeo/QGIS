@@ -40,6 +40,7 @@
 #include "qgstransaction.h"
 #include "qgstransactiongroup.h"
 #include "qgsvectordataprovider.h"
+#include "qgssettings.h"
 
 #include <QApplication>
 #include <QFileInfo>

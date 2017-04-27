@@ -16,6 +16,7 @@
  *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsdb2dataitems.h"
 #include "qgsdb2newconnection.h"
 #include "qgsdb2geometrycolumns.h"

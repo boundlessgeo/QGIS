@@ -18,6 +18,7 @@
 #ifndef QGSOPTIONS_H
 #define QGSOPTIONS_H
 
+#include "qgssettings.h"
 #include "qgsoptionsdialogbase.h"
 #include "ui_qgsoptionsbase.h"
 #include "qgisgui.h"

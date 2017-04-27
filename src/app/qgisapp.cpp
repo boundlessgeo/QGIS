@@ -8815,7 +8815,7 @@ void QgisApp::installPluginFromZip()
 {
   if ( mPythonUtils && mPythonUtils->isEnabled() )
   {
-    QgsPythonRunner::run( QStringLiteral( "pyplugin_installer.instance().installFromZipFile()" ) );
+    QgsPythonRunner::run( "pyplugin_installer.instance().installFromZipFile()" );
   }
 }
 

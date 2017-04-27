@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsnewmemorylayerdialog.h"
 #include "qgsapplication.h"
 #include "qgis.h"

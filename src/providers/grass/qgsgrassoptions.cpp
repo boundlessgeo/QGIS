@@ -16,6 +16,7 @@
 
 #include <QFileDialog>
 
+#include "qgssettings.h"
 #include "qgsrasterprojector.h"
 
 #include "qgsgrass.h"

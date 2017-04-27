@@ -23,6 +23,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QHeaderView>
+#include "qgssettings.h"
 #include "ui_qgspluginmanagerbase.h"
 #include "qgsoptionsdialogbase.h"
 #include "qgisgui.h"

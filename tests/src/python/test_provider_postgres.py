@@ -26,9 +26,10 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsFeature,
     QgsTransactionGroup,
+    QgsSettings,
     NULL
 )
-from qgis.PyQt.QtCore import QgsSettings, QDate, QTime, QDateTime, QVariant
+from qgis.PyQt.QtCore import QDate, QTime, QDateTime, QVariant
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 from providertestbase import ProviderTestCase

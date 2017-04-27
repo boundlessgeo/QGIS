@@ -932,14 +932,14 @@ QgsAttributeEditorElement* QgsFieldsProperties::createAttributeEditorWidget( QTr
 void QgsFieldsProperties::on_pbtnSelectInitFilePath_clicked()
 {
   QgsSettings myQSettings;
-  QString lastUsedDir = myQgsSettings.value( "style/lastInitFilePathDir", "." ).toString();
+  QString lastUsedDir = myQSettings.value( "style/lastInitFilePathDir", "." ).toString();
   QString pyfilename = QFileDialog::getOpenFileName( this, tr( "Select Python file" ), lastUsedDir, tr( "Python file" )  + " (*.py)" );
 
   if ( pyfilename.isNull() )
     return;
 
   QFileInfo fi( pyfilename );
-  myQgsSettings.setValue( "style/lastInitFilePathDir", fi.path() );
+  myQSettings.setValue( "style/lastInitFilePathDir", fi.path() );
   mInitFilePathLineEdit->setText( pyfilename );
 }
 
@@ -947,14 +947,14 @@ void QgsFieldsProperties::on_pbtnSelectInitFilePath_clicked()
 void QgsFieldsProperties::on_pbnSelectEditForm_clicked()
 {
   QgsSettings myQSettings;
-  QString lastUsedDir = myQgsSettings.value( "style/lastUIDir", QDir::homePath() ).toString();
+  QString lastUsedDir = myQSettings.value( "style/lastUIDir", QDir::homePath() ).toString();
   QString uifilename = QFileDialog::getOpenFileName( this, tr( "Select edit form" ), lastUsedDir, tr( "UI file" )  + " (*.ui)" );
 
   if ( uifilename.isNull() )
     return;
 
   QFileInfo fi( uifilename );
-  myQgsSettings.setValue( "style/lastUIDir", fi.path() );
+  myQSettings.setValue( "style/lastUIDir", fi.path() );
   mEditFormLineEdit->setText( uifilename );
 }
 

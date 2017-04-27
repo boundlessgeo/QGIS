@@ -33,6 +33,7 @@
 #include "qgsrelationreferenceconfigdlg.h"
 #include "qgsvectorlayer.h"
 #include "qgsattributetablemodel.h"
+#include "qgssettings.h"
 
 QgsRelationReferenceWidget::QgsRelationReferenceWidget( QWidget* parent )
     : QWidget( parent )

@@ -18,6 +18,7 @@
 
 // Include this first to avoid _POSIX_C_SOURCE redefined warnings
 // see http://bytes.com/topic/python/answers/30009-warning-_posix_c_source-redefined
+#include "qgssettings.h"
 #include "globe_plugin.h"
 #include "qgsglobeplugindialog.h"
 #include "qgsglobefeatureidentify.h"

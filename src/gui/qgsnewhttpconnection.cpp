@@ -14,9 +14,9 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "qgssettings.h"
 #include "qgsnewhttpconnection.h"
 #include "qgscontexthelp.h"
-#include <QgsSettings>
 #include <QMessageBox>
 #include <QUrl>
 #include <QPushButton>

@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 #include "qgsvaluemapconfigdlg.h"
-
+#include "qgssettings.h"
 #include "qgsattributetypeloaddialog.h"
 
 #include <QFileDialog>

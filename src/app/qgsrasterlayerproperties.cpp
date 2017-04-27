@@ -588,7 +588,7 @@ void QgsRasterLayerProperties::setRendererWidget( const QString& rendererName )
 */
 void QgsRasterLayerProperties::sync()
 {
-  QgsSettings myQgsSettings;
+  QgsSettings myQSettings;
 
   if ( mRasterLayer->dataProvider()->dataType( 1 ) == QGis::ARGB32
        || mRasterLayer->dataProvider()->dataType( 1 ) == QGis::ARGB32_Premultiplied )
@@ -1269,7 +1269,7 @@ void QgsRasterLayerProperties::adjustTransparencyCellWidth( int row, int column 
 void QgsRasterLayerProperties::on_pbnExportTransparentPixelValues_clicked()
 {
   QgsSettings myQSettings;
-  QString myLastDir = myQgsSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
+  QString myLastDir = myQSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
   QString myFileName = QFileDialog::getSaveFileName( this, tr( "Save file" ), myLastDir, tr( "Textfile" ) + " (*.txt)" );
   if ( !myFileName.isEmpty() )
   {
@@ -1435,7 +1435,7 @@ void QgsRasterLayerProperties::on_pbnImportTransparentPixelValues_clicked()
   bool myImportError = false;
   QString myBadLines;
   QgsSettings myQSettings;
-  QString myLastDir = myQgsSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
+  QString myLastDir = myQSettings.value( "lastRasterFileFilterDir", QDir::homePath() ).toString();
   QString myFileName = QFileDialog::getOpenFileName( this, tr( "Open file" ), myLastDir, tr( "Textfile" ) + " (*.txt)" );
   QFile myInputFile( myFileName );
   if ( myInputFile.open( QFile::ReadOnly ) )

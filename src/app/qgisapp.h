@@ -107,6 +107,7 @@ class QgsDiagramProperties;
 #include <QSslError>
 #include <QDateTime>
 
+#include "qgssettings.h"
 #include "qgsauthmanager.h"
 #include "qgsconfig.h"
 #include "qgsfeature.h"

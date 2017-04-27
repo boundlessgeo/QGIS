@@ -15,6 +15,7 @@
 
 #include "qgscolorwidgets.h"
 #include "qgsapplication.h"
+#include "qgssettings.h"
 #include "qgssymbollayerv2utils.h"
 #include <QResizeEvent>
 #include <QStyleOptionFrameV3>

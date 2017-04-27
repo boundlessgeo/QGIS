@@ -18,7 +18,6 @@
 #define QGSSETTINGS_H
 
 #include <QSettings>
-#include "qgis_core.h"
 
 /** \ingroup core
  * \class QgsSettings

@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsoptionsdialogbase.h"
 
 #include <QDialog>

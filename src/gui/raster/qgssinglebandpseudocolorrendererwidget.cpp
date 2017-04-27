@@ -23,6 +23,7 @@
 #include "qgsstylev2.h"
 #include "qgsvectorcolorrampv2.h"
 #include "qgscolordialog.h"
+#include "qgssettings.h"
 
 #include <QFileDialog>
 #include <QMessageBox>

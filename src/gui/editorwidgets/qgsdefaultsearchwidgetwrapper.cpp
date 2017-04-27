@@ -18,7 +18,7 @@
 #include "qgsfield.h"
 #include "qgsfieldvalidator.h"
 #include "qgsexpression.h"
-#include <QgsSettings>
+#include "qgssettings.h"
 #include <QHBoxLayout>
 
 QgsDefaultSearchWidgetWrapper::QgsDefaultSearchWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* parent )

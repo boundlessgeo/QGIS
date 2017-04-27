@@ -21,6 +21,7 @@
 #include "qgspythonrunner.h"
 #include "qgsgeometry.h"
 #include "qgsfeature.h"
+#include "qgssettings.h"
 
 #include <QMenu>
 #include <QFile>

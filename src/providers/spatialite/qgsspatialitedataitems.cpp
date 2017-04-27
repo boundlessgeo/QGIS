@@ -12,6 +12,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "qgssettings.h"
 #include "qgsspatialitedataitems.h"
 
 #include "qgsspatialiteprovider.h"

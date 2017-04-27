@@ -16,6 +16,7 @@ email                : hugo dot mercier at oslandia dot com
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsvirtuallayersourceselect.h"
 
 #include <layertree/qgslayertreeview.h>

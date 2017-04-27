@@ -29,7 +29,7 @@ import os
 
 from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QMenu, QPushButton, QLineEdit, QSizePolicy, QAction, QFileDialog
 from qgis.PyQt.QtGui import QCursor
-from qgis.core import QgsSetting
+from qgis.core import QgsSettings
 from processing.gui.MultipleInputDialog import MultipleInputDialog
 
 from processing.core.parameters import ParameterMultipleInput

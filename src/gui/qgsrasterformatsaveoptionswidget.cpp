@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsrasterformatsaveoptionswidget.h"
 #include "qgslogger.h"
 #include "qgsdialog.h"

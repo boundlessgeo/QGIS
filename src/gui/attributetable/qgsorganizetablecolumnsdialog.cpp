@@ -39,6 +39,7 @@
 #include "qgsrubberband.h"
 #include "qgsfield.h"
 #include "qgseditorwidgetregistry.h"
+#include "qgssettings.h"
 
 
 QgsOrganizeTableColumnsDialog::QgsOrganizeTableColumnsDialog( const QgsVectorLayer* vl, QWidget* parent, Qt::WindowFlags flags )

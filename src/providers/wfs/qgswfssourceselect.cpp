@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgswfsconstants.h"
 #include "qgswfssourceselect.h"
 #include "qgswfsconnection.h"

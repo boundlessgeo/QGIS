@@ -30,6 +30,7 @@
 #include "qgslocalec.h"
 #include "qgscsexception.h"
 #include "qgsgeometryengine.h"
+#include "qgssettings.h"
 
 #include <QFile>
 #include <QFileInfo>

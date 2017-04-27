@@ -32,7 +32,7 @@ import platform
 from osgeo import gdal
 
 from qgis.core import QgsApplication, QgsVectorFileWriter, QgsSettings
-rom processing.core.ProcessingLog import ProcessingLog
+from processing.core.ProcessingLog import ProcessingLog
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.SilentProgress import SilentProgress
 from processing.tools.system import isWindows, isMac

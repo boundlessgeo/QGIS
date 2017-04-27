@@ -21,6 +21,7 @@
 #include "qgsmessagebaritem.h"
 #include "qgssnappingutils.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 #include <QAction>
 

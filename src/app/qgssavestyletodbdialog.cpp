@@ -75,7 +75,7 @@ void QgsSaveStyleToDbDialog::accept()
 void QgsSaveStyleToDbDialog::on_mFilePickButton_clicked()
 {
   QgsSettings myQSettings;  // where we keep last used filter in persistent state
-  QString myLastUsedDir = myQgsSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
+  QString myLastUsedDir = myQSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
 
   QString myFileName = QFileDialog::getOpenFileName( this, tr( "Attach Qt Designer UI file" ), myLastUsedDir, tr( "Qt Designer UI file .ui" ) + " (*.ui)" );
   if ( myFileName.isNull() )
@@ -86,7 +86,7 @@ void QgsSaveStyleToDbDialog::on_mFilePickButton_clicked()
   QFile uiFile( myFI.filePath() );
 
   QString myPath = myFI.path();
-  myQgsSettings.setValue( "style/lastStyleDir", myPath );
+  myQSettings.setValue( "style/lastStyleDir", myPath );
 
   if ( uiFile.open( QIODevice::ReadOnly ) )
   {

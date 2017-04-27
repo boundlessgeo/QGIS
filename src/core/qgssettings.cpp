@@ -25,7 +25,8 @@ QString QgsSettings::sGlobalSettingsPath = QString();
 
 bool QgsSettings::setGlobalSettingsPath( QString path )
 {
-  if ( QFileInfo::exists( path ) )
+  QFileInfo fPath( path );
+  if ( fPath.exists( ) && fPath.isFile() )
   {
     sGlobalSettingsPath = path;
     return true;

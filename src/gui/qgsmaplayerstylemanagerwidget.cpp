@@ -296,7 +296,7 @@ void QgsMapLayerStyleManagerWidget::saveStyle()
 void QgsMapLayerStyleManagerWidget::loadStyle()
 {
   QgsSettings myQSettings;  // where we keep last used filter in persistent state
-  QString myLastUsedDir = myQgsSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
+  QString myLastUsedDir = myQSettings.value( "style/lastStyleDir", QDir::homePath() ).toString();
 
   QString myFileName = QFileDialog::getOpenFileName( this, tr( "Load layer properties from style file" ), myLastUsedDir,
                        tr( "QGIS Layer Style File" ) + " (*.qml);;" + tr( "SLD File" ) + " (*.sld)" );
@@ -330,6 +330,6 @@ void QgsMapLayerStyleManagerWidget::loadStyle()
 
   QFileInfo myFI( myFileName );
   QString myPath = myFI.path();
-  myQgsSettings.setValue( "style/lastStyleDir", myPath );
+  myQSettings.setValue( "style/lastStyleDir", myPath );
 
 }

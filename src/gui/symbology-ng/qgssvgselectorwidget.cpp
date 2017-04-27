@@ -21,6 +21,7 @@
 #include "qgsproject.h"
 #include "qgssvgcache.h"
 #include "qgssymbollayerv2utils.h"
+#include "qgssettings.h"
 
 #include <QAbstractListModel>
 #include <QCheckBox>

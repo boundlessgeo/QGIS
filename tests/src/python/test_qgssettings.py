@@ -168,13 +168,20 @@ class TestQgsSettings(unittest.TestCase):
 
     def test_uft8(self):
         self.assertEqual(self.settings.allKeys(), [])
-        self.addToDefaults('testqgissettings/names/namèé↓1', 'qgisrocks↓1')
-        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓1'), 'qgisrocks↓1')
+        self.addToDefaults('testqgissettings/names/namèé↓1', u'qgisrocks↓1')
+        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓1'), u'qgisrocks↓1')
 
-        self.settings.setValue('testqgissettings/names/namèé↓2', 'qgisrocks↓2')
-        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓2'), 'qgisrocks↓2')
-        self.settings.setValue('testqgissettings/names/namèé↓1', 'qgisrocks↓-1')
-        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓1'), 'qgisrocks↓-1')
+        self.settings.setValue('testqgissettings/names/namèé↓2', u'qgisrocks↓2')
+        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓2'), u'qgisrocks↓2')
+        self.settings.setValue('testqgissettings/names/namèé↓1', u'qgisrocks↓-1')
+        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓1'), u'qgisrocks↓-1')
+
+    def test_uft8_same_values(self):
+        """Tests that the original QSettings handles utf8 the same as QgsSettings"""
+        self.addToDefaults('testqgissettings/names/namèé↓1', u'qgisrocks↓1')
+        QSettings('testqgissettings', 'testqgissettings%s' % self.cnt).setValue('testqgissettings/names/original-namèé↓1', u'qgisrocks↓1')
+        self.assertEqual(self.settings.value('testqgissettings/names/namèé↓1'), QSettings('testqgissettings', 'testqgissettings%s' % self.cnt).value('testqgissettings/names/original-namèé↓1'))
+        self.assertEqual(QSettings('testqgissettings', 'testqgissettings%s' % self.cnt).value('testqgissettings/names/original-namèé↓1'), u'qgisrocks↓1')
 
     def test_groups(self):
         self.assertEqual(self.settings.allKeys(), [])

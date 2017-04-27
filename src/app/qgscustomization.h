@@ -23,7 +23,6 @@
 #include <QDomNode>
 #include <QEvent>
 #include <QMouseEvent>
-#include <QgsSettings>
 #include <QTreeWidgetItem>
 
 class QString;
@@ -31,13 +30,13 @@ class QWidget;
 class QTreeWidgetItem;
 class QEvent;
 class QMouseEvent;
-class QgsSettings;
+class QSettings;
 
 class APP_EXPORT QgsCustomizationDialog : public QMainWindow, private Ui::QgsCustomizationDialogBase
 {
     Q_OBJECT
   public:
-    QgsCustomizationDialog( QWidget *parent, QgsSettings *settings );
+    QgsCustomizationDialog( QWidget *parent, QSettings *settings );
     ~QgsCustomizationDialog();
 
     // get item by path
@@ -51,15 +50,15 @@ class APP_EXPORT QgsCustomizationDialog : public QMainWindow, private Ui::QgsCus
     void setItemChecked( const QString& thePath, bool on );
 
     // recursively save tree item to settings
-    void itemToSettings( const QString& thePath, QTreeWidgetItem *theItem, QgsSettings *theSettings );
+    void itemToSettings( const QString& thePath, QTreeWidgetItem *theItem, QSettings *theSettings );
     // recursively save settings to tree items
-    void settingsToItem( const QString& thePath, QTreeWidgetItem *theItem, QgsSettings *theSettings );
+    void settingsToItem( const QString& thePath, QTreeWidgetItem *theItem, QSettings *theSettings );
 
     // save current tree to settings
-    void treeToSettings( QgsSettings *theSettings );
+    void treeToSettings( QSettings *theSettings );
 
     // restore current tree from settings
-    void settingsToTree( QgsSettings *theSettings );
+    void settingsToTree( QSettings *theSettings );
 
     // switch widget item in tree
     bool switchWidget( QWidget * widget, QMouseEvent *event );
@@ -100,7 +99,7 @@ class APP_EXPORT QgsCustomizationDialog : public QMainWindow, private Ui::QgsCus
     QTreeWidgetItem * readWidgetsXmlNode( const QDomNode& theNode );
 
     QString mLastDirSettingsName;
-    QgsSettings* mSettings;
+    QSettings* mSettings;
 };
 
 class APP_EXPORT QgsCustomization : public QObject
@@ -119,8 +118,8 @@ class APP_EXPORT QgsCustomization : public QObject
     static QgsCustomization* instance();
 
     void openDialog( QWidget *parent );
-    static void customizeWidget( QWidget * widget, QEvent * event, QgsSettings* settings );
-    static void customizeWidget( const QString& path, QWidget * widget, QgsSettings* settings );
+    static void customizeWidget( QWidget * widget, QEvent * event, QSettings* settings );
+    static void customizeWidget( const QString& path, QWidget * widget, QSettings* settings );
     static void removeFromLayout( QLayout *theLayout, QWidget * widget );
 
     void updateMainWindow( QMenu * theToolBarMenu );
@@ -129,7 +128,7 @@ class APP_EXPORT QgsCustomization : public QObject
     void setEnabled( bool enabled ) { mEnabled = enabled; }
     bool isEnabled() const { return mEnabled; }
 
-    void setSettings( QgsSettings* settings ) { mSettings = settings ;}
+    void setSettings( QSettings* settings ) { mSettings = settings ;}
 
     // Return the path to the splash screen
     QString splashPath();
@@ -151,10 +150,10 @@ class APP_EXPORT QgsCustomization : public QObject
     QgsCustomizationDialog *pDialog;
 
     bool mEnabled;
-    QgsSettings* mSettings;
+    QSettings* mSettings;
     QString mStatusPath;
 
-    void updateMenu( QMenu* menu, QgsSettings* settings );
+    void updateMenu( QMenu* menu, QSettings* settings );
     void createTreeItemMenus();
     void createTreeItemToolbars();
     void createTreeItemDocks();

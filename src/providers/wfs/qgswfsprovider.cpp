@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgis.h"
 #include "qgsapplication.h"
 #include "qgsfeature.h"

@@ -18,6 +18,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 
+#include "qgssettings.h"
 #include "checkDock.h"
 
 #include <qgsvectordataprovider.h>

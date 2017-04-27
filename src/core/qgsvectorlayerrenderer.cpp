@@ -33,6 +33,7 @@
 #include "qgsvectorlayerlabelprovider.h"
 #include "qgspainteffect.h"
 #include "qgsfeaturefilterprovider.h"
+#include "qgssettings.h"
 
 #include <QPicture>
 

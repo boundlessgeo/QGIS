@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsmessageoutput.h"
 #include "qgsmimedatautils.h"
 #include "qgsnewnamedialog.h"

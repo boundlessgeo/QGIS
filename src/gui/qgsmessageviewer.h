@@ -19,6 +19,7 @@
 
 #include <ui_qgsmessageviewer.h>
 #include <qgisgui.h>
+#include "qgssettings.h"
 #include "qgsmessageoutput.h"
 
 #include <QString>

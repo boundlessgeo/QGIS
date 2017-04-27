@@ -19,6 +19,7 @@
 #include "qgslogger.h"
 #include "qgssymbollayerv2utils.h"
 #include "qgscursors.h"
+#include "qgssettings.h"
 
 #include <QPainter>
 #include <QTemporaryFile>

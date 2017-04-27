@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsmessagelog.h"
 #include "qgsgeometry.h"
 #include "qgsgml.h"

@@ -20,8 +20,8 @@ import shutil
 import glob
 from osgeo import gdal, ogr
 
-from qgis.PyQt.QtCore import QCoreApplication, QgsSettings
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsFeatureRequest, QgsRectangle
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsFeatureRequest, QgsRectangle, QgsSettings
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 

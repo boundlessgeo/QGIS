@@ -26,6 +26,7 @@
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayercache.h"
 #include "qgsorganizetablecolumnsdialog.h"
+#include "qgssettings.h"
 
 #include <QClipboard>
 #include <QDialog>

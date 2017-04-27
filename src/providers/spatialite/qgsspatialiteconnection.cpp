@@ -18,7 +18,6 @@
 #include "qgslogger.h"
 
 #include <QFileInfo>
-#include <QgsSettings>
 #include <stdlib.h> // atoi
 
 #ifdef _MSC_VER

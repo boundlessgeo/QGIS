@@ -1,3 +1,4 @@
+#include "qgssettings.h"
 #include "qgsruntimeprofiler.h"
 #include "qgslogger.h"
 

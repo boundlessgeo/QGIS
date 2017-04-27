@@ -18,6 +18,7 @@
 #include <QGridLayout>
 #include <QDialogButtonBox>
 
+#include "qgssettings.h"
 #include "qgsattributetabledialog.h"
 #include "qgsattributetablemodel.h"
 #include "qgsattributetablefiltermodel.h"

@@ -48,6 +48,7 @@ email                : sherman at mrcc.com
 #include "qgscoordinatereferencesystem.h"
 #include "qgsvectorlayerimport.h"
 #include "qgslocalec.h"
+#include "qgssettings.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>

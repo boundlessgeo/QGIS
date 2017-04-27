@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgssourceselectdialog.h"
 #include "qgsowsconnection.h"
 #include "qgsnewhttpconnection.h"

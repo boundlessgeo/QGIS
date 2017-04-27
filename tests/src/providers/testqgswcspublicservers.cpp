@@ -36,6 +36,7 @@
 #include <qgsrasterlayer.h>
 #include <qgswcscapabilities.h>
 #include <testqgswcspublicservers.h>
+#include "qgssettings.h"
 
 #ifdef Q_OS_WIN
 // Open files in binary mode

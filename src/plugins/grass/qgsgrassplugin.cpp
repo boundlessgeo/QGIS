@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsgrassplugin.h"
 #include "qgis.h"
 #include "qgsgrass.h"

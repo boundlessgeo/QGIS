@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgscomposerarrowwidget.h"
 #include "qgscomposerarrow.h"
 #include "qgscomposeritemwidget.h"

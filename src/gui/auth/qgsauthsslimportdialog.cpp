@@ -78,6 +78,7 @@
 #include "qgsauthguiutils.h"
 #include "qgsauthmanager.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 
 QgsAuthSslImportDialog::QgsAuthSslImportDialog( QWidget *parent )

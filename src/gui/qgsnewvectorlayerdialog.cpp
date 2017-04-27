@@ -24,6 +24,7 @@
 #include "qgsvectordataprovider.h"
 #include "qgsvectorfilewriter.h"
 #include "qgscrscache.h"
+#include "qgssettings.h"
 
 #include <QPushButton>
 #include <QComboBox>

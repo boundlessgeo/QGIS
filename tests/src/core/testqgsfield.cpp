@@ -16,7 +16,6 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QgsSettings>
 #include <QSharedPointer>
 
 #include "qgssettings.h"

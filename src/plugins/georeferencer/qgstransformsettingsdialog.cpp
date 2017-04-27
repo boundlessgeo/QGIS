@@ -17,6 +17,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
+#include "qgssettings.h"
 #include "qgsprojectionselector.h"
 
 #include "qgsapplication.h"

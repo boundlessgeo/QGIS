@@ -13,6 +13,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsapplication.h"
 #include "qgscursors.h"
 #include "qgsdistancearea.h"

@@ -14,6 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "qgssettings.h"
 #include "qgswfscapabilities.h"
 #include "qgswfsconstants.h"
 #include "qgswfsutils.h"

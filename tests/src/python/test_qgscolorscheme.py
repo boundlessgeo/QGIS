@@ -15,8 +15,8 @@ __revision__ = '$Format:%H$'
 import qgis  # NOQA
 
 from qgis.testing import unittest, start_app
-from qgis.core import QgsColorScheme, QgsUserColorScheme
-from qgis.PyQt.QtCore import QCoreApplication, QgsSettings
+from qgis.core import QgsColorScheme, QgsUserColorScheme, QgsSettings
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QColor
 
 # Make a dummy color scheme for testing

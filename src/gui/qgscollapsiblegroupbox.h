@@ -27,6 +27,7 @@
 
 class QToolButton;
 class QScrollArea;
+class QgsSettings;
 
 /** \ingroup gui
  * \class QgsGroupBoxCollapseButton

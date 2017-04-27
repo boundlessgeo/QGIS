@@ -20,6 +20,7 @@
 #include "qgsapplication.h"
 #include "qgsactionmanager.h"
 #include "qgshighlight.h"
+#include "qgssettings.h"
 
 
 /// @cond PRIVATE

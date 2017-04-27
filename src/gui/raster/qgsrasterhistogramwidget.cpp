@@ -20,6 +20,7 @@
 #include "qgsrasterrendererregistry.h"
 #include "qgsrasterrendererwidget.h"
 #include "qgsrasterhistogramwidget.h"
+#include "qgssettings.h"
 
 #include <QMenu>
 #include <QFileInfo>

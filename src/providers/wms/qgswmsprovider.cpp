@@ -44,6 +44,7 @@
 #include "qgsgmlschema.h"
 #include "qgswmscapabilities.h"
 #include "qgscrscache.h"
+#include "qgssettings.h"
 
 #include <QNetworkRequest>
 #include <QNetworkReply>

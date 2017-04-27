@@ -37,6 +37,7 @@
 #include "qgsnetworkaccessmanager.h"
 #include "qgswmscapabilities.h"
 #include "qgscrscache.h"
+#include "qgssettings.h"
 
 #include <QButtonGroup>
 #include <QFileDialog>

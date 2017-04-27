@@ -62,6 +62,7 @@ def show_console():
 
     return _console
 
+
 _console_output = None
 
 # hook for python console so all output will be redirected
@@ -725,6 +726,7 @@ class PythonConsoleWidget(QWidget):
         self.splitter.restoreState(self.settings.value("pythonConsole/splitterConsole", QByteArray()))
         self.splitterEditor.restoreState(self.settings.value("pythonConsole/splitterEditor", QByteArray()))
         self.splitterObj.restoreState(self.settings.value("pythonConsole/splitterObj", QByteArray()))
+
 
 if __name__ == '__main__':
     a = QApplication(sys.argv)

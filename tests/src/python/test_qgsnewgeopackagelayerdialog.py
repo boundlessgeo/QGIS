@@ -22,7 +22,7 @@ from qgis.PyQt.QtCore import QCoreApplication, Qt
 from qgis.PyQt.QtWidgets import QLineEdit, QDialogButtonBox, QTreeWidget, QComboBox, QToolButton
 from qgis.PyQt.QtTest import QTest
 
-from qgis.core import QGis, QgsMapLayerRegistry
+from qgis.core import QGis, QgsMapLayerRegistry, QgsSettings
 from qgis.gui import QgsNewGeoPackageLayerDialog
 from qgis.testing import start_app, unittest
 
@@ -272,6 +272,7 @@ class TestPyQgsNewGeoPackageLayerDialog(unittest.TestCase):
 
     def accepted_slot(self):
         self.accepted = True
+
 
 if __name__ == '__main__':
     unittest.main()

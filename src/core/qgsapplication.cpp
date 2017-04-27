@@ -849,10 +849,10 @@ QString QgsApplication::platform()
 QString QgsApplication::locale()
 {
   QgsSettings settings;
-  bool overrideLocale = settings.value( QStringLiteral( "locale/overrideFlag" ), false ).toBool();
+  bool overrideLocale = settings.value( "locale/overrideFlag", false ).toBool();
   if ( overrideLocale )
   {
-    return settings.value( QStringLiteral( "locale/userLocale" ), QString() ).toString();
+    return settings.value( "locale/userLocale", QString() ).toString();
   }
   else
   {

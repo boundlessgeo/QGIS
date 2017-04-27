@@ -25,7 +25,6 @@
 #include <QTreeWidgetItem>
 #include <QVector>
 #include <QStyle>
-#include <QgsSettings>
 
 #include "qgssettings.h"
 #include "qgscptcityarchive.h"

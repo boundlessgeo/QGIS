@@ -1,9 +1,7 @@
 /************************************************************************
- * This file has been generated automatically from                      *
  *                                                                      *
  * src/core/qgssettings.h                                               *
  *                                                                      *
- * Do not edit manually ! Edit header and run scripts/sipify.pl again   *
  ************************************************************************/
 
 
@@ -206,7 +204,11 @@ Closes the array that was started using beginReadArray() or beginWriteArray().
  If no default value is specified, a default QVariant is returned.
  An optional Section argument can be used to get a value from a specific Section.
 %End
+
+
 %MethodCode
+
+    // pyqt4_from_qvariant_by_type is only available in PyQt > 4.10.4 (that is the one on trusty)
     typedef PyObject *( *pyqt4_from_qvariant_by_type )( QVariant &value, PyObject *type );
     QVariant value;
 
@@ -216,7 +218,15 @@ Closes the array that was started using beginReadArray() or beginWriteArray().
     Py_END_ALLOW_THREADS
 
     pyqt4_from_qvariant_by_type f = ( pyqt4_from_qvariant_by_type ) sipImportSymbol( "pyqt4_from_qvariant_by_type" );
-    sipRes = f( value, a2 );
+    // Might be null if pyqt4_from_qvariant_by_type is not available
+    if ( f )
+    {
+       sipRes = f( value, a2 );
+    }
+    else
+    {
+       sipRes = qpycore_qvariant_value(value, a2);
+    }
 
     sipIsErr = !sipRes;
 %End
@@ -256,10 +266,17 @@ Removes all entries in the user settings
 
 };
 
-/************************************************************************
- * This file has been generated automatically from                      *
- *                                                                      *
- * src/core/qgssettings.h                                               *
- *                                                                      *
- * Do not edit manually ! Edit header and run scripts/sipify.pl again   *
- ************************************************************************/
+
+
+%ModuleHeaderCode
+    extern PyObject *(*qpycore_qvariant_value)(QVariant &, PyObject *);
+%End
+
+%ModuleCode
+    PyObject *(*qpycore_qvariant_value)(QVariant &, PyObject *);
+%End
+
+%PostInitialisationCode
+    // Import helpers from the QtCore module.
+    qpycore_qvariant_value = (PyObject *(*)(QVariant &, PyObject *))sipImportSymbol("qpycore_qvariant_value");
+%End

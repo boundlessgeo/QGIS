@@ -19,12 +19,11 @@ import sys
 import shutil
 import tempfile
 
-from qgis.core import QgsVectorLayer, QgsPoint, QgsFeature
+from qgis.core import QgsVectorLayer, QgsPoint, QgsFeature, QgsSettings
 
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 from providertestbase import ProviderTestCase
-from qgis.PyQt.QtCore import QgsSettings
 
 try:
     from pyspatialite import dbapi2 as sqlite3

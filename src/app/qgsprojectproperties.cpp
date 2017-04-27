@@ -16,6 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsprojectproperties.h"
 
 //qgis includes

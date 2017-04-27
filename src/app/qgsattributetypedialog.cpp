@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsattributetypedialog.h"
 #include "qgsattributetypeloaddialog.h"
 #include "qgsvectordataprovider.h"

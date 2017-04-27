@@ -20,6 +20,7 @@
 #include "qgsvaluerelationwidgetfactory.h"
 #include "qgsvectorlayer.h"
 #include "qgsproject.h"
+#include "qgssettings.h"
 
 #include <QStringListModel>
 

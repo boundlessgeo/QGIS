@@ -31,7 +31,8 @@ from qgis.core import (
     QgsPoint,
     QgsVectorDataProvider,
     QgsFeatureRequest,
-    QgsMessageLog
+    QgsMessageLog,
+    QgsSettings,
 )
 from qgis.testing import (start_app,
                           unittest
