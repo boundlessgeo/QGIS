@@ -20,12 +20,12 @@
 #include "qgsrasterrendererregistry.h"
 #include "qgsrasterrendererwidget.h"
 #include "qgsrasterhistogramwidget.h"
+#include "qgssettings.h"
 
 #include <QMenu>
 #include <QFileInfo>
 #include <QDir>
 #include <QPainter>
-#include <QSettings>
 
 // QWT Charting widget
 #include <qwt_global.h>
@@ -74,7 +74,7 @@ QgsRasterHistogramWidget::QgsRasterHistogramWidget( QgsRasterLayer* lyr, QWidget
   mHistoMarkerMin = nullptr;
   mHistoMarkerMax = nullptr;
 
-  QSettings settings;
+  QgsSettings settings;
   mHistoShowMarkers = settings.value( "/Raster/histogram/showMarkers", false ).toBool();
   // mHistoLoadApplyAll = settings.value( "/Raster/histogram/loadApplyAll", false ).toBool();
   mHistoZoomToMinMax = settings.value( "/Raster/histogram/zoomToMinMax", false ).toBool();
@@ -793,7 +793,7 @@ void QgsRasterHistogramWidget::histoAction( const QString &actionName, bool acti
   if ( actionName == "Show markers" )
   {
     mHistoShowMarkers = actionFlag;
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( "/Raster/histogram/showMarkers", mHistoShowMarkers );
     updateHistoMarkers();
     return;
@@ -801,14 +801,14 @@ void QgsRasterHistogramWidget::histoAction( const QString &actionName, bool acti
   else if ( actionName == "Zoom min_max" )
   {
     mHistoZoomToMinMax = actionFlag;
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( "/Raster/histogram/zoomToMinMax", mHistoZoomToMinMax );
     return;
   }
   else if ( actionName == "Update min_max" )
   {
     mHistoUpdateStyleToMinMax = actionFlag;
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( "/Raster/histogram/updateStyleToMinMax", mHistoUpdateStyleToMinMax );
     return;
   }
@@ -836,7 +836,7 @@ void QgsRasterHistogramWidget::histoAction( const QString &actionName, bool acti
   else if ( actionName == "Draw lines" )
   {
     mHistoDrawLines = actionFlag;
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( "/Raster/histogram/drawLines", mHistoDrawLines );
     on_btnHistoCompute_clicked(); // refresh
     return;

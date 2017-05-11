@@ -18,7 +18,6 @@
 #include <QObject>
 #include <QPainter>
 #include <QSet>
-#include <QSettings>
 #include <QString>
 #include <QStringList>
 #include <QTextStream>
@@ -37,6 +36,7 @@
 #include <qgsrasterlayer.h>
 #include <qgswcscapabilities.h>
 #include <testqgswcspublicservers.h>
+#include "qgssettings.h"
 
 #ifdef Q_OS_WIN
 // Open files in binary mode
@@ -65,7 +65,7 @@ TestQgsWcsPublicServers::TestQgsWcsPublicServers( const QString & cacheDirPath, 
 
 TestQgsWcsPublicServers::~TestQgsWcsPublicServers()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/qgis/networkAndProxy/networkTimeout", mOrigTimeout );
 }
 
@@ -76,7 +76,7 @@ void TestQgsWcsPublicServers::init()
 
   // Unfortunately this seems to be the only way to set timeout, we try to reset it
   // at the end but it can be canceled before ...
-  QSettings settings;
+  QgsSettings settings;
   mOrigTimeout = settings.value( "/qgis/networkAndProxy/networkTimeout", "60000" ).toInt();
   settings.setValue( "/qgis/networkAndProxy/networkTimeout", mTimeout );
 

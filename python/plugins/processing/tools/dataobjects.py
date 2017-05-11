@@ -29,9 +29,8 @@ __revision__ = '$Format:%H$'
 import os
 import re
 from qgis.core import QGis, QgsProject, QgsVectorFileWriter, QgsMapLayer, QgsRasterLayer, \
-    QgsVectorLayer, QgsMapLayerRegistry, QgsCoordinateReferenceSystem
+    QgsVectorLayer, QgsMapLayerRegistry, QgsCoordinateReferenceSystem, QgsSettings
 from qgis.gui import QgsSublayersDialog
-from qgis.PyQt.QtCore import QSettings
 from qgis.utils import iface
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.algs.gdal.GdalUtils import GdalUtils
@@ -163,7 +162,7 @@ def load(fileName, name=None, crs=None, style=None):
     if fileName is None:
         return
     prjSetting = None
-    settings = QSettings()
+    settings = QgsSettings()
     if crs is not None:
         prjSetting = settings.value('/Projections/defaultBehaviour')
         settings.setValue('/Projections/defaultBehaviour', '')
@@ -248,7 +247,7 @@ def getObjectFromUri(uri, forceLoad=True):
         if normalizeLayerSource(table.source()) == normalizeLayerSource(uri):
             return table
     if forceLoad:
-        settings = QSettings()
+        settings = QgsSettings()
         prjSetting = settings.value('/Projections/defaultBehaviour')
         settings.setValue('/Projections/defaultBehaviour', '')
 
@@ -288,7 +287,7 @@ def exportVectorLayer(layer, supported=None):
     """
 
     supported = supported or ["shp"]
-    settings = QSettings()
+    settings = QgsSettings()
     systemEncoding = settings.value('/UI/encoding', 'System')
 
     output = getTempFilename('shp')
@@ -354,7 +353,7 @@ def exportTable(table):
     file if the original one contains non-ascii characters.
     """
 
-    settings = QSettings()
+    settings = QgsSettings()
     systemEncoding = settings.value('/UI/encoding', 'System')
     output = getTempFilename()
     provider = table.dataProvider()

@@ -18,6 +18,7 @@
 
 // Include this first to avoid _POSIX_C_SOURCE redefined warnings
 // see http://bytes.com/topic/python/answers/30009-warning-_posix_c_source-redefined
+#include "qgssettings.h"
 #include "globe_plugin.h"
 #include "qgsglobeplugindialog.h"
 #include "qgsglobefeatureidentify.h"
@@ -290,7 +291,7 @@ void GlobePlugin::run()
   QgsGlobeTileStatistics* tileStats = new QgsGlobeTileStatistics();
   connect( tileStats, SIGNAL( changed( int, int ) ), this, SLOT( updateTileStats( int, int ) ) );
 #endif
-  QSettings settings;
+  QgsSettings settings;
 
 //    osgEarth::setNotifyLevel( osg::DEBUG_INFO );
 
@@ -739,7 +740,7 @@ void GlobePlugin::setupControls()
 
 void GlobePlugin::setupProxy()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "proxy" );
   if ( settings.value( "/proxyEnabled" ).toBool() )
   {

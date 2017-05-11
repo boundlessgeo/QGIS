@@ -33,10 +33,10 @@
 #include "qgisgui.h"
 #include "qgssymbolv2selectordialog.h"
 #include "qgsstylev2.h"
+#include "qgssettings.h"
 
 #include <QList>
 #include <QMessageBox>
-#include <QSettings>
 
 static QgsExpressionContext _getExpressionContext( const void* context )
 {
@@ -154,7 +154,7 @@ QgsDiagramProperties::QgsDiagramProperties( QgsVectorLayer* layer,
 
   mDataDefinedVisibilityComboBox->addItem( tr( "None" ), -1 );
 
-  QSettings settings;
+  QgsSettings settings;
 
   // reset horiz strech of left side of options splitter (set to 1 for previewing in Qt Designer)
   QSizePolicy policy( mDiagramOptionsListFrame->sizePolicy() );
@@ -427,7 +427,7 @@ QgsDiagramProperties::QgsDiagramProperties( QgsVectorLayer* layer,
 
 QgsDiagramProperties::~QgsDiagramProperties()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( QString( "/Windows/Diagrams/OptionsSplitState" ), mDiagramOptionsSplitter->saveState() );
   settings.setValue( QString( "/Windows/Diagrams/Tab" ), mDiagramOptionsListWidget->currentRow() );
 }

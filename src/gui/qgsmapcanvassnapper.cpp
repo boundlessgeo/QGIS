@@ -22,7 +22,7 @@
 #include "qgsproject.h"
 #include "qgsvectorlayer.h"
 #include "qgstolerance.h"
-#include <QSettings>
+#include "qgssettings.h"
 #include "qgslogger.h"
 #include "qgsgeometry.h"
 
@@ -166,7 +166,7 @@ int QgsMapCanvasSnapper::snapToBackgroundLayers( const QgsPoint& point, QList<Qg
 
   bool ok, snappingDefinedInProject;
 
-  QSettings settings;
+  QgsSettings settings;
   QString snappingMode = QgsProject::instance()->readEntry( "Digitizing", "/SnappingMode", "current_layer", &snappingDefinedInProject );
   QString defaultSnapToleranceUnit = snappingDefinedInProject ? QgsProject::instance()->readEntry( "Digitizing", "/DefaultSnapToleranceUnit" ) : settings.value( "/qgis/digitizing/default_snapping_tolerance_unit", "0" ).toString();
   QString defaultSnapType = snappingDefinedInProject ? QgsProject::instance()->readEntry( "Digitizing", "/DefaultSnapType" ) : settings.value( "/qgis/digitizing/default_snap_mode", "off" ).toString();

@@ -26,9 +26,9 @@
 #include "qgsproject.h"
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 #include <QPushButton>
-#include <QSettings>
 
 QgsFeatureAction::QgsFeatureAction( const QString &name, QgsFeature &f, QgsVectorLayer *layer, int action, int defaultAttr, QObject *parent )
     : QAction( name, parent )
@@ -165,7 +165,7 @@ bool QgsFeatureAction::addFeature( const QgsAttributeMap& defaultAttributes, boo
   QgsVectorDataProvider *provider = mLayer->dataProvider();
   QgsAttributeList pkAttrList = mLayer->pkAttributeList();
 
-  QSettings settings;
+  QgsSettings settings;
   bool reuseLastValues = settings.value( "/qgis/digitizing/reuseLastValues", false ).toBool();
   QgsDebugMsg( QString( "reuseLastValues: %1" ).arg( reuseLastValues ) );
 
@@ -266,7 +266,7 @@ void QgsFeatureAction::onFeatureSaved( const QgsFeature& feature )
 
   mFeatureSaved = true;
 
-  QSettings settings;
+  QgsSettings settings;
   bool reuseLastValues = settings.value( "/qgis/digitizing/reuseLastValues", false ).toBool();
   QgsDebugMsg( QString( "reuseLastValues: %1" ).arg( reuseLastValues ) );
 

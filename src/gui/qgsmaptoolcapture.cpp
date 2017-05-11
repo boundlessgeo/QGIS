@@ -28,6 +28,7 @@
 #include "qgsrubberband.h"
 #include "qgsvectorlayer.h"
 #include "qgsvertexmarker.h"
+#include "qgssettings.h"
 
 #include <QCursor>
 #include <QPixmap>
@@ -633,7 +634,7 @@ void QgsMapToolCapture::closePolygon()
 
 void QgsMapToolCapture::validateGeometry()
 {
-  QSettings settings;
+  QgsSettings settings;
   if ( settings.value( "/qgis/digitizing/validate_geometries", 1 ).toInt() == 0 )
     return;
 

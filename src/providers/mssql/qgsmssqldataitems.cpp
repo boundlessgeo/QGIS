@@ -26,11 +26,11 @@
 #include "qgsvectorlayerimport.h"
 #include "qgsdatasourceuri.h"
 #include "qgsmssqlprovider.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QMessageBox>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlError>
+#include <QSqlDatabase>
+#include <QSqlError>
 #include <QProgressDialog>
 
 // ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ QgsMssqlConnectionItem::~QgsMssqlConnectionItem()
 
 void QgsMssqlConnectionItem::readConnectionSettings()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString key = "/MSSQL/connections/" + mName;
   mService = settings.value( key + "/service" ).toString();
   mHost = settings.value( key + "/host" ).toString();
@@ -351,7 +351,7 @@ void QgsMssqlConnectionItem::setAllowGeometrylessTables( bool allow )
 {
   mAllowGeometrylessTables = allow;
   QString key = "/MSSQL/connections/" + mName;
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( key + "/allowGeometrylessTables", allow );
   refresh();
 }
@@ -615,7 +615,7 @@ QgsMssqlRootItem::~QgsMssqlRootItem()
 QVector<QgsDataItem*> QgsMssqlRootItem::createChildren()
 {
   QVector<QgsDataItem*> connections;
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "/MSSQL/connections" );
   Q_FOREACH ( const QString& connName, settings.childGroups() )
   {

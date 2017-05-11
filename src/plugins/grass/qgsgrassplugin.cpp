@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsgrassplugin.h"
 #include "qgis.h"
 #include "qgsgrass.h"
@@ -44,7 +45,6 @@
 #include <QAction>
 #include <QFileInfo>
 #include <QMessageBox>
-#include <QSettings>
 #include <QToolBar>
 
 extern "C"
@@ -550,7 +550,7 @@ void QgsGrassPlugin::mapsetChanged()
     mRegionAction->setEnabled( true );
     mCloseMapsetAction->setEnabled( true );
 
-    QSettings settings;
+    QgsSettings settings;
     bool on = settings.value( "/GRASS/region/on", true ).toBool();
     mRegionAction->setChecked( on );
     switchRegion( on );
@@ -699,7 +699,7 @@ void QgsGrassPlugin::displayRegion()
 void QgsGrassPlugin::switchRegion( bool on )
 {
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/GRASS/region/on", on );
 
   if ( on )

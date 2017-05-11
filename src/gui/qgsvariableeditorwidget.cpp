@@ -17,6 +17,8 @@
 #include "qgsexpressioncontext.h"
 #include "qgsfeature.h"
 #include "qgsapplication.h"
+#include "qgssettings.h"
+
 #include <QVBoxLayout>
 #include <QTreeWidget>
 #include <QPainter>
@@ -26,7 +28,6 @@
 #include <QPushButton>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QSettings>
 
 
 //
@@ -71,7 +72,7 @@ QgsVariableEditorWidget::QgsVariableEditorWidget( QWidget *parent )
 
 QgsVariableEditorWidget::~QgsVariableEditorWidget()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( saveKey() + "column0width", mTreeWidget->header()->sectionSize( 0 ) );
 }
 
@@ -85,7 +86,7 @@ void QgsVariableEditorWidget::showEvent( QShowEvent * event )
   }
 
   //restore split size
-  QSettings settings;
+  QgsSettings settings;
   QVariant val;
   val = settings.value( saveKey() + "column0width" );
   bool ok;
@@ -403,7 +404,7 @@ void QgsVariableEditorTree::refreshScopeVariables( QgsExpressionContextScope* sc
 
 void QgsVariableEditorTree::refreshScopeItems( QgsExpressionContextScope* scope, int scopeIndex )
 {
-  QSettings settings;
+  QgsSettings settings;
 
   //add top level item
   bool isCurrent = scopeIndex == mEditableScopeIndex;
@@ -526,7 +527,7 @@ void QgsVariableEditorTree::toggleContextExpanded( QTreeWidgetItem* item )
   item->setExpanded( !item->isExpanded() );
 
   //save expanded state
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "QgsVariableEditor/" + item->text( 0 ) + "/expanded", item->isExpanded() );
 }
 

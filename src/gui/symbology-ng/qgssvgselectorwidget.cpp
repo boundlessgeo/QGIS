@@ -21,6 +21,7 @@
 #include "qgsproject.h"
 #include "qgssvgcache.h"
 #include "qgssymbollayerv2utils.h"
+#include "qgssettings.h"
 
 #include <QAbstractListModel>
 #include <QCheckBox>
@@ -28,7 +29,6 @@
 #include <QFileDialog>
 #include <QModelIndex>
 #include <QPixmapCache>
-#include <QSettings>
 #include <QStyle>
 #include <QTime>
 
@@ -378,7 +378,7 @@ QgsSvgSelectorWidget::QgsSvgSelectorWidget( QWidget* parent )
   connect( mGroupsTreeView->selectionModel(), SIGNAL( currentChanged( const QModelIndex&, const QModelIndex& ) ),
            this, SLOT( populateIcons( const QModelIndex& ) ) );
 
-  QSettings settings;
+  QgsSettings settings;
   bool useRelativePath = ( QgsProject::instance()->readBoolEntry( "Paths", "/Absolute", false )
                            || settings.value( "/Windows/SvgSelectorWidget/RelativePath" ).toBool() );
   mRelativePathChkBx->setChecked( useRelativePath );
@@ -386,7 +386,7 @@ QgsSvgSelectorWidget::QgsSvgSelectorWidget( QWidget* parent )
 
 QgsSvgSelectorWidget::~QgsSvgSelectorWidget()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/SvgSelectorWidget/RelativePath", mRelativePathChkBx->isChecked() );
 }
 
@@ -469,7 +469,7 @@ void QgsSvgSelectorWidget::populateIcons( const QModelIndex& idx )
 
 void QgsSvgSelectorWidget::on_mFilePushButton_clicked()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString openDir = settings.value( "/UI/lastSVGMarkerDir", QDir::homePath() ).toString();
 
   QString lineEditText = mFileLineEdit->text();
@@ -560,12 +560,12 @@ QgsSvgSelectorDialog::QgsSvgSelectorDialog( QWidget *parent, const Qt::WindowFla
   mLayout->addWidget( mButtonBox );
   setLayout( mLayout );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/SvgSelectorDialog/geometry" ).toByteArray() );
 }
 
 QgsSvgSelectorDialog::~QgsSvgSelectorDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/SvgSelectorDialog/geometry", saveGeometry() );
 }

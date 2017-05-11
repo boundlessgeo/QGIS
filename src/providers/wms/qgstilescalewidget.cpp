@@ -21,6 +21,7 @@
 #include "qgsmessagelog.h"
 #include "qgslogger.h"
 #include "qgsdockwidget.h"
+#include "qgssettings.h"
 
 #include <QMainWindow>
 #include <QMenu>
@@ -160,12 +161,12 @@ void QgsTileScaleWidget::showTileScale( QMainWindow *mainWindow )
 
   connect( dock, SIGNAL( visibilityChanged( bool ) ), tws, SLOT( scaleEnabled( bool ) ) );
 
-  QSettings settings;
+  QgsSettings settings;
   dock->setVisible( settings.value( "/UI/tileScaleEnabled", false ).toBool() );
 }
 
 void QgsTileScaleWidget::scaleEnabled( bool enabled )
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/UI/tileScaleEnabled", enabled );
 }

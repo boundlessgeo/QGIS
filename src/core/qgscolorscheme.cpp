@@ -20,8 +20,8 @@
 #include "qgsproject.h"
 #include "qgssymbollayerv2utils.h"
 #include "qgsapplication.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QDir>
 
 QgsColorScheme::QgsColorScheme()
@@ -64,7 +64,7 @@ QgsNamedColorList QgsRecentColorScheme::fetchColors( const QString &context, con
   Q_UNUSED( baseColor );
 
   //fetch recent colors
-  QSettings settings;
+  QgsSettings settings;
   QList< QVariant > recentColorVariants = settings.value( QString( "/colors/recent" ) ).toList();
 
   //generate list from recent colors
@@ -92,7 +92,7 @@ void QgsRecentColorScheme::addRecentColor( const QColor& color )
   QColor opaqueColor = color;
   opaqueColor.setAlpha( 255 );
 
-  QSettings settings;
+  QgsSettings settings;
   QList< QVariant > recentColorVariants = settings.value( QString( "/colors/recent" ) ).toList();
 
   //remove colors by name
@@ -135,7 +135,7 @@ QgsNamedColorList QgsCustomColorScheme::fetchColors( const QString &context, con
 
   //fetch predefined custom colors
   QgsNamedColorList colorList;
-  QSettings settings;
+  QgsSettings settings;
 
   //check if settings contains custom palette
   if ( !settings.contains( QString( "/colors/palettecolors" ) ) )
@@ -183,7 +183,7 @@ bool QgsCustomColorScheme::setColors( const QgsNamedColorList &colors, const QSt
   Q_UNUSED( baseColor );
 
   // save colors to settings
-  QSettings settings;
+  QgsSettings settings;
   QList< QVariant > customColors;
   QList< QVariant > customColorLabels;
 
@@ -377,7 +377,7 @@ QgsColorScheme::SchemeFlags QgsUserColorScheme::flags() const
 {
   QgsColorScheme::SchemeFlags f = QgsGplColorScheme::flags();
 
-  QSettings s;
+  QgsSettings s;
   QStringList showInMenuSchemes = s.value( QString( "/colors/showInMenuList" ) ).toStringList();
 
   if ( showInMenuSchemes.contains( mName ) )
@@ -402,7 +402,7 @@ bool QgsUserColorScheme::erase()
 
 void QgsUserColorScheme::setShowSchemeInMenu( bool show )
 {
-  QSettings s;
+  QgsSettings s;
   QStringList showInMenuSchemes = s.value( QString( "/colors/showInMenuList" ) ).toStringList();
 
   if ( show && !showInMenuSchemes.contains( mName ) )

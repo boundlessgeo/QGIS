@@ -17,8 +17,8 @@
 #include "qgsproject.h"
 #include "qgslogger.h"
 #include "qgsvectordataprovider.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
@@ -43,7 +43,7 @@ QgsEncodingFileDialog::QgsEncodingFileDialog( QWidget * parent,
   QString enc = encoding;
   if ( encoding.isEmpty() )
   {
-    QSettings settings;
+    QgsSettings settings;
     enc = settings.value( "/UI/encoding", "System" ).toString();
   }
 
@@ -81,7 +81,7 @@ QString QgsEncodingFileDialog::encoding() const
 
 void QgsEncodingFileDialog::saveUsedEncoding()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/UI/encoding", encoding() );
   QgsDebugMsg( QString( "Set encoding " + encoding() + " as default." ) );
 }

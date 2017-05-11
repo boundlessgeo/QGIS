@@ -14,6 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "qgssettings.h"
 #include "qgswfscapabilities.h"
 #include "qgswfsconstants.h"
 #include "qgswfsutils.h"
@@ -23,7 +24,6 @@
 #include "qgscrscache.h"
 
 #include <QDomDocument>
-#include <QSettings>
 #include <QStringList>
 
 QgsWFSCapabilities::QgsWFSCapabilities( const QString &theUri )
@@ -517,7 +517,7 @@ QString QgsWFSCapabilities::NormalizeSRSName( QString crsName )
 
 int QgsWFSCapabilities::defaultExpirationInSec()
 {
-  QSettings s;
+  QgsSettings s;
   return s.value( "/qgis/defaultCapabilitiesExpiry", "24" ).toInt() * 60 * 60;
 }
 

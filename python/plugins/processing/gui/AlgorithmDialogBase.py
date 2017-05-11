@@ -29,12 +29,12 @@ import os
 import webbrowser
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QByteArray, QUrl
-from qgis.PyQt.QtWidgets import QApplication, QDialogButtonBox, QDesktopWidget
+from qgis.PyQt.QtCore import QCoreApplication, QByteArray, QUrl
+from qgis.PyQt.QtWidgets import QApplication, QDialogButtonBox
 from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qgis.utils import iface
-from qgis.core import QgsNetworkAccessManager
+from qgis.core import QgsNetworkAccessManager, QgsSettings
 
 from processing.core.ProcessingConfig import ProcessingConfig
 
@@ -49,7 +49,7 @@ class AlgorithmDialogBase(BASE, WIDGET):
         super(AlgorithmDialogBase, self).__init__(iface.mainWindow())
         self.setupUi(self)
 
-        self.settings = QSettings()
+        self.settings = QgsSettings()
         self.restoreGeometry(self.settings.value("/Processing/dialogBase", QByteArray()))
 
         self.executed = False
@@ -99,7 +99,7 @@ class AlgorithmDialogBase(BASE, WIDGET):
                     rq = QNetworkRequest(algHelp)
                     self.reply = QgsNetworkAccessManager.instance().get(rq)
                     self.reply.finished.connect(self.requestFinished)
-            except Exception, e:
+            except Exception as e:
                 self.tabWidget.removeTab(2)
         else:
             self.tabWidget.removeTab(2)

@@ -20,9 +20,10 @@
 #include <QInputDialog>
 #include <QListView>
 #include <QMessageBox>
-#include <QSettings>
 #include <QStandardItem>
 #include <QTextStream>
+
+#include "qgssettings.h"
 #include "qgsfeature.h"
 #include "qgsfield.h"
 #include "qgssearchquerybuilder.h"
@@ -363,7 +364,7 @@ void QgsSearchQueryBuilder::on_btnILike_clicked()
 
 void QgsSearchQueryBuilder::saveQuery()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastQueryFileDir = s.value( "/UI/lastQueryFileDir", QDir::homePath() ).toString();
   //save as qqt (QGIS query file)
   QString saveFileName = QFileDialog::getSaveFileName( nullptr, tr( "Save query to file" ), lastQueryFileDir, "*.qqf" );
@@ -399,7 +400,7 @@ void QgsSearchQueryBuilder::saveQuery()
 
 void QgsSearchQueryBuilder::loadQuery()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastQueryFileDir = s.value( "/UI/lastQueryFileDir", QDir::homePath() ).toString();
 
   QString queryFileName = QFileDialog::getOpenFileName( nullptr, tr( "Load query from file" ), lastQueryFileDir, tr( "Query files" ) + " (*.qqf);;" + tr( "All files" ) + " (*)" );

@@ -19,7 +19,6 @@
 #include <QTime>
 #include <QTimer>
 #include <QtConcurrentMap>
-#include <QSettings>
 
 #include "qgscrscache.h"
 #include "qgslogger.h"
@@ -33,6 +32,7 @@
 #include "qgspallabeling.h"
 #include "qgsvectorlayerrenderer.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 QgsMapRendererJob::QgsMapRendererJob( const QgsMapSettings& settings )
     : mSettings( settings )
@@ -379,7 +379,7 @@ QImage QgsMapRendererJob::composeImage( const QgsMapSettings& settings, const La
 
 void QgsMapRendererJob::logRenderingTime( const LayerRenderJobs& jobs )
 {
-  QSettings settings;
+  QgsSettings settings;
   if ( !settings.value( "/Map/logCanvasRefreshEvent", false ).toBool() )
     return;
 

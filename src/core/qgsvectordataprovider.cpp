@@ -13,7 +13,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <QSettings>
 #include <QTextCodec>
 
 #include <cfloat> // for DBL_MAX
@@ -32,13 +31,14 @@
 #include "qgsgeometryfactory.h"
 #include "qgslogger.h"
 #include "qgsmessagelog.h"
+#include "qgssettings.h"
 
 QgsVectorDataProvider::QgsVectorDataProvider( const QString& uri )
     : QgsDataProvider( uri )
     , mCacheMinMaxDirty( true )
     , mAttrPalIndexName( QgsAttrPalIndexNameHash() )
 {
-  QSettings settings;
+  QgsSettings settings;
   setEncoding( settings.value( "/UI/encoding", "System" ).toString() );
 }
 

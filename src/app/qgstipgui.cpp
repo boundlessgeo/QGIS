@@ -15,13 +15,13 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <QSettings>
 #include <QPushButton>
 
 #include "qgstipgui.h"
+#include "qgssettings.h"
 #include "qgsapplication.h"
-#include <qgstip.h>
-#include <qgstipfactory.h>
+#include "qgstip.h"
+#include "qgstipfactory.h"
 
 #ifdef Q_OS_MACX
 QgsTipGui::QgsTipGui( QWidget *parent )
@@ -76,7 +76,7 @@ void QgsTipGui::showTip( QgsTip myTip )
 
 void QgsTipGui::on_cbxDisableTips_toggled( bool theFlag )
 {
-  QSettings settings;
+  QgsSettings settings;
   //note the ! below as when the cbx is checked (true) we want to
   //change the setting to false
   settings.setValue( QString( "/qgis/showTips%1" ).arg( QGis::QGIS_VERSION_INT / 100 ), !theFlag );

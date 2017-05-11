@@ -18,10 +18,10 @@
 #include "qgsgrass.h"
 
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 
 extern "C"
 {
@@ -55,7 +55,7 @@ QgsGrassSelect::QgsGrassSelect( QWidget *parent, int type )
     }
     else
     {
-      QSettings settings;
+      QgsSettings settings;
       lastGisdbase = settings.value( "/GRASS/lastGisdbase" ).toString();
       //check we got something from qsettings otherwise default to users home dir
       if ( lastGisdbase.isEmpty() )
@@ -425,7 +425,7 @@ void QgsGrassSelect::accept()
   }
 
   //write to qgsettings as gisdbase seems to be valid
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/GRASS/lastGisdbase", lastGisdbase );
 
   location = elocation->currentText();

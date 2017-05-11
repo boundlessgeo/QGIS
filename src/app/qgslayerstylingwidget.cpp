@@ -20,6 +20,7 @@
 #include <QUndoStack>
 #include <QListWidget>
 
+#include "qgssettings.h"
 #include "qgsapplication.h"
 #include "qgslabelingwidget.h"
 #include "qgslayerstylingwidget.h"
@@ -59,7 +60,7 @@ QgsLayerStylingWidget::QgsLayerStylingWidget( QgsMapCanvas* canvas, QList<QgsMap
 
   connect( QgsMapLayerRegistry::instance(), SIGNAL( layerWillBeRemoved( QgsMapLayer* ) ), this, SLOT( layerAboutToBeRemoved( QgsMapLayer* ) ) );
 
-  QSettings settings;
+  QgsSettings settings;
   mLiveApplyCheck->setChecked( settings.value( "UI/autoApplyStyling", true ).toBool() );
 
   mAutoApplyTimer = new QTimer( this );
@@ -455,7 +456,7 @@ void QgsLayerStylingWidget::layerAboutToBeRemoved( QgsMapLayer* layer )
 
 void QgsLayerStylingWidget::liveApplyToggled( bool value )
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "UI/autoApplyStyling", value );
 }
 
@@ -506,7 +507,7 @@ bool QgsMapLayerStyleCommand::mergeWith( const QUndoCommand* other )
 
   // only merge commands if they are created shortly after each other
   // (e.g. user keeps modifying one property)
-  QSettings settings;
+  QgsSettings settings;
   int timeout = settings.value( "/UI/styleUndoMergeTimeout", 500 ).toInt();
   if ( mTime.msecsTo( otherCmd->mTime ) > timeout )
     return false;

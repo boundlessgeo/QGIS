@@ -22,13 +22,12 @@ The content of this file is based on
  ***************************************************************************/
 """
 
-from qgis.PyQt.QtCore import Qt, QSettings, QFileInfo
+from qgis.PyQt.QtCore import Qt, QFileInfo
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QApplication
 from qgis.PyQt.QtGui import QCursor
 
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsRasterLayer, QgsMimeDataUtils, QgsMapLayer, QgsProviderRegistry, QgsCoordinateReferenceSystem, QgsVectorLayerImport
+from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsRasterLayer, QgsMimeDataUtils, QgsMapLayer, QgsProviderRegistry, QgsCoordinateReferenceSystem, QgsVectorLayerImport, QgsSettings
 from qgis.gui import QgsMessageViewer
-from qgis.utils import iface
 
 from .ui.ui_DlgImportVector import Ui_DbManagerDlgImportVector as Ui_Dialog
 
@@ -134,7 +133,7 @@ class DlgImportVector(QDialog, Ui_Dialog):
     def chooseInputFile(self):
         vectorFormats = QgsProviderRegistry.instance().fileVectorFilters()
         # get last used dir and format
-        settings = QSettings()
+        settings = QgsSettings()
         lastDir = settings.value("/db_manager/lastUsedDir", "")
         lastVectorFormat = settings.value("/UI/lastVectorFileFilter", "")
         # ask for a filename

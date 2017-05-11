@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsmessagelog.h"
 #include "qgsgeometry.h"
 #include "qgsgml.h"
@@ -29,7 +30,6 @@
 #include <QDir>
 #include <QProgressDialog>
 #include <QTimer>
-#include <QSettings>
 #include <QStyle>
 
 QgsWFSFeatureHitsAsyncRequest::QgsWFSFeatureHitsAsyncRequest( QgsWFSDataSourceURI& uri )
@@ -425,7 +425,7 @@ void QgsWFSFeatureDownloader::run( bool serializeFeatures, int maxFeatures )
 
   bool interrupted = false;
   bool truncatedResponse = false;
-  QSettings s;
+  QgsSettings s;
   const int maxRetry = s.value( "/qgis/defaultTileMaxRetry", "3" ).toInt();
   int retryIter = 0;
   int lastValidTotalDownloadedFeatureCount = 0;

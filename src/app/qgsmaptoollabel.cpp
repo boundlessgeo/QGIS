@@ -24,6 +24,8 @@
 #include "qgsvectorlayer.h"
 #include "qgsvectorlayerlabeling.h"
 #include "qgsdiagramrendererv2.h"
+#include "qgssettings.h"
+
 #include <QMouseEvent>
 
 QgsMapToolLabel::QgsMapToolLabel( QgsMapCanvas* canvas )
@@ -86,7 +88,7 @@ void QgsMapToolLabel::createRubberBands()
       const QgsGeometry* geom = f.constGeometry();
       if ( geom )
       {
-        QSettings settings;
+        QgsSettings settings;
         int r = settings.value( "/qgis/digitizing/line_color_red", 255 ).toInt();
         int g = settings.value( "/qgis/digitizing/line_color_green", 0 ).toInt();
         int b = settings.value( "/qgis/digitizing/line_color_blue", 0 ).toInt();

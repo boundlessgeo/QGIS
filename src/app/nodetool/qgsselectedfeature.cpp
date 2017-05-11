@@ -26,6 +26,7 @@
 #include <qgsmaprenderer.h>
 #include <qgslayertreeview.h>
 #include <qgsproject.h>
+#include "qgssettings.h"
 
 QgsSelectedFeature::QgsSelectedFeature( QgsFeatureId featureId,
                                         QgsVectorLayer *vlayer,
@@ -166,7 +167,7 @@ void QgsSelectedFeature::geometryChanged( QgsFeatureId fid, QgsGeometry &geom )
 void QgsSelectedFeature::validateGeometry( QgsGeometry *g )
 {
   QgsDebugCall;
-  QSettings settings;
+  QgsSettings settings;
   if ( settings.value( "/qgis/digitizing/validate_geometries", 1 ).toInt() == 0 )
     return;
 

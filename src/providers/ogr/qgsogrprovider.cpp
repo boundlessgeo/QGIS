@@ -37,7 +37,6 @@ email                : sherman at mrcc.com
 #include <QMessageBox>
 #include <QString>
 #include <QTextCodec>
-#include <QSettings>
 
 #include "qgsapplication.h"
 #include "qgscrscache.h"
@@ -49,6 +48,7 @@ email                : sherman at mrcc.com
 #include "qgscoordinatereferencesystem.h"
 #include "qgsvectorlayerimport.h"
 #include "qgslocalec.h"
+#include "qgssettings.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -390,7 +390,7 @@ QgsOgrProvider::QgsOgrProvider( QString const & uri )
 {
   QgsApplication::registerOgrDrivers();
 
-  QSettings settings;
+  QgsSettings settings;
   CPLSetConfigOption( "SHAPE_ENCODING", settings.value( "/qgis/ignoreShapeEncoding", true ).toBool() ? "" : nullptr );
 
   // make connection to the data source
@@ -777,7 +777,7 @@ QStringList QgsOgrProvider::subLayers() const
 void QgsOgrProvider::setEncoding( const QString& e )
 {
 #if defined(OLCStringsAsUTF8)
-  QSettings settings;
+  QgsSettings settings;
   if (( ogrDriverName == "ESRI Shapefile" && settings.value( "/qgis/ignoreShapeEncoding", true ).toBool() ) || !OGR_L_TestCapability( ogrLayer, OLCStringsAsUTF8 ) )
   {
     QgsVectorDataProvider::setEncoding( e );
@@ -2451,7 +2451,7 @@ QString createFilters( QString type )
     // Requires GDAL>=1.6.0 with libz support, let's assume we have it.
     // This does not work for some file types, see VSIFileHandler doc.
 #if defined(GDAL_VERSION_NUM) && GDAL_VERSION_NUM >= 1600
-    QSettings settings;
+    QgsSettings settings;
     if ( settings.value( "/qgis/scanZipInBrowser2", "basic" ).toString() != "no" )
     {
       myFileFilters.prepend( createFileFilter_( QObject::tr( "GDAL/OGR VSIFileHandler" ), "*.zip *.gz *.tar *.tar.gz *.tgz" ) );
@@ -2712,7 +2712,7 @@ QGISEXTERN bool createEmptyDataSource( const QString &uri,
   layer = OGR_DS_CreateLayer( dataSource, TO8F( QFileInfo( uri ).completeBaseName() ), reference, OGRvectortype, papszOptions );
   CSLDestroy( papszOptions );
 
-  QSettings settings;
+  QgsSettings settings;
   if ( !settings.value( "/qgis/ignoreShapeEncoding", true ).toBool() )
   {
     CPLSetConfigOption( "SHAPE_ENCODING", nullptr );
@@ -3412,7 +3412,7 @@ void QgsOgrProvider::open( OpenMode mode )
     if ( QFileInfo( mFilePath ).suffix().compare( "gpkg", Qt::CaseInsensitive ) == 0 &&
          IsLocalFile( mFilePath ) &&
          !CPLGetConfigOption( "OGR_SQLITE_JOURNAL", NULL ) &&
-         QSettings().value( "/qgis/walForSqlite3", true ).toBool() )
+         QgsSettings().value( "/qgis/walForSqlite3", true ).toBool() )
     {
       // For GeoPackage, we force opening of the file in WAL (Write Ahead Log)
       // mode so as to avoid readers blocking writer(s), and vice-versa.
@@ -3857,7 +3857,7 @@ QGISEXTERN bool saveStyle( const QString& uri, const QString& qmlStyle, const QS
 
   if ( hFeature != NULL )
   {
-    QSettings settings;
+    QgsSettings settings;
     // Only used in tests. Do not define it for interactive implication
     QVariant overwriteStyle = settings.value( "/qgis/overwriteStyle" );
     if (( !overwriteStyle.isNull() && !overwriteStyle.toBool() ) ||

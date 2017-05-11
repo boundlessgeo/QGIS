@@ -26,11 +26,9 @@
 #include "qgsmimedatautils.h"
 #include "qgslogger.h"
 #include "qgsproviderregistry.h"
-
 #include "qgsbrowsermodel.h"
 #include "qgsproject.h"
-
-#include <QSettings>
+#include "qgssettings.h"
 
 QgsBrowserWatcher::QgsBrowserWatcher( QgsDataItem *item )
     : mItem( item )
@@ -548,7 +546,7 @@ void QgsBrowserModel::removeFavourite( const QModelIndex &index )
 
 void QgsBrowserModel::hidePath( QgsDataItem *item )
 {
-  QSettings settings;
+  QgsSettings settings;
   QStringList hiddenItems = settings.value( "/browser/hiddenPaths",
                             QStringList() ).toStringList();
   int idx = hiddenItems.indexOf( item->path() );

@@ -23,9 +23,9 @@
 #include "qgsvectorlayer.h"
 #include "qgsexpressioncontext.h"
 #include "qgsgeometry.h"
+#include "qgssettings.h"
 
 #include <QMessageBox>
-#include <QSettings>
 
 QgsFieldCalculator::QgsFieldCalculator( QgsVectorLayer* vl, QWidget* parent )
     : QDialog( parent )
@@ -137,13 +137,13 @@ QgsFieldCalculator::QgsFieldCalculator( QgsVectorLayer* vl, QWidget* parent )
 
   setOkButtonState();
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/QgsFieldCalculator/geometry" ).toByteArray() );
 }
 
 QgsFieldCalculator::~QgsFieldCalculator()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/QgsFieldCalculator/geometry", saveGeometry() );
 }
 

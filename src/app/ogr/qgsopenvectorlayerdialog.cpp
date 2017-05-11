@@ -16,7 +16,6 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include <QSettings>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
@@ -25,8 +24,7 @@
 #include "qgslogger.h"
 #include "qgsopenvectorlayerdialog.h"
 #include "qgsvectordataprovider.h"
-
-#include <ogr_api.h>
+#include "qgssettings.h"
 #include "qgsproviderregistry.h"
 #include "qgsnewogrconnection.h"
 #include "qgsogrhelperfunctions.h"
@@ -45,7 +43,7 @@ QgsOpenVectorLayerDialog::QgsOpenVectorLayerDialog( QWidget* parent, Qt::WindowF
   //set encoding
   cmbEncodings->addItems( QgsVectorDataProvider::availableEncodings() );
 
-  QSettings settings;
+  QgsSettings settings;
   QString enc = settings.value( "/UI/encoding", "System" ).toString();
 
   restoreGeometry( settings.value( "/Windows/OpenVectorLayer/geometry" ).toByteArray() );
@@ -95,7 +93,7 @@ QgsOpenVectorLayerDialog::QgsOpenVectorLayerDialog( QWidget* parent, Qt::WindowF
 
 QgsOpenVectorLayerDialog::~QgsOpenVectorLayerDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/OpenVectorLayer/geometry", saveGeometry() );
 }
 
@@ -112,7 +110,7 @@ QStringList QgsOpenVectorLayerDialog::openFile()
 
 QString QgsOpenVectorLayerDialog::openDirectory()
 {
-  QSettings settings;
+  QgsSettings settings;
 
   bool haveLastUsedDir = settings.contains( "/UI/LastUsedDirectory" );
   QString lastUsedDir = settings.value( "/UI/LastUsedDirectory", QDir::homePath() ).toString();
@@ -171,7 +169,7 @@ void QgsOpenVectorLayerDialog::editConnection()
 
 void QgsOpenVectorLayerDialog::deleteConnection()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString key = '/' + cmbDatabaseTypes->currentText() + "/connections/" + cmbConnections->currentText();
   QString msg = tr( "Are you sure you want to remove the %1 connection and all associated settings?" )
                 .arg( cmbConnections->currentText() );
@@ -192,7 +190,7 @@ void QgsOpenVectorLayerDialog::deleteConnection()
 
 void QgsOpenVectorLayerDialog::populateConnectionList()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( '/' + cmbDatabaseTypes->currentText() + "/connections" );
   QStringList keys = settings.childGroups();
   QStringList::Iterator it = keys.begin();
@@ -208,7 +206,7 @@ void QgsOpenVectorLayerDialog::populateConnectionList()
 
 void QgsOpenVectorLayerDialog::setConnectionListPosition()
 {
-  QSettings settings;
+  QgsSettings settings;
   // If possible, set the item currently displayed database
 
   QString toSelect = settings.value( '/' + cmbDatabaseTypes->currentText() + "/connections/selected" ).toString();
@@ -228,7 +226,7 @@ void QgsOpenVectorLayerDialog::setConnectionListPosition()
   if ( !set && cmbConnections->count() > 0 )
   {
     // If toSelect is null, then the selected connection wasn't found
-    // by QSettings, which probably means that this is the first time
+    // by QgsSettings, which probably means that this is the first time
     // the user has used qgis with database connections, so default to
     // the first in the list of connetions. Otherwise default to the last.
     if ( toSelect.isNull() )
@@ -240,7 +238,7 @@ void QgsOpenVectorLayerDialog::setConnectionListPosition()
 
 void QgsOpenVectorLayerDialog::setConnectionTypeListPosition()
 {
-  QSettings settings;
+  QgsSettings settings;
 
   QString toSelect = settings.value( "/ogr/connections/selectedtype" ).toString();
   for ( int i = 0; i < cmbDatabaseTypes->count(); ++i )
@@ -253,7 +251,7 @@ void QgsOpenVectorLayerDialog::setConnectionTypeListPosition()
 
 void QgsOpenVectorLayerDialog::setSelectedConnectionType()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString baseKey = "/ogr/connections/";
   settings.setValue( baseKey + "selectedtype", cmbDatabaseTypes->currentText() );
   QgsDebugMsg( "Setting selected type to" + cmbDatabaseTypes->currentText() );
@@ -261,7 +259,7 @@ void QgsOpenVectorLayerDialog::setSelectedConnectionType()
 
 void QgsOpenVectorLayerDialog::setSelectedConnection()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( '/' + cmbDatabaseTypes->currentText() + "/connections/selected", cmbConnections->currentText() );
   QgsDebugMsg( "Setting selected connection to " + cmbConnections->currentText() );
 }
@@ -293,7 +291,7 @@ void QgsOpenVectorLayerDialog::on_buttonSelectSrc_clicked()
 //********************auto connected slots *****************/
 void QgsOpenVectorLayerDialog::accept()
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "dialog button accepted" );
 
   mDataSources.clear();

@@ -18,6 +18,7 @@
 #ifndef QGSOPTIONS_H
 #define QGSOPTIONS_H
 
+#include "qgssettings.h"
 #include "qgsoptionsdialogbase.h"
 #include "ui_qgsoptionsbase.h"
 #include "qgisgui.h"
@@ -31,6 +32,7 @@
 #include <QList>
 
 class QgsExpressionContext;
+class QgsSettings;
 
 /**
  * \class QgsOptions
@@ -221,7 +223,7 @@ class APP_EXPORT QgsOptions : public QgsOptionsDialogBase, private Ui::QgsOption
     void on_mButtonExportColors_clicked();
 
   private:
-    QSettings *mSettings;
+    QgsSettings *mSettings;
     QStringList i18nList();
     void initContrastEnhancement( QComboBox *cbox, const QString& name, const QString& defaultVal );
     void saveContrastEnhancement( QComboBox *cbox, const QString& name );

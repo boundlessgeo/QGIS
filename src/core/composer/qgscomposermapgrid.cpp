@@ -29,6 +29,7 @@
 #include "qgslogger.h"
 #include "qgsfontutils.h"
 #include "qgsexpressioncontext.h"
+#include "qgssettings.h"
 
 #include <QPainter>
 #include <QPen>
@@ -219,7 +220,7 @@ void QgsComposerMapGrid::init()
   mBlendMode = QPainter::CompositionMode_SourceOver;
 
   //get default composer font from settings
-  QSettings settings;
+  QgsSettings settings;
   QString defaultFontString = settings.value( "/Composer/defaultFont" ).toString();
   if ( !defaultFontString.isEmpty() )
   {

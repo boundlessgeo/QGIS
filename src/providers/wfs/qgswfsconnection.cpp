@@ -16,15 +16,14 @@
 #include "qgswfsconnection.h"
 #include "qgswfsconstants.h"
 #include "qgslogger.h"
-
-#include <QSettings>
+#include "qgssettings.h"
 
 QgsWFSConnection::QgsWFSConnection( const QString & theConnName )
     : QgsOWSConnection( "WFS", theConnName )
 {
   const QString& key = QgsWFSConstants::CONNECTIONS_WFS + mConnName;
 
-  QSettings settings;
+  QgsSettings settings;
 
   const QString& version = settings.value( key + "/" + QgsWFSConstants::SETTINGS_VERSION ).toString();
   if ( !version.isEmpty() )

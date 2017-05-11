@@ -21,6 +21,7 @@
 %Include qgsannotation.sip
 %Include qgsapplication.sip
 %Include qgsaction.sip
+%Include qgssettings.sip
 %Include qgsactionmanager.sip
 %Include qgsaggregatecalculator.sip
 %Include qgsattributeaction.sip
