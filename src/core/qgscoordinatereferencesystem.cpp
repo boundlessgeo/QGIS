@@ -28,7 +28,6 @@
 #include <QRegExp>
 #include <QTextStream>
 #include <QFile>
-#include <QSettings>
 
 #include "qgsapplication.h"
 #include "qgscrscache.h"
@@ -36,6 +35,7 @@
 #include "qgsmessagelog.h"
 #include "qgis.h" //const vals declared here
 #include "qgslocalec.h"
+#include "qgssettings.h"
 
 #include <sqlite3.h>
 #include <proj_api.h>
@@ -1512,7 +1512,7 @@ bool QgsCoordinateReferenceSystem::saveAsUserCRS( const QString& name )
     setInternalId( return_id );
 
     //We add the just created user CRS to the list of recently used CRS
-    QSettings settings;
+    QgsSettings settings;
     //QStringList recentProjections = settings.value( "/UI/recentProjections" ).toStringList();
     QStringList projectionsProj4 = settings.value( "/UI/recentProjectionsProj4" ).toStringList();
     QStringList projectionsAuthId = settings.value( "/UI/recentProjectionsAuthId" ).toStringList();
@@ -2166,7 +2166,7 @@ QStringList QgsCoordinateReferenceSystem::recentProjections()
   QStringList projections;
 
   // Read settings from persistent storage
-  QSettings settings;
+  QgsSettings settings;
   projections = settings.value( "/UI/recentProjections" ).toStringList();
   /*** The reading (above) of internal id from persistent storage should be removed sometime in the future */
   /*** This is kept now for backwards compatibility */

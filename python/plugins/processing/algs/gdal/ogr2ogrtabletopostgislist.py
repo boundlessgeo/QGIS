@@ -25,7 +25,7 @@ __copyright__ = '(C) 2012, Victor Olaya'
 
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QSettings
+from qgis.core import QgsSettings
 
 from processing.core.parameters import ParameterString
 from processing.core.parameters import ParameterTable
@@ -70,7 +70,7 @@ class Ogr2OgrTableToPostGisList(GdalAlgorithm):
         self.processing = False
 
     def dbConnectionNames(self):
-        settings = QSettings()
+        settings = QgsSettings()
         settings.beginGroup('/PostgreSQL/connections/')
         return settings.childGroups()
 

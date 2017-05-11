@@ -229,6 +229,7 @@ SET(QGIS_CORE_SRCS
   qgsvirtuallayerdefinitionutils.cpp
   qgsvisibilitypresetcollection.cpp
   qgsxmlutils.cpp
+  qgssettings.cpp
 
   composer/qgsaddremoveitemcommand.cpp
   composer/qgsaddremovemultiframecommand.cpp
@@ -503,6 +504,7 @@ SET(QGIS_CORE_MOC_HDRS
   qgsvisibilitypresetcollection.h
   qgswebpage.h
   qgswebview.h
+  qgssettings.h
 
   auth/qgsauthmanager.h
   auth/qgsauthmethod.h

@@ -31,12 +31,13 @@
 #include "qgsspatialquery.h"
 #include "qgsrubberselectid.h"
 #include "qgsmngprogressbar.h"
+#include "qgssettings.h"
 
 QgsSpatialQueryDialog::QgsSpatialQueryDialog( QWidget* parent, QgisInterface* iface ): QDialog( parent )
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "SpatialQuery/geometry" ).toByteArray() );
 
   mLayerReference = mLayerTarget = nullptr;
@@ -49,7 +50,7 @@ QgsSpatialQueryDialog::QgsSpatialQueryDialog( QWidget* parent, QgisInterface* if
 
 QgsSpatialQueryDialog::~QgsSpatialQueryDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "SpatialQuery/geometry", saveGeometry() );
 
   disconnectAll();

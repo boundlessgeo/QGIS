@@ -29,7 +29,10 @@ import os
 import shutil
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from qgis.PyQt.QtCore import QSettings, QFileInfo
+from qgis.PyQt.QtCore import QFileInfo
+
+from qgis.core import QgsSettings
+
 from processing.gui.ToolboxAction import ToolboxAction
 from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
 from processing.modeler.WrongModelException import WrongModelException
@@ -49,7 +52,7 @@ class AddModelFromFileAction(ToolboxAction):
         return QIcon(os.path.join(pluginPath, 'images', 'model.png'))
 
     def execute(self):
-        settings = QSettings()
+        settings = QgsSettings()
         lastDir = settings.value('Processing/lastModelsDir', '')
         filename = QFileDialog.getOpenFileName(self.toolbox,
                                                self.tr('Open model', 'AddModelFromFileAction'), lastDir,

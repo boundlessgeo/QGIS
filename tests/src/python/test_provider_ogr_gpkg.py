@@ -20,8 +20,8 @@ import shutil
 import glob
 from osgeo import gdal, ogr
 
-from qgis.PyQt.QtCore import QCoreApplication, QSettings
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsFeatureRequest, QgsRectangle
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsFeatureRequest, QgsRectangle, QgsSettings
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 
@@ -52,14 +52,14 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
         QCoreApplication.setOrganizationName("QGIS_Test")
         QCoreApplication.setOrganizationDomain("TestPyQgsOGRProviderGpkg.com")
         QCoreApplication.setApplicationName("TestPyQgsOGRProviderGpkg")
-        QSettings().clear()
+        QgsSettings().clear()
         start_app()
 
     @classmethod
     def tearDownClass(cls):
         """Run after all tests"""
         shutil.rmtree(cls.basetestpath, True)
-        QSettings().clear()
+        QgsSettings().clear()
 
     def testSingleToMultiPolygonPromotion(self):
 
@@ -231,7 +231,7 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
 
     def testDisablewalForSqlite3(self):
         ''' Test disabling walForSqlite3 setting '''
-        QSettings().setValue("/qgis/walForSqlite3", False)
+        QgsSettings().setValue("/qgis/walForSqlite3", False)
 
         tmpfile = os.path.join(self.basetestpath, 'testDisablewalForSqlite3.gpkg')
         ds = ogr.GetDriverByName('GPKG').CreateDataSource(tmpfile)
@@ -266,7 +266,7 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
         self.assertIsNone(cbk.msg)
         vl = None
 
-        QSettings().setValue("/qgis/walForSqlite3", None)
+        QgsSettings().setValue("/qgis/walForSqlite3", None)
 
 
 if __name__ == '__main__':

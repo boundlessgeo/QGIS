@@ -14,9 +14,9 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "qgssettings.h"
 #include "qgsnewhttpconnection.h"
 #include "qgscontexthelp.h"
-#include <QSettings>
 #include <QMessageBox>
 #include <QUrl>
 #include <QPushButton>
@@ -64,7 +64,7 @@ QgsNewHttpConnection::QgsNewHttpConnection(
     // populate the dialog with the information stored for the connection
     // populate the fields with the stored setting parameters
 
-    QSettings settings;
+    QgsSettings settings;
 
     QString key = mBaseKey + connName;
     QString credentialsKey = "/Qgis/" + mCredentialsBaseKey + '/' + connName;
@@ -201,7 +201,7 @@ void QgsNewHttpConnection::on_txtUrl_textChanged( const QString &text )
 
 void QgsNewHttpConnection::accept()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString key = mBaseKey + txtName->text();
   QString credentialsKey = "/Qgis/" + mCredentialsBaseKey + '/' + txtName->text();
 

@@ -28,6 +28,7 @@
 #include "qgsvectordataprovider.h"
 #include "qgsgpsplugin.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -37,7 +38,6 @@
 #include <QToolBar>
 #include <QProcess>
 #include <QProgressDialog>
-#include <QSettings>
 #include <QStringList>
 
 //non qt includes
@@ -166,7 +166,7 @@ void QgsGPSPlugin::run()
 
 void QgsGPSPlugin::createGPX()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString dir = settings.value( "/Plugin-GPS/gpxdirectory", QDir::homePath() ).toString();
   QString fileName =
     QFileDialog::getSaveFileName( mQGisInterface->mainWindow(),
@@ -481,7 +481,7 @@ void QgsGPSPlugin::downloadFromGPS( const QString& device, const QString& port,
                           layerName, "gpx" );
 
   // everything was OK, remember the device and port for next time
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Plugin-GPS/lastdldevice", device );
   settings.setValue( "/Plugin-GPS/lastdlport", port );
 
@@ -560,7 +560,7 @@ void QgsGPSPlugin::uploadToGPS( QgsVectorLayer* gpxLayer, const QString& device,
   }
 
   // everything was OK, remember this device for next time
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Plugin-GPS/lastuldevice", device );
   settings.setValue( "/Plugin-GPS/lastulport", port );
 
@@ -570,7 +570,7 @@ void QgsGPSPlugin::uploadToGPS( QgsVectorLayer* gpxLayer, const QString& device,
 void QgsGPSPlugin::setupBabel()
 {
   // where is gpsbabel?
-  QSettings settings;
+  QgsSettings settings;
   mBabelPath = settings.value( "/Plugin-GPS/gpsbabelpath", QString() ).toString();
   if ( mBabelPath.isEmpty() )
     mBabelPath = "gpsbabel";

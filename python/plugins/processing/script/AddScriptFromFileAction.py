@@ -29,7 +29,9 @@ import os
 
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtCore import QSettings, QFileInfo
+from qgis.PyQt.QtCore import QFileInfo
+
+from qgis.core import QgsSettings
 
 from processing.script.ScriptAlgorithm import ScriptAlgorithm
 from processing.gui.ToolboxAction import ToolboxAction
@@ -50,7 +52,7 @@ class AddScriptFromFileAction(ToolboxAction):
         return QIcon(os.path.join(pluginPath, 'images', 'script.png'))
 
     def execute(self):
-        settings = QSettings()
+        settings = QgsSettings()
         lastDir = settings.value('Processing/lastScriptsDir', '')
         filename = QFileDialog.getOpenFileName(self.toolbox,
                                                self.tr('Script files', 'AddScriptFromFileAction'), lastDir,

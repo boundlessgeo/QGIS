@@ -19,12 +19,13 @@ email                : lrssvtml (at) gmail (dot) com
 Some portions of code were taken from https://code.google.com/p/pydee/
 """
 
-from qgis.PyQt.QtCore import QCoreApplication, QSize, QSettings, QFileInfo, Qt
+from qgis.PyQt.QtCore import QCoreApplication, QSize, QFileInfo, Qt
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QTableWidgetItem
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
 from .console_compile_apis import PrepareAPIDialog
 
 from .ui_console_settings import Ui_SettingsDialogPythonConsole
+from qgis.core import QgsSettings
 
 
 class optionsDialog(QDialog, Ui_SettingsDialogPythonConsole):
@@ -71,7 +72,7 @@ class optionsDialog(QDialog, Ui_SettingsDialogPythonConsole):
         self.groupBoxPreparedAPI.setEnabled(value)
 
     def loadAPIFile(self):
-        settings = QSettings()
+        settings = QgsSettings()
         lastDirPath = settings.value("pythonConsole/lastDirAPIPath", "", type=str)
         fileAPI = QFileDialog.getOpenFileName(
             self, "Open API File", lastDirPath, "API file (*.api)")
@@ -137,7 +138,7 @@ class optionsDialog(QDialog, Ui_SettingsDialogPythonConsole):
             self.tableWidget.removeRow(index.row())
 
     def saveSettings(self):
-        settings = QSettings()
+        settings = QgsSettings()
         settings.setValue("pythonConsole/preloadAPI", self.preloadAPI.isChecked())
         settings.setValue("pythonConsole/autoSaveScript", self.autoSaveScript.isChecked())
 
@@ -217,7 +218,7 @@ class optionsDialog(QDialog, Ui_SettingsDialogPythonConsole):
         settings.setValue("pythonConsole/tripleDoubleQuoteFontColorEditor", self.tripleDoubleQuoteFontColorEditor.color())
 
     def restoreSettings(self):
-        settings = QSettings()
+        settings = QgsSettings()
         self.spinBox.setValue(settings.value("pythonConsole/fontsize", 10, type=int))
         self.spinBoxEditor.setValue(settings.value("pythonConsole/fontsizeEditor", 10, type=int))
         self.fontComboBox.setCurrentFont(QFont(settings.value("pythonConsole/fontfamilytext",

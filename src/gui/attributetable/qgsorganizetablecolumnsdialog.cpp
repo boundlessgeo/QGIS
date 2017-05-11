@@ -39,6 +39,7 @@
 #include "qgsrubberband.h"
 #include "qgsfield.h"
 #include "qgseditorwidgetregistry.h"
+#include "qgssettings.h"
 
 
 QgsOrganizeTableColumnsDialog::QgsOrganizeTableColumnsDialog( const QgsVectorLayer* vl, QWidget* parent, Qt::WindowFlags flags )
@@ -97,13 +98,13 @@ QgsOrganizeTableColumnsDialog::QgsOrganizeTableColumnsDialog( const QgsVectorLay
   }
 
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/QgsOrganizeTableColumnsDialog/geometry" ).toByteArray() );
 }
 
 QgsOrganizeTableColumnsDialog::~QgsOrganizeTableColumnsDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/QgsOrganizeTableColumnsDialog/geometry", saveGeometry() );
 }
 

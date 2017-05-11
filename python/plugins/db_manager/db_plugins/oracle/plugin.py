@@ -26,11 +26,11 @@ The content of this file is based on
 # this will disable the dbplugin if the connector raise an ImportError
 from .connector import OracleDBConnector
 
-from qgis.PyQt.QtCore import Qt, QSettings
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon, QKeySequence
 from qgis.PyQt.QtWidgets import QAction, QApplication, QMessageBox
 
-from qgis.core import QgsVectorLayer, NULL
+from qgis.core import QgsVectorLayer, NULL, QgsSettings
 
 from ..plugin import ConnectionError, InvalidDataException, DBPlugin, \
     Database, Schema, Table, VectorTable, TableField, TableConstraint, \
@@ -78,7 +78,7 @@ class OracleDBPlugin(DBPlugin):
 
     def connect(self, parent=None):
         conn_name = self.connectionName()
-        settings = QSettings()
+        settings = QgsSettings()
         settings.beginGroup(u"/{0}/{1}".format(
                             self.connectionSettingsKey(), conn_name))
 

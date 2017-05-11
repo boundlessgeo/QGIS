@@ -18,8 +18,8 @@
 #include "qgsrasterpyramidsoptionswidget.h"
 #include "qgslogger.h"
 #include "qgsdialog.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QTextEdit>
@@ -47,7 +47,7 @@ QgsRasterPyramidsOptionsWidget::~QgsRasterPyramidsOptionsWidget()
 
 void QgsRasterPyramidsOptionsWidget::updateUi()
 {
-  QSettings mySettings;
+  QgsSettings mySettings;
   QString prefix = mProvider + "/driverOptions/_pyramids/";
   QString tmpStr;
 
@@ -121,7 +121,7 @@ QString QgsRasterPyramidsOptionsWidget::resamplingMethod() const
 
 void QgsRasterPyramidsOptionsWidget::apply()
 {
-  QSettings mySettings;
+  QgsSettings mySettings;
   QString prefix = mProvider + "/driverOptions/_pyramids/";
   QString tmpStr;
 

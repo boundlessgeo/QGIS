@@ -55,7 +55,7 @@ TestQgisAppPython::TestQgisAppPython()
 //runs before all tests
 void TestQgisAppPython::initTestCase()
 {
-  // Set up the QSettings environment
+  // Set up the QgsSettings environment
   QCoreApplication::setOrganizationName( "QGIS" );
   QCoreApplication::setOrganizationDomain( "qgis.org" );
   QCoreApplication::setApplicationName( "QGIS-TEST" );

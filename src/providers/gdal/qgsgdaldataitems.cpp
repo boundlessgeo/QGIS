@@ -15,9 +15,9 @@
 #include "qgsgdaldataitems.h"
 #include "qgsgdalprovider.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QFileInfo>
-#include <QSettings>
 
 // defined in qgsgdalprovider.cpp
 void buildSupportedRasterFileFilterAndExtensions( QString & theFileFiltersString, QStringList & theExtensions, QStringList & theWildcards );
@@ -146,7 +146,7 @@ QGISEXTERN QgsDataItem * dataItem( QString thePath, QgsDataItem* parentItem )
   QgsDebugMsgLevel( "thePath = " + thePath, 2 );
 
   // zip settings + info
-  QSettings settings;
+  QgsSettings settings;
   QString scanZipSetting = settings.value( "/qgis/scanZipInBrowser2", "basic" ).toString();
   QString vsiPrefix = QgsZipItem::vsiPrefix( thePath );
   bool is_vsizip = ( vsiPrefix == "/vsizip/" );

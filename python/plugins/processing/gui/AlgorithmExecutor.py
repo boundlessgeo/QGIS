@@ -29,7 +29,7 @@ __revision__ = '$Format:%H$'
 import sys
 
 from qgis.PyQt.QtCore import QSettings, QCoreApplication
-from qgis.core import QgsFeature, QgsVectorFileWriter
+from qgis.core import QgsFeature, QgsVectorFileWriter, QgsSettings
 from processing.core.ProcessingLog import ProcessingLog
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
 from processing.gui.Postprocessing import handleAlgorithmResults
@@ -37,6 +37,7 @@ from processing.tools import dataobjects
 from processing.tools.system import getTempFilename
 from processing.tools import vector
 from processing.core.SilentProgress import SilentProgress
+
 
 def runalg(alg, progress=None):
     """Executes a given algorithm, showing its progress in the
@@ -57,7 +58,7 @@ def runalg(alg, progress=None):
 
 def runalgIterating(alg, paramToIter, progress):
     # Generate all single-feature layers
-    settings = QSettings()
+    settings = QgsSettings()
     systemEncoding = settings.value('/UI/encoding', 'System')
     layerfile = alg.getParameterValue(paramToIter)
     layer = dataobjects.getObjectFromUri(layerfile, False)

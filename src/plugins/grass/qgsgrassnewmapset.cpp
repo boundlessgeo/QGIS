@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsgrassnewmapset.h"
 #include "qgsgrassplugin.h"
 #include "qgsgrass.h"
@@ -33,7 +34,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QRegExp>
-#include <QSettings>
 #include <QTextStream>
 
 
@@ -95,7 +95,7 @@ QgsGrassNewMapset::QgsGrassNewMapset( QgisInterface *iface,
   setError( mMapsetErrorLabel );
 
   // DATABASE
-  QSettings settings;
+  QgsSettings settings;
   QString gisdbase = settings.value( "/GRASS/lastGisdbase" ).toString();
   if ( gisdbase.isEmpty() )
   {
@@ -125,7 +125,7 @@ QgsGrassNewMapset::QgsGrassNewMapset( QgisInterface *iface,
 
 QgsGrassNewMapset::~QgsGrassNewMapset()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/QgsGrassNewMapset/geometry", saveGeometry() );
   mRunning = false;
 }
@@ -145,7 +145,7 @@ void QgsGrassNewMapset::browseDatabase()
 void QgsGrassNewMapset::databaseChanged()
 {
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/GRASS/lastGisdbase", mDatabaseLineEdit->text() );
 
   button( QWizard::NextButton )->setEnabled( false );
@@ -221,7 +221,7 @@ void QgsGrassNewMapset::setLocations()
 
   mLocationComboBox->clear();
 
-  QSettings settings;
+  QgsSettings settings;
   QString lastLocation = settings.value( "/GRASS/lastLocation" ).toString();
 
   if ( gisdbaseExists() )
@@ -1181,7 +1181,7 @@ void QgsGrassNewMapset::mapsetChanged()
 void QgsGrassNewMapset::on_mOpenNewMapsetCheckBox_stateChanged( int state )
 {
   Q_UNUSED( state );
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/GRASS/newMapsetWizard/openMapset", mOpenNewMapsetCheckBox->isChecked() );
 }
 

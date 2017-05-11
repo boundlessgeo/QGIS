@@ -25,11 +25,10 @@
 #include <QTreeWidgetItem>
 #include <QVector>
 #include <QStyle>
-#include <QSettings>
 
+#include "qgssettings.h"
 #include "qgscptcityarchive.h"
 #include "qgis.h"
-
 #include "qgsdataprovider.h"
 #include "qgslogger.h"
 #include "qgsconfig.h"
@@ -122,7 +121,7 @@ QString QgsCptCityArchive::baseDir( QString archiveName )
 QString QgsCptCityArchive::defaultBaseDir()
 {
   QString baseDir, archiveName;
-  QSettings settings;
+  QgsSettings settings;
 
   // use CptCity/baseDir setting if set, default is user dir
   baseDir = settings.value( "CptCity/baseDir",
@@ -413,7 +412,7 @@ bool QgsCptCityArchive::isEmpty()
 
 QgsCptCityArchive* QgsCptCityArchive::defaultArchive()
 {
-  QSettings settings;
+  QgsSettings settings;
   mDefaultArchiveName = settings.value( "CptCity/archiveName", DEFAULT_CPTCITY_ARCHIVE ).toString();
   if ( QgsCptCityArchive::mArchiveRegistry.contains( mDefaultArchiveName ) )
     return QgsCptCityArchive::mArchiveRegistry.value( mDefaultArchiveName );
@@ -432,7 +431,7 @@ void QgsCptCityArchive::initArchive( const QString& archiveName, const QString& 
 
 void QgsCptCityArchive::initDefaultArchive()
 {
-  QSettings settings;
+  QgsSettings settings;
   // use CptCity/baseDir setting if set, default is user dir
   QString baseDir = settings.value( "CptCity/baseDir",
                                     QgsApplication::pkgDataPath() + "/resources" ).toString();
@@ -447,7 +446,7 @@ void QgsCptCityArchive::initArchives( bool loadAll )
 {
   QgsStringMap archivesMap;
   QString baseDir, defArchiveName;
-  QSettings settings;
+  QgsSettings settings;
 
   // use CptCity/baseDir setting if set, default is user dir
   baseDir = settings.value( "CptCity/baseDir",

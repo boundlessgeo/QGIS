@@ -116,6 +116,7 @@ ADD_PYTHON_TEST(PyQgsWFSProviderGUI test_provider_wfs_gui.py)
 ADD_PYTHON_TEST(PyQgsConsole test_console.py)
 ADD_PYTHON_TEST(PyQgsDBManagerGpkg test_db_manager_gpkg.py)
 ADD_PYTHON_TEST(PyQgsFileDownloader test_qgsfiledownloader.py)
+ADD_PYTHON_TEST(PyQgsSettings test_qgssettings.py)
 
 IF (NOT WIN32)
   ADD_PYTHON_TEST(PyQgsLogger test_qgslogger.py)

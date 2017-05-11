@@ -23,6 +23,8 @@
 #include "qgscomposition.h"
 #include "qgsexpressionbuilderdialog.h"
 #include "qgssvgcache.h"
+#include "qgssettings.h"
+
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -30,7 +32,6 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QProgressDialog>
-#include <QSettings>
 #include <QSvgRenderer>
 
 QgsComposerPictureWidget::QgsComposerPictureWidget( QgsComposerPicture* picture ): QgsComposerItemBaseWidget( nullptr, picture ), mPicture( picture ), mPreviewsLoaded( false )
@@ -97,7 +98,7 @@ QgsComposerPictureWidget::~QgsComposerPictureWidget()
 
 void QgsComposerPictureWidget::on_mPictureBrowseButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString openDir;
   QString lineEditText = mPictureLineEdit->text();
   if ( !lineEditText.isEmpty() )
@@ -200,7 +201,7 @@ void QgsComposerPictureWidget::on_mAddDirectoryButton_clicked()
   addDirectoryToPreview( directory );
 
   //update the image directory list in the settings
-  QSettings s;
+  QgsSettings s;
   QStringList userDirList = s.value( "/Composer/PictureWidgetDirectories" ).toStringList();
   if ( !userDirList.contains( directory ) )
   {
@@ -229,7 +230,7 @@ void QgsComposerPictureWidget::on_mRemoveDirectoryButton_clicked()
   }
 
   //update the image directory list in the settings
-  QSettings s;
+  QgsSettings s;
   QStringList userDirList = s.value( "/Composer/PictureWidgetDirectories" ).toStringList();
   userDirList.removeOne( directoryToRemove );
   s.setValue( "/Composer/PictureWidgetDirectories", userDirList );
@@ -614,7 +615,7 @@ void QgsComposerPictureWidget::addStandardDirectoriesToPreview()
   }
 
   //include additional user-defined directories for images
-  QSettings s;
+  QgsSettings s;
   QStringList userDirList = s.value( "/Composer/PictureWidgetDirectories" ).toStringList();
   QStringList::const_iterator userDirIt = userDirList.constBegin();
   for ( ; userDirIt != userDirList.constEnd(); ++userDirIt )

@@ -20,8 +20,8 @@ import osgeo.gdal
 import osgeo.ogr
 import sys
 
-from qgis.core import QgsFeature, QgsField, QgsGeometry, QgsVectorLayer, QgsFeatureRequest, QgsVectorDataProvider
-from qgis.PyQt.QtCore import QSettings, QVariant
+from qgis.core import QgsSettings, QgsFeature, QgsField, QgsGeometry, QgsVectorLayer, QgsFeatureRequest, QgsVectorDataProvider
+from qgis.PyQt.QtCore import QVariant
 from qgis.testing import start_app, unittest
 from utilities import unitTestDataPath
 from providertestbase import ProviderTestCase
@@ -77,10 +77,10 @@ class TestPyQgsShapefileProvider(unittest.TestCase, ProviderTestCase):
             shutil.rmtree(dirname, True)
 
     def enableCompiler(self):
-        QSettings().setValue(u'/qgis/compileExpressions', True)
+        QgsSettings().setValue(u'/qgis/compileExpressions', True)
 
     def disableCompiler(self):
-        QSettings().setValue(u'/qgis/compileExpressions', False)
+        QgsSettings().setValue(u'/qgis/compileExpressions', False)
 
     def uncompiledFilters(self):
         filters = set(['name ILIKE \'QGIS\'',

@@ -24,6 +24,7 @@
 #include "qgisinterface.h"
 #include "qgsapplication.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QCloseEvent>
 #include <QDomDocument>
@@ -31,7 +32,6 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QPainter>
-#include <QSettings>
 
 
 //
@@ -619,14 +619,14 @@ void QgsGrassTools::closeEvent( QCloseEvent *e )
 
 void QgsGrassTools::restorePosition()
 {
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/GRASS/windows/tools/geometry" ).toByteArray() );
   show();
 }
 
 void QgsGrassTools::saveWindowLocation()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/GRASS/windows/tools/geometry", saveGeometry() );
 }
 

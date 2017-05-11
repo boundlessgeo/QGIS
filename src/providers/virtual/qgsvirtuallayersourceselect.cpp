@@ -16,6 +16,7 @@ email                : hugo dot mercier at oslandia dot com
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsvirtuallayersourceselect.h"
 
 #include <layertree/qgslayertreeview.h>
@@ -254,7 +255,7 @@ void QgsVirtualLayerSourceSelect::onAddLayer()
 
   QComboBox* encodingCombo = new QComboBox();
   encodingCombo->addItems( QgsVectorDataProvider::availableEncodings() );
-  QString defaultEnc = QSettings().value( "/UI/encoding", "System" ).toString();
+  QString defaultEnc = QgsSettings().value( "/UI/encoding", "System" ).toString();
   encodingCombo->setCurrentIndex( encodingCombo->findText( defaultEnc ) );
   mLayersTable->setCellWidget( mLayersTable->rowCount() - 1, 2, encodingCombo );
 }

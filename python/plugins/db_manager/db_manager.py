@@ -24,11 +24,12 @@ The content of this file is based on
 
 import functools
 
-from qgis.PyQt.QtCore import Qt, QSettings, QByteArray, QSize
+from qgis.PyQt.QtCore import Qt, QByteArray, QSize
 from qgis.PyQt.QtWidgets import QMainWindow, QApplication, QMenu, QTabWidget, QGridLayout, QSpacerItem, QSizePolicy, QDockWidget, QStatusBar, QMenuBar, QToolBar, QTabBar
 from qgis.PyQt.QtGui import QIcon, QKeySequence
 
 from qgis.gui import QgsMessageBar
+from qgis.core import QgsSettings
 from .info_viewer import InfoViewer
 from .table_viewer import TableViewer
 from .layer_preview import LayerPreview
@@ -48,7 +49,7 @@ class DBManager(QMainWindow):
         self.iface = iface
 
         # restore the window state
-        settings = QSettings()
+        settings = QgsSettings()
         self.restoreGeometry(settings.value("/DB_Manager/mainWindow/geometry", QByteArray(), type=QByteArray))
         self.restoreState(settings.value("/DB_Manager/mainWindow/windowState", QByteArray(), type=QByteArray))
 
@@ -62,7 +63,7 @@ class DBManager(QMainWindow):
         self.preview.loadPreview(None)
 
         # save the window state
-        settings = QSettings()
+        settings = QgsSettings()
         settings.setValue("/DB_Manager/mainWindow/windowState", self.saveState())
         settings.setValue("/DB_Manager/mainWindow/geometry", self.saveGeometry())
 

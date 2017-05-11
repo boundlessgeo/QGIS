@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgisapp.h"
 #include "qgsapplication.h"
 #include "qgsmapcanvas.h"
@@ -1205,7 +1206,7 @@ bool QgsComposerMapWidget::hasPredefinedScales() const
   if ( !hasProjectScales || scales.isEmpty() )
   {
     // default to global map tool scales
-    QSettings settings;
+    QgsSettings settings;
     QString scalesStr( settings.value( "Map/scales", PROJECT_SCALES ).toString() );
     QStringList myScalesList = scalesStr.split( ',' );
     return !myScalesList.isEmpty() && myScalesList[0] != "";

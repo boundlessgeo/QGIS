@@ -23,6 +23,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QHeaderView>
+#include "qgssettings.h"
 #include "ui_qgspluginmanagerbase.h"
 #include "qgsoptionsdialogbase.h"
 #include "qgisgui.h"
@@ -61,7 +62,7 @@ class QgsPluginManager : public QgsOptionsDialogBase, private Ui::QgsPluginManag
     //! Unload unselected plugin
     void unloadPlugin( const QString& id );
 
-    //! Save plugin enabled/disabled state to QSettings
+    //! Save plugin enabled/disabled state to QgsSettings
     void savePluginState( QString id, bool state );
 
     //! Get metadata of C++ plugins
@@ -183,7 +184,7 @@ class QgsPluginManager : public QgsOptionsDialogBase, private Ui::QgsPluginManag
     //! Load translated descriptions. Source strings implemented in external qgspluginmanager_texts.cpp
     void initTabDescriptions();
 
-    //! Return true if given plugin is enabled in QSettings
+    //! Return true if given plugin is enabled in QgsSettings
     bool isPluginEnabled( QString key );
 
     //! Return true if there are plugins available for download in the metadata registry

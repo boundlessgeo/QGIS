@@ -25,8 +25,8 @@ __revision__ = '$Format:%H$'
 
 import os
 import yaml
-from qgis.core import QGis
-from qgis.PyQt.QtCore import QSettings, QLocale
+from qgis.core import QGis, QgsSettings
+from qgis.PyQt.QtCore import QLocale
 
 
 def loadShortHelp():
@@ -38,11 +38,11 @@ def loadShortHelp():
             with open(filename) as stream:
                 h.update(yaml.load(stream))
     version = ".".join(QGis.QGIS_VERSION.split(".")[0:2])
-    overrideLocale = QSettings().value('locale/overrideFlag', False, bool)
+    overrideLocale = QgsSettings().value('locale/overrideFlag', False, bool)
     if not overrideLocale:
         locale = QLocale.system().name()[:2]
     else:
-        locale = QSettings().value('locale/userLocale', '')
+        locale = QgsSettings().value('locale/userLocale', '')
     locale = locale.split("_")[0]
 
     def replace(s):

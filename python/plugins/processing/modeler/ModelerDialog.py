@@ -30,10 +30,10 @@ import sys
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt, QRectF, QMimeData, QPoint, QPointF, QSettings, QByteArray
+from qgis.PyQt.QtCore import Qt, QRectF, QMimeData, QPoint, QPointF, QByteArray
 from qgis.PyQt.QtWidgets import QGraphicsView, QTreeWidget, QMessageBox, QFileDialog, QTreeWidgetItem
 from qgis.PyQt.QtGui import QIcon, QImage, QPainter
-from qgis.core import QgsApplication
+from qgis.core import QgsApplication, QgsSettings
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.ProcessingLog import ProcessingLog
 from processing.gui.HelpEditionDialog import HelpEditionDialog
@@ -59,13 +59,11 @@ class ModelerDialog(BASE, WIDGET):
         super(ModelerDialog, self).__init__(None)
         self.setupUi(self)
 
-        self.zoom = 1
-
         self.setWindowFlags(Qt.WindowMinimizeButtonHint |
                             Qt.WindowMaximizeButtonHint |
                             Qt.WindowCloseButtonHint)
 
-        settings = QSettings()
+        settings = QgsSettings()
         self.splitter.restoreState(settings.value("/Processing/splitterModeler", QByteArray()))
         self.restoreGeometry(settings.value("/Processing/geometryModeler", QByteArray()))
 
@@ -206,7 +204,7 @@ class ModelerDialog(BASE, WIDGET):
         self.hasChanged = False
 
     def closeEvent(self, evt):
-        settings = QSettings()
+        settings = QgsSettings()
         settings.setValue("/Processing/splitterModeler", self.splitter.saveState())
         settings.setValue("/Processing/geometryModeler", self.saveGeometry())
 

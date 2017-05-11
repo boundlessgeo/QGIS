@@ -29,10 +29,10 @@ import os
 import re
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt, QSettings
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QApplication, QMessageBox
 from qgis.PyQt.QtGui import QCursor
-from qgis.core import QgsExpressionContext, QgsExpressionContextUtils
+from qgis.core import QgsExpressionContext, QgsExpressionContextUtils, QgsSettings
 from qgis.gui import QgsEncodingFileDialog
 
 from processing.core.ProcessingConfig import ProcessingConfig
@@ -132,7 +132,7 @@ class FieldsCalculatorDialog(BASE, WIDGET):
         output = self.alg.getOutputFromName('OUTPUT_LAYER')
         fileFilter = output.getFileFilter(self.alg)
 
-        settings = QSettings()
+        settings = QgsSettings()
         if settings.contains('/Processing/LastOutputPath'):
             path = settings.value('/Processing/LastOutputPath')
         else:

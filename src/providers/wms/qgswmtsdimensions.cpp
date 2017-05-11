@@ -17,8 +17,8 @@
 
 #include "qgswmsprovider.h"
 #include "qgswmtsdimensions.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QComboBox>
 
 QgsWmtsDimensions::QgsWmtsDimensions( const QgsWmtsTileLayer &layer, QWidget *parent, Qt::WindowFlags fl )
@@ -47,14 +47,14 @@ QgsWmtsDimensions::QgsWmtsDimensions( const QgsWmtsTileLayer &layer, QWidget *pa
     mDimensions->setCellWidget( i, 4, cb );
   }
 
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "restoring geometry" );
   restoreGeometry( settings.value( "/Windows/WMTSDimensions/geometry" ).toByteArray() );
 }
 
 QgsWmtsDimensions::~QgsWmtsDimensions()
 {
-  QSettings settings;
+  QgsSettings settings;
   QgsDebugMsg( "saving geometry" );
   settings.setValue( "/Windows/WmtsDimensions/geometry", saveGeometry() );
 }

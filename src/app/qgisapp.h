@@ -29,7 +29,7 @@ class QPixmap;
 class QProgressBar;
 class QPushButton;
 class QRect;
-class QSettings;
+class QgsSettings;
 class QSpinBox;
 class QSplashScreen;
 class QStringList;
@@ -107,6 +107,7 @@ class QgsDiagramProperties;
 #include <QSslError>
 #include <QDateTime>
 
+#include "qgssettings.h"
 #include "qgsauthmanager.h"
 #include "qgsconfig.h"
 #include "qgsfeature.h"
@@ -1445,7 +1446,7 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     /** Removes annotation items in the canvas*/
     void removeAnnotationItems();
 
-    //! Configure layer tree view according to the user options from QSettings
+    //! Configure layer tree view according to the user options from QgsSettings
     void setupLayerTreeViewFromSettings();
 
     /// QgisApp aren't copyable

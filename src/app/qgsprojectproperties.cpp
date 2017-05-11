@@ -16,6 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "qgssettings.h"
 #include "qgsprojectproperties.h"
 
 //qgis includes
@@ -120,7 +121,7 @@ QgsProjectProperties::QgsProjectProperties( QgsMapCanvas* mapCanvas, QWidget *pa
   connect( radManual, SIGNAL( toggled( bool ) ), spinBoxDP, SLOT( setEnabled( bool ) ) );
   connect( radManual, SIGNAL( toggled( bool ) ), labelDP, SLOT( setEnabled( bool ) ) );
 
-  QSettings settings;
+  QgsSettings settings;
 
   ///////////////////////////////////////////////////////////
   // Properties stored in map canvas's QgsMapRenderer

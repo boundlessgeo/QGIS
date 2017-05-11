@@ -32,8 +32,8 @@ import subprocess
 import copy
 
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtCore import QCoreApplication, QSettings
-
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.core import QgsSettings
 from processing.core.ProcessingLog import ProcessingLog
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
@@ -261,7 +261,7 @@ class GeoAlgorithm:
             for line in lines:
                 script += line
             exec(script, ns)
-        except Exception, e:
+        except Exception as e:
             ProcessingLog.addToLog(ProcessingLog.LOG_WARNING,
                                    "Error in hook script: " + str(e))
             # A wrong script should not cause problems, so we swallow
@@ -294,7 +294,7 @@ class GeoAlgorithm:
                     orgFile = out.compatible
                     destFile = out.value
                     crsid = layer.crs().authid()
-                    settings = QSettings()
+                    settings = QgsSettings()
                     path = unicode(settings.value('/GdalTools/gdalPath', ''))
                     envval = unicode(os.getenv('PATH'))
                     if not path.lower() in envval.lower().split(os.pathsep):

@@ -28,8 +28,8 @@ __revision__ = '$Format:%H$'
 import os
 import re
 
+from qgis.core import QgsSettings
 from qgis.PyQt.QtWidgets import QWidget, QPushButton, QLineEdit, QHBoxLayout, QSizePolicy, QFileDialog
-from qgis.PyQt.QtCore import QSettings
 
 from processing.gui.AutofillDialog import AutofillDialog
 from processing.core.parameters import ParameterMultipleInput
@@ -73,7 +73,7 @@ class BatchOutputSelectionPanel(QWidget):
             return
 
         filefilter = self.output.getFileFilter(self.alg)
-        settings = QSettings()
+        settings = QgsSettings()
         if settings.contains('/Processing/LastBatchOutputPath'):
             path = unicode(settings.value('/Processing/LastBatchOutputPath'))
         else:
@@ -131,7 +131,7 @@ class BatchOutputSelectionPanel(QWidget):
 
     def selectDirectory(self):
 
-        settings = QSettings()
+        settings = QgsSettings()
         if settings.contains('/Processing/LastBatchOutputPath'):
             lastDir = unicode(settings.value('/Processing/LastBatchOutputPath'))
         else:

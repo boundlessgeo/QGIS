@@ -36,11 +36,11 @@ import psycopg2
 
 from osgeo import ogr
 
-from qgis.PyQt.QtCore import QVariant, QSettings
+from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QGis, QgsFields, QgsField, QgsGeometry, QgsRectangle,
                        QgsSpatialIndex, QgsMapLayerRegistry, QgsMapLayer, QgsVectorLayer,
                        QgsVectorFileWriter, QgsDistanceArea, QgsDataSourceURI, QgsCredentials,
-                       QgsFeatureRequest)
+                       QgsFeatureRequest, QgsSettings)
 
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
@@ -609,7 +609,7 @@ class VectorWriter:
         self.writer = None
 
         if encoding is None:
-            settings = QSettings()
+            settings = QgsSettings()
             encoding = settings.value('/Processing/encoding', 'System', type=str)
 
         if self.destination.startswith(self.MEMORY_LAYER_PREFIX):

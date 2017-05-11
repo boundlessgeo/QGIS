@@ -30,6 +30,7 @@ from processing.tools.system import isWindows, getTempFilenameInTempFolder
 from processing.tools.vector import VectorWriter, TableWriter
 from processing.tools import dataobjects
 from processing.core.ProcessingConfig import ProcessingConfig
+from qgis.core import QgsSettings
 
 
 def getOutputFromString(s):
@@ -239,7 +240,7 @@ class OutputTable(Output):
         """
 
         if self.encoding is None:
-            settings = QSettings()
+            settings = QgsSettings()
             self.encoding = settings.value('/Processing/encoding', 'System')
 
         return TableWriter(self.value, self.encoding, fields)
@@ -319,7 +320,7 @@ class OutputVector(Output):
         """
 
         if self.encoding is None:
-            settings = QSettings()
+            settings = QgsSettings()
             self.encoding = settings.value('/Processing/encoding', 'System', str)
 
         w = VectorWriter(self.value, self.encoding, fields, geomType,

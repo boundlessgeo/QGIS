@@ -34,7 +34,6 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon, QCursor
 from qgis.PyQt.QtWidgets import QMenu, QAction, QMessageBox, QFileDialog, QApplication
-
 from qgis.core import QgsApplication
 from qgis.utils import iface
 
@@ -137,7 +136,6 @@ class ScriptEditorDialog(BASE, WIDGET):
         self.setHasChanged(False)
 
         self.editor.setLexerType(self.algType)
-
 
     def showSnippets(self, evt):
         popupmenu = QMenu()

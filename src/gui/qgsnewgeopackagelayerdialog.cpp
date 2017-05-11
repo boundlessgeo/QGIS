@@ -29,9 +29,9 @@
 #include "qgscrscache.h"
 
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QPushButton>
-#include <QSettings>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -60,7 +60,7 @@ QgsNewGeoPackageLayerDialog::QgsNewGeoPackageLayerDialog( QWidget *parent, Qt::W
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/NewGeoPackageLayer/geometry" ).toByteArray() );
 
   mAddAttributeButton->setIcon( QgsApplication::getThemeIcon( "/mActionNewAttribute.svg" ) );
@@ -139,7 +139,7 @@ QgsNewGeoPackageLayerDialog::QgsNewGeoPackageLayerDialog( QWidget *parent, Qt::W
 
 QgsNewGeoPackageLayerDialog::~QgsNewGeoPackageLayerDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/NewGeoPackageLayer/geometry", saveGeometry() );
 }
 
