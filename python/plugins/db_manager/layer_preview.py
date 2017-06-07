@@ -25,7 +25,7 @@ from qgis.PyQt.QtGui import QColor, QCursor
 from qgis.PyQt.QtWidgets import QApplication
 
 from qgis.gui import QgsMapCanvas, QgsMapCanvasLayer, QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QgsSettings
+from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QgsProject, QgsMessageLog, QgsSettings
 
 from .db_plugins.plugin import Table
 
@@ -44,6 +44,7 @@ class LayerPreview(QgsMapCanvas):
         # reuse settings from QGIS
         settings = QgsSettings()
         self.enableAntiAliasing(settings.value("/qgis/enable_anti_aliasing", False, type=bool))
+        action = settings.value("/qgis/wheel_action", 0, type=float)
         zoomFactor = settings.value("/qgis/zoom_factor", 2, type=float)
         self.setWheelFactor(zoomFactor)
 
@@ -77,11 +78,13 @@ class LayerPreview(QgsMapCanvas):
     def _clear(self):
         """ remove any layers from preview canvas """
         if self.item is not None:
-            ## skip exception on RuntimeError fixes #6892
             try:
                 self.item.aboutToChange.disconnect(self.setDirty)
-            except RuntimeError:
-                pass
+            ## skip exception on RuntimeError fixes #6892
+            ## skip TypeError and generic Exceptions fixes #15868
+            ## generally due the remove of self.item object or C++ referenced object
+            except Exception as ex:
+                QgsMessageLog.logMessage(unicode(ex), "DBManagerPlugin")
 
         self.item = None
         self.dirty = False
@@ -112,15 +115,18 @@ class LayerPreview(QgsMapCanvas):
             else:
                 vl = table.toMapLayer()
 
-            if not vl.isValid():
+            if vl and not vl.isValid():
                 vl.deleteLater()
                 vl = None
 
         # remove old layer (if any) and set new
         if self.currentLayer:
-            QgsMapLayerRegistry.instance().removeMapLayers([self.currentLayer.id()])
+            # but not remove it if in layer list panel
+            # fix https://issues.qgis.org/issues/16476
+            if not QgsProject.instance().layerTreeRoot().findLayer(self.currentLayer.id()):
+                QgsMapLayerRegistry.instance().removeMapLayers([self.currentLayer.id()])
 
-        if vl:
+        if vl and vl.isValid():
             self.setLayerSet([QgsMapCanvasLayer(vl)])
             QgsMapLayerRegistry.instance().addMapLayers([vl], False)
             self.zoomToFullExtent()
