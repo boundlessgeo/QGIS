@@ -215,7 +215,6 @@
 #include "qgssinglebandgrayrenderer.h"
 #include "qgssnappingdialog.h"
 #include "qgssourceselectdialog.h"
-#include "qgssponsors.h"
 #include "qgsstatisticalsummarydockwidget.h"
 #include "qgsstatusbarcoordinateswidget.h"
 #include "qgsstatusbarmagnifierwidget.h"
@@ -3256,7 +3255,7 @@ void QgisApp::updateRecentProjectPaths()
 
   Q_FOREACH ( const QgsWelcomePageItemsModel::RecentProjectData& recentProject, mRecentProjects )
   {
-    QAction* action = mRecentProjectsMenu->addAction( QString( "%1 (%2)" ).arg( recentProject.title != recentProject.path ? recentProject.title : QFileInfo( recentProject.path ).baseName(), recentProject.path ) );
+    QAction* action = mRecentProjectsMenu->addAction( QString( "%1 (%2)" ).arg( recentProject.title != recentProject.path ? recentProject.title : QFileInfo( recentProject.path ).baseName(), QDir::toNativeSeparators( recentProject.path ) ) );
     action->setEnabled( QFile::exists(( recentProject.path ) ) );
     action->setData( recentProject.path );
   }
@@ -3407,10 +3406,7 @@ void QgisApp::restoreWindowState()
 ///////////// END OF GUI SETUP ROUTINES ///////////////
 void QgisApp::sponsors()
 {
-  QgsSponsors * sponsors = new QgsSponsors( this );
-  sponsors->show();
-  sponsors->raise();
-  sponsors->activateWindow();
+  openURL( tr( "http://qgis.org/en/site/about/sponsorship.html" ), false );
 }
 
 void QgisApp::about()
@@ -3629,11 +3625,9 @@ bool QgisApp::addVectorLayers( const QStringList &theLayerQStringList, const QSt
       else if ( !sublayers.isEmpty() ) // there is 1 layer of data available
       {
         //set friendly name for datasources with only one layer
-        QStringList sublayers = layer->dataProvider()->subLayers();
         QStringList elements = sublayers.at( 0 ).split( ':' );
 
-        Q_ASSERT( elements.size() >= 4 );
-        if ( layer->name() != elements.at( 1 ) )
+        if ( elements.size() >= 4 && layer->name() != elements.at( 1 ) )
         {
           layer->setName( QString( "%1 %2 %3" ).arg( layer->name(), elements.at( 1 ), elements.at( 3 ) ) );
         }
@@ -5046,7 +5040,7 @@ bool QgisApp::fileSave()
   if ( QgsProject::instance()->write() )
   {
     setTitleBarText_( *this ); // update title bar
-    statusBar()->showMessage( tr( "Saved project to: %1" ).arg( QgsProject::instance()->fileName() ), 5000 );
+    statusBar()->showMessage( tr( "Saved project to: %1" ).arg( QDir::toNativeSeparators( QgsProject::instance()->fileName() ) ), 5000 );
 
     saveRecentProjectPath( fullPath.filePath() );
 
@@ -5056,7 +5050,7 @@ bool QgisApp::fileSave()
   else
   {
     QMessageBox::critical( this,
-                           tr( "Unable to save project %1" ).arg( QgsProject::instance()->fileName() ),
+                           tr( "Unable to save project %1" ).arg( QDir::toNativeSeparators( QgsProject::instance()->fileName() ) ),
                            QgsProject::instance()->error() );
     return false;
   }
@@ -5098,7 +5092,7 @@ void QgisApp::fileSaveAs()
   if ( QgsProject::instance()->write() )
   {
     setTitleBarText_( *this ); // update title bar
-    statusBar()->showMessage( tr( "Saved project to: %1" ).arg( QgsProject::instance()->fileName() ), 5000 );
+    statusBar()->showMessage( tr( "Saved project to: %1" ).arg( QDir::toNativeSeparators( QgsProject::instance()->fileName() ) ), 5000 );
     // add this to the list of recently used project files
     saveRecentProjectPath( fullPath.filePath() );
     mProjectLastModified = fullPath.lastModified();
@@ -5106,7 +5100,7 @@ void QgisApp::fileSaveAs()
   else
   {
     QMessageBox::critical( this,
-                           tr( "Unable to save project %1" ).arg( QgsProject::instance()->fileName() ),
+                           tr( "Unable to save project %1" ).arg( QDir::toNativeSeparators( QgsProject::instance()->fileName() ) ),
                            QgsProject::instance()->error(),
                            QMessageBox::Ok,
                            Qt::NoButton );
@@ -9336,6 +9330,19 @@ QgsVectorLayer* QgisApp::addVectorLayer( const QString& vectorLayerPath, const Q
     {
       // Register this layer with the layers registry
       QList<QgsMapLayer *> myList;
+
+      //set friendly name for datasources with only one layer
+      QStringList sublayers = layer->dataProvider()->subLayers();
+      if ( !sublayers.isEmpty() )
+      {
+        QStringList elements = sublayers.at( 0 ).split( ':' );
+
+        if ( elements.size() >= 4 && layer->name() != elements.at( 1 ) )
+        {
+          layer->setName( QString( "%1 %2 %3" ).arg( layer->name(), elements.at( 1 ), elements.at( 3 ) ) );
+        }
+      }
+
       myList << layer;
       QgsMapLayerRegistry::instance()->addMapLayers( myList );
       bool ok;

@@ -514,7 +514,9 @@ void QgsExpressionBuilderWidget::setExpressionContext( const QgsExpressionContex
 {
   mExpressionContext = context;
 
-  loadExpressionContext();
+  updateFunctionTree();
+  loadFieldNames();
+  loadRecent( mRecentKey );
 }
 
 void QgsExpressionBuilderWidget::on_txtExpressionString_textChanged()

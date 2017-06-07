@@ -29,6 +29,7 @@ from qgis.PyQt.QtCore import QSize
 import tempfile
 import urllib
 import base64
+import re
 
 
 XML_NS = \
@@ -207,6 +208,64 @@ class TestQgsServerAccessControl(unittest.TestCase):
         self.assertFalse(
             str(response).find("<Name>Country</Name>") != -1,
             "Country layer in GetCapabilities\n%s" % response)
+
+    def test_wms_getprojectsettings(self):
+        query_string = "&".join(["%s=%s" % i for i in list({
+            "MAP": urllib.quote(self.projectPath),
+            "SERVICE": "WMS",
+            "VERSION": "1.1.1",
+            "REQUEST": "GetProjectSettings"
+        }.items())])
+
+        response, headers = self._get_fullaccess(query_string)
+        self.assertTrue(
+            str(response).find("<TreeName>Hello</TreeName>") != -1,
+            "No Hello layer in GetProjectSettings\n%s" % response)
+        self.assertTrue(
+            str(response).find("<TreeName>Country</TreeName>") != -1,
+            "No Country layer in GetProjectSettings\n%s" % response)
+        self.assertTrue(
+            str(response).find("<LayerDrawingOrder>Country_Labels,Country,dem,Hello_Filter_SubsetString,Hello_Project_SubsetString,Hello_SubsetString,Hello,db_point</LayerDrawingOrder>") != -1,
+            "LayerDrawingOrder in GetProjectSettings\n%s" % response)
+
+        response, headers = self._get_restricted(query_string)
+        self.assertTrue(
+            str(response).find("<TreeName>Hello</TreeName>") != -1,
+            "No Hello layer in GetProjectSettings\n%s" % response)
+        self.assertFalse(
+            str(response).find("<TreeName>Country</TreeName>") != -1,
+            "Country layer in GetProjectSettings\n%s" % response)
+        self.assertTrue(
+            str(response).find("<LayerDrawingOrder>Country_Labels,dem,Hello_Filter_SubsetString,Hello_Project_SubsetString,Hello_SubsetString,Hello,db_point</LayerDrawingOrder>") != -1,
+            "LayerDrawingOrder in GetProjectSettings\n%s" % response)
+
+    def test_wms_getcontext(self):
+        query_string = "&".join(["%s=%s" % i for i in {
+            "MAP": urllib.quote(self.projectPath),
+            "SERVICE": "WMS",
+            "VERSION": "1.1.1",
+            "REQUEST": "GetContext"
+        }.items()])
+
+        response, headers = self._get_fullaccess(query_string)
+        self.assertTrue(
+            str(response).find("<Layer opacity=\"1\" queryable=\"true\" hidden=\"false\" id=\"Hello\" name=\"Hello\">") != -1,
+            "No Hello layer in GetContext\n%s" % response)
+        self.assertTrue(
+            str(response).find("<Layer opacity=\"1\" queryable=\"true\" hidden=\"false\" id=\"Country\" name=\"Country\">") != -1,
+            "No Country layer in GetContext\n%s" % response)
+        self.assertTrue(
+            str(response).find("<Layer opacity=\"1\" queryable=\"true\" hidden=\"false\" id=\"Country\" name=\"Country\">")
+            < str(response).find("<Layer opacity=\"1\" queryable=\"true\" hidden=\"false\" id=\"Hello\" name=\"Hello\">"),
+            "Hello layer not after Country layer\n%s" % response)
+
+        response, headers = self._get_restricted(query_string)
+        self.assertTrue(
+            str(response).find("<Layer opacity=\"1\" queryable=\"true\" hidden=\"false\" id=\"Hello\" name=\"Hello\">") != -1,
+            "No Hello layer in GetContext\n%s" % response)
+        self.assertFalse(
+            str(response).find("<Layer opacity=\"1\" queryable=\"true\" hidden=\"false\" id=\"Country\" name=\"Country\">") != -1,
+            "Country layer in GetContext\n%s" % response)
 
     def test_wms_describelayer_hello(self):
         query_string = "&".join(["%s=%s" % i for i in {
@@ -1488,6 +1547,7 @@ class TestQgsServerAccessControl(unittest.TestCase):
             self.assertTrue(
                 str(response).find("<qgs:color>{color}</qgs:color>".format(color=color)) != -1,
                 "Wrong color in result\n%s" % response)
+
 
 if __name__ == "__main__":
     unittest.main()

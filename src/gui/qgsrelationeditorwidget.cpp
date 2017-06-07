@@ -203,17 +203,6 @@ void QgsRelationEditorWidget::setRelations( const QgsRelation& relation, const Q
   if ( !mRelation.isValid() )
     return;
 
-  mToggleEditingButton->setVisible( true );
-
-  Q_FOREACH ( QgsTransactionGroup* tg, QgsProject::instance()->transactionGroups().values() )
-  {
-    if ( tg->layers().contains( mRelation.referencingLayer() ) )
-    {
-      mToggleEditingButton->setVisible( false );
-      mSaveEditsButton->setVisible( false );
-    }
-  }
-
   connect( mRelation.referencingLayer(), SIGNAL( editingStarted() ), this, SLOT( updateButtons() ) );
   connect( mRelation.referencingLayer(), SIGNAL( editingStopped() ), this, SLOT( updateButtons() ) );
 
@@ -306,10 +295,22 @@ void QgsRelationEditorWidget::addFeature()
     QgsFeature f;
     if ( vlTools->addFeature( mNmRelation.referencedLayer(), QgsAttributeMap(), QgsGeometry(), &f ) )
     {
-      QgsFeature flink( mRelation.referencingLayer()->fields() ); // Linking feature
+      QgsFields fields = mRelation.referencingLayer()->fields();
+      QgsFeature flink( fields ); // Linking feature
+      int attrCount = fields.size();
 
-      flink.setAttribute( mRelation.fieldPairs().at( 0 ).first, mFeature.attribute( mRelation.fieldPairs().at( 0 ).second ) );
-      flink.setAttribute( mNmRelation.referencingFields().at( 0 ), f.attribute( mNmRelation.referencedFields().at( 0 ) ) );
+      int firstIdx = fields.indexFromName( mRelation.fieldPairs().at( 0 ).first );
+      int secondIdx = mNmRelation.referencingFields().at( 0 );
+
+      for ( int i = 0; i < attrCount; ++i )
+      {
+        if ( i == firstIdx )
+          flink.setAttribute( i, mFeature.attribute( mRelation.fieldPairs().at( 0 ).second ) );
+        else if ( i == secondIdx )
+          flink.setAttribute( i, f.attribute( mNmRelation.referencedFields().at( 0 ) ) );
+        else
+          flink.setAttribute( i, mRelation.referencingLayer()->defaultValue( i ) );
+      }
 
       mRelation.referencingLayer()->addFeature( flink );
 
@@ -349,10 +350,14 @@ void QgsRelationEditorWidget::linkFeature()
                                 .setFilterFids( selectionDlg.selectedFeatures() )
                                 .setSubsetOfAttributes( mNmRelation.referencedFields() ) );
 
+      QgsFields fields = mRelation.referencingLayer()->fields();
+      int attrCount = fields.size();
+      int firstIdx = fields.indexFromName( mRelation.fieldPairs().at( 0 ).first );
+      int secondIdx = mNmRelation.referencingFields().at( 0 );
       QgsFeature relatedFeature;
 
       QgsFeatureList newFeatures;
-      QgsFeature linkFeature( mRelation.referencingLayer()->fields() );
+      QgsFeature linkFeature( fields );
 
       Q_FOREACH ( const QgsRelation::FieldPair& fieldPair, mRelation.fieldPairs() )
       {
@@ -361,9 +366,14 @@ void QgsRelationEditorWidget::linkFeature()
 
       while ( it.nextFeature( relatedFeature ) )
       {
-        Q_FOREACH ( const QgsRelation::FieldPair& fieldPair, mNmRelation.fieldPairs() )
+        for ( int i = 0; i < attrCount; ++i )
         {
-          linkFeature.setAttribute( fieldPair.first, relatedFeature.attribute( fieldPair.second ) );
+          if ( i == firstIdx )
+            linkFeature.setAttribute( i, mFeature.attribute( mRelation.fieldPairs().at( 0 ).second ) );
+          else if ( i == secondIdx )
+            linkFeature.setAttribute( i, relatedFeature.attribute( mNmRelation.referencedFields().at( 0 ) ) );
+          else
+            linkFeature.setAttribute( i, mRelation.referencingLayer()->defaultValue( i ) );
         }
 
         newFeatures << linkFeature;
@@ -538,6 +548,17 @@ void QgsRelationEditorWidget::updateUi()
     else
     {
       mDualView->init( mRelation.referencingLayer(), nullptr, myRequest, mEditorContext );
+    }
+  }
+
+  mToggleEditingButton->setVisible( true );
+
+  Q_FOREACH ( QgsTransactionGroup* tg, QgsProject::instance()->transactionGroups().values() )
+  {
+    if ( tg->layers().contains( mRelation.referencingLayer() ) )
+    {
+      mToggleEditingButton->setVisible( false );
+      mSaveEditsButton->setVisible( false );
     }
   }
 }

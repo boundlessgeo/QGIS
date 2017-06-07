@@ -57,12 +57,21 @@ bool QgsAttributeTableFilterModel::lessThan( const QModelIndex &left, const QMod
     }
   }
 
+  if ( mTableModel->sortCacheExpression().isEmpty() )
+  {
+    //shortcut when no sort order set
+    return false;
+  }
+
   return qgsVariantLessThan( left.data( QgsAttributeTableModel::SortRole ),
                              right.data( QgsAttributeTableModel::SortRole ) );
 }
 
 void QgsAttributeTableFilterModel::sort( int column, Qt::SortOrder order )
 {
+  if ( order != Qt::AscendingOrder && order != Qt::DescendingOrder )
+    order = Qt::AscendingOrder;
+
   int myColumn = mColumnMapping.at( column );
   masterModel()->prefetchColumnData( myColumn );
   QSortFilterProxyModel::sort( myColumn, order );
@@ -205,11 +214,15 @@ void QgsAttributeTableFilterModel::setAttributeTableConfig( const QgsAttributeTa
     }
   }
 
-  sort( config.sortExpression(), config.sortOrder() );
+  if ( !config.sortExpression().isEmpty() )
+    sort( config.sortExpression(), config.sortOrder() );
 }
 
 void QgsAttributeTableFilterModel::sort( QString expression, Qt::SortOrder order )
 {
+  if ( order != Qt::AscendingOrder && order != Qt::DescendingOrder )
+    order = Qt::AscendingOrder;
+
   QSortFilterProxyModel::sort( -1 );
   masterModel()->prefetchSortData( expression );
   QSortFilterProxyModel::sort( 0, order ) ;
@@ -225,11 +238,17 @@ void QgsAttributeTableFilterModel::setSelectedOnTop( bool selectedOnTop )
   if ( mSelectedOnTop != selectedOnTop )
   {
     mSelectedOnTop = selectedOnTop;
+    int column = sortColumn();
+    Qt::SortOrder order = sortOrder();
 
-    if ( sortColumn() == -1 )
-    {
-      sort( 0 );
-    }
+    // set default sort values if they are not correctly set
+    if ( column < 0 )
+      column = 0;
+
+    if ( order != Qt::AscendingOrder && order != Qt::DescendingOrder )
+      order = Qt::AscendingOrder;
+
+    sort( column, order );
     invalidate();
   }
 }
