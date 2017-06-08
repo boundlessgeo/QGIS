@@ -21,8 +21,8 @@
 #include "qgsvaluerelationconfigdlg.h"
 #include "qgsvaluerelationsearchwidgetwrapper.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 
 QgsValueRelationWidgetFactory::QgsValueRelationWidgetFactory( const QString& name )
     :  QgsEditorWidgetFactory( name )
@@ -114,7 +114,7 @@ QString QgsValueRelationWidgetFactory::representValue( QgsVectorLayer* vl, int f
   {
     if ( value.isNull() )
     {
-      QSettings settings;
+      QgsSettings settings;
       return settings.value( "qgis/nullValue", "NULL" ).toString();
     }
 

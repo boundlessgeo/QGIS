@@ -32,13 +32,14 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
-#include <QSettings>
 #include <QStandardItemModel>
 #include <QAction>
 #include <QMenu>
 
 #include "qgsapplication.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
+
 
 QgsStyleV2ManagerDialog::QgsStyleV2ManagerDialog( QgsStyleV2* style, QWidget* parent )
     : QDialog( parent )
@@ -50,7 +51,7 @@ QgsStyleV2ManagerDialog::QgsStyleV2ManagerDialog( QgsStyleV2* style, QWidget* pa
   setWindowModality( Qt::WindowModal );
 #endif
 
-  QSettings settings;
+  QgsSettings settings;
 
   restoreGeometry( settings.value( "/Windows/StyleV2Manager/geometry" ).toByteArray() );
   mSplitter->setSizes( QList<int>() << 170 << 540 );
@@ -176,7 +177,7 @@ void QgsStyleV2ManagerDialog::onFinished()
     mStyle->save();
   }
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/StyleV2Manager/geometry", saveGeometry() );
   settings.setValue( "/Windows/StyleV2Manager/splitter", mSplitter->saveState() );
 }

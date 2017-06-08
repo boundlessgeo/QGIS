@@ -15,12 +15,13 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <QSettings>
 #include <QMessageBox>
 
 #include "qgsrasterlayer.h"
 #include "qgsrasterminmaxwidget.h"
 #include "qgsmapcanvas.h"
+#include "qgssettings.h"
+
 
 QgsRasterMinMaxWidget::QgsRasterMinMaxWidget( QgsRasterLayer* theLayer, QWidget *parent )
     : QWidget( parent )
@@ -30,7 +31,7 @@ QgsRasterMinMaxWidget::QgsRasterMinMaxWidget( QgsRasterLayer* theLayer, QWidget 
   QgsDebugMsg( "Entered." );
   setupUi( this );
 
-  QSettings mySettings;
+  QgsSettings mySettings;
 
   // set contrast enhancement setting to default
   // ideally we should set it actual method last used to get min/max, but there is no way to know currently

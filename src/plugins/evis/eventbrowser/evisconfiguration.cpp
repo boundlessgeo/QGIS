@@ -24,14 +24,14 @@
 ** National Oceanic and Atmospheric Administration or the Department of Commerce.
 **
 **/
-#include <QSettings>
 #include <QDir>
 
 #include "evisconfiguration.h"
+#include "qgssettings.h"
 
 eVisConfiguration::eVisConfiguration()
 {
-  QSettings myQSettings;
+  QgsSettings myQSettings;
 
   setApplyPathRulesToDocs( myQSettings.value( "/eVis/applypathrulestodocs", false ).toBool() );
 
@@ -117,7 +117,7 @@ void eVisConfiguration::setAttributeCompassOffset( bool theBool )
 
 void eVisConfiguration::setBasePath( const QString& thePath )
 {
-  QSettings myQSettings;
+  QgsSettings myQSettings;
   mBasePath = thePath;
   if ( "" != mBasePath )
   {

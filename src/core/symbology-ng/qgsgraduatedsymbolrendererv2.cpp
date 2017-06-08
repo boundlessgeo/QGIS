@@ -30,9 +30,10 @@
 #include "qgslogger.h"
 #include "qgsvectordataprovider.h"
 #include "qgsexpression.h"
+#include "qgssettings.h" // for legend
+
 #include <QDomDocument>
 #include <QDomElement>
-#include <QSettings> // for legend
 #include <limits> // for jenks classification
 #include <ctime>
 

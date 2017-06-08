@@ -23,7 +23,6 @@
 #include <QDataStream>
 #include <QTextStream>
 #include <QStringList>
-#include <QSettings>
 #include <QRegExp>
 #include <QUrl>
 #if QT_VERSION >= 0x050000
@@ -41,6 +40,7 @@
 #include "qgsmessageoutput.h"
 #include "qgsrectangle.h"
 #include "qgsspatialindex.h"
+#include "qgssettings.h"
 #include "qgis.h"
 
 #include "qgsdelimitedtextsourceselect.h"

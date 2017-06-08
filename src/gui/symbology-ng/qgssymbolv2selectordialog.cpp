@@ -31,6 +31,7 @@
 
 #include "qgslogger.h"
 #include "qgsapplication.h"
+#include "qgssettings.h"
 
 #include <QColorDialog>
 #include <QPainter>
@@ -717,7 +718,7 @@ QgsSymbolV2SelectorDialog::QgsSymbolV2SelectorDialog( QgsSymbolV2 *symbol, QgsSt
   layout()->addWidget( mSelectorWidget );
   layout()->addWidget( mButtonBox );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/SymbolSelectorWidget/geometry" ).toByteArray() );
 
   // can be embedded in renderer properties dialog
@@ -731,7 +732,7 @@ QgsSymbolV2SelectorDialog::QgsSymbolV2SelectorDialog( QgsSymbolV2 *symbol, QgsSt
 
 QgsSymbolV2SelectorDialog::~QgsSymbolV2SelectorDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/SymbolSelectorWidget/geometry", saveGeometry() );
 }
 

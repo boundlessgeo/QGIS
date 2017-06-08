@@ -36,9 +36,9 @@
 #include "qgsvectorlayerlabeling.h"
 #include "qgslogger.h"
 #include "qgssubstitutionlistwidget.h"
+#include "qgssettings.h"
 
 #include <QCheckBox>
-#include <QSettings>
 
 static QgsExpressionContext _getExpressionContext( const void* context )
 {
@@ -244,7 +244,7 @@ QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, 
   // get rid of annoying outer focus rect on Mac
   mLabelingOptionsListWidget->setAttribute( Qt::WA_MacShowFocusRect, false );
 
-  QSettings settings;
+  QgsSettings settings;
 
   // reset horiz strech of left side of options splitter (set to 1 for previewing in Qt Designer)
   QSizePolicy policy( mLabelingOptionsListFrame->sizePolicy() );
@@ -869,7 +869,7 @@ void QgsLabelingGui::init()
 
 QgsLabelingGui::~QgsLabelingGui()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( QString( "/Windows/Labeling/FontPreviewSplitState" ), mFontPreviewSplitter->saveState() );
   settings.setValue( QString( "/Windows/Labeling/OptionsSplitState" ), mLabelingOptionsSplitter->saveState() );
   settings.setValue( QString( "/Windows/Labeling/Tab" ), mLabelingOptionsListWidget->currentRow() );

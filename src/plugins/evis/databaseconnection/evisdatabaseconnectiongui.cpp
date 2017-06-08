@@ -28,11 +28,11 @@
 
 #include "qgscontexthelp.h"
 #include "qgsapplication.h"
+#include "qgssettings.h"
 
 #include <QMessageBox>
 #include <QTextStream>
 #include <QFileDialog>
-#include <QSettings>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlRecord>
@@ -51,7 +51,7 @@ eVisDatabaseConnectionGui::eVisDatabaseConnectionGui( QList<QTemporaryFile*>* th
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/eVis/db-geometry" ).toByteArray() );
 
   mTempOutputFileList = theTemoraryFileList;
@@ -89,7 +89,7 @@ eVisDatabaseConnectionGui::eVisDatabaseConnectionGui( QList<QTemporaryFile*>* th
 */
 eVisDatabaseConnectionGui::~eVisDatabaseConnectionGui()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/eVis/db-geometry", saveGeometry() );
 }
 

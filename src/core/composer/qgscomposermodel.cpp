@@ -20,12 +20,13 @@
 #include "qgscomposition.h"
 #include "qgspaperitem.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
+
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QDomDocument>
 #include <QDomElement>
 #include <QMimeData>
-#include <QSettings>
 #include <QMessageBox>
 #include <QIcon>
 

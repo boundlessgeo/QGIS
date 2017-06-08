@@ -22,9 +22,9 @@
 #include "qgsvectorlayer.h"
 #include "qgstolerance.h"
 #include "qgisapp.h"
+#include "qgssettings.h"
 
 #include <QMouseEvent>
-#include <QSettings>
 #include <limits>
 
 QgsMapToolMoveFeature::QgsMapToolMoveFeature( QgsMapCanvas* canvas )
@@ -72,7 +72,7 @@ void QgsMapToolMoveFeature::canvasPressEvent( QgsMapMouseEvent* e )
 
   //find first geometry under mouse cursor and store iterator to it
   QgsPoint layerCoords = toLayerCoordinates( vlayer, e->pos() );
-  QSettings settings;
+  QgsSettings settings;
   double searchRadius = QgsTolerance::vertexSearchRadius( mCanvas->currentLayer(), mCanvas->mapSettings() );
   QgsRectangle selectRect( layerCoords.x() - searchRadius, layerCoords.y() - searchRadius,
                            layerCoords.x() + searchRadius, layerCoords.y() + searchRadius );

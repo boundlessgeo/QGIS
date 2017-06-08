@@ -40,12 +40,12 @@ extern "C"
 #include "qgsgeometry.h"
 #include "qgsrectangle.h"
 #include "qgsconfig.h"
+#include "qgssettings.h"
 
 #include <QByteArray>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProcess>
-#include <QSettings>
 #include <QTextStream>
 #include <QTemporaryFile>
 #include <QHash>

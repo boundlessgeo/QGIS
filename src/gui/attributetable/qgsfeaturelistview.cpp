@@ -17,7 +17,6 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QSet>
-#include <QSettings>
 
 #include "qgsactionmenu.h"
 #include "qgsattributetabledelegate.h"
@@ -32,6 +31,8 @@
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
 #include "qgsvectorlayerselectionmanager.h"
+#include "qgssettings.h"
+
 
 QgsFeatureListView::QgsFeatureListView( QWidget *parent )
     : QListView( parent )

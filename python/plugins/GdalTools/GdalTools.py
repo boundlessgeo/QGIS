@@ -18,10 +18,10 @@ email                : lorenxo86@gmail.com
  ***************************************************************************/
 """
 # Import the PyQt and QGIS libraries
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QLocale, QFileInfo, QTranslator
+from qgis.PyQt.QtCore import QCoreApplication, QLocale, QFileInfo, QTranslator
 from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QAction
 from qgis.PyQt.QtGui import QIcon
-from qgis.core import QGis
+from qgis.core import QGis, QgsSettings
 import qgis.utils
 
 # are all dependencies satisfied?
@@ -71,11 +71,11 @@ class GdalTools:
             userPluginPath = qgis.utils.home_plugin_path + "/GdalTools"
             systemPluginPath = qgis.utils.sys_plugin_path + "/GdalTools"
 
-            overrideLocale = QSettings().value("locale/overrideFlag", False, type=bool)
+            overrideLocale = QgsSettings().value("locale/overrideFlag", False, type=bool)
             if not overrideLocale:
                 localeFullName = QLocale.system().name()
             else:
-                localeFullName = QSettings().value("locale/userLocale", "", type=str)
+                localeFullName = QgsSettings().value("locale/userLocale", "", type=str)
 
             if QFileInfo(userPluginPath).exists():
                 translationPath = userPluginPath + "/i18n/GdalTools_" + localeFullName + ".qm"

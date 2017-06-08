@@ -15,9 +15,9 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QDialog>
-#include <QSettings>
 
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include "qgspanelwidgetstack.h"
 

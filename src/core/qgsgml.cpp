@@ -22,6 +22,7 @@
 #include "qgsnetworkaccessmanager.h"
 #include "qgswkbptr.h"
 #include "qgscrscache.h"
+#include "qgssettings.h"
 
 #include <QBuffer>
 #include <QList>
@@ -29,7 +30,6 @@
 #include <QNetworkReply>
 #include <QProgressDialog>
 #include <QSet>
-#include <QSettings>
 #include <QUrl>
 
 #include "ogr_api.h"

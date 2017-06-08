@@ -388,7 +388,7 @@ void QgsStatisticalSummaryDockWidget::refreshStatisticsMenu()
   mStatisticsMenu->clear();
   mStatsActions.clear();
 
-  QSettings settings;
+  QgsSettings settings;
   switch ( mFieldType )
   {
     case DataType::Numeric:

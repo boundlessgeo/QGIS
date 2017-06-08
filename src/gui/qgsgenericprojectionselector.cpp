@@ -16,10 +16,11 @@
  *                                                                         *
  ***************************************************************************/
 #include "qgsapplication.h"
+#include "qgssettings.h"
 
 #include <qgsgenericprojectionselector.h>
 #include <QApplication>
-#include <QSettings>
+
 
 /**
  * \class QgsGenericProjectionSelector
@@ -31,7 +32,7 @@ QgsGenericProjectionSelector::QgsGenericProjectionSelector( QWidget *parent,
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/ProjectionSelector/geometry" ).toByteArray() );
 
   //we will show this only when a message is set
@@ -64,7 +65,7 @@ void QgsGenericProjectionSelector::setMessage( QString theMessage )
 //! Destructor
 QgsGenericProjectionSelector::~QgsGenericProjectionSelector()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/ProjectionSelector/geometry", saveGeometry() );
 }
 

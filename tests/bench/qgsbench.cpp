@@ -29,7 +29,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QPainter>
-#include <QSettings>
 #include <QString>
 #include <QTextStream>
 #include <QTime>
@@ -43,6 +42,8 @@
 #include "qgsmaprendererparalleljob.h"
 #include "qgsmaprenderersequentialjob.h"
 #include "qgsproject.h"
+#include "qgssettings.h"
+
 
 const char *pre[] = { "user", "sys", "total", "wall" };
 

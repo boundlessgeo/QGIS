@@ -18,8 +18,8 @@
 #include "qgssearchwidgetwrapper.h"
 #include "qgsfield.h"
 #include "qgsvectordataprovider.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 
 class QgsDefaultSearchWidgetWrapper;
 

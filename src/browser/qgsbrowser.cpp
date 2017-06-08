@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include <QSettings>
+
 #include <QMessageBox>
 #include <QKeyEvent>
 #include <QMetaObject>
@@ -36,6 +36,7 @@
 #include "qgsattributetablemodel.h"
 #include "qgsattributetablefiltermodel.h"
 #include "qgscredentialdialog.h"
+#include "qgssettings.h"
 
 #ifdef ANDROID
 #define QGIS_ICON_SIZE 32
@@ -81,7 +82,7 @@ QgsBrowser::QgsBrowser( QWidget *parent, const Qt::WindowFlags& flags )
   mapCanvas->setCanvasColor( Qt::white );
 
   //Set the icon size of for all the toolbars created in the future.
-  QSettings settings;
+  QgsSettings settings;
   int size = settings.value( "/IconSize", QGIS_ICON_SIZE ).toInt();
   setIconSize( QSize( size, size ) );
 
@@ -262,7 +263,7 @@ void QgsBrowser::newVectorLayer()
     QgsDirectoryItem * dirItem = qobject_cast<QgsDirectoryItem *>( mModel->dataItem( selectedIndex ) );
     if ( dirItem )
     {
-      QSettings settings;
+      QgsSettings settings;
       settings.setValue( "/UI/lastVectorFileFilterDir", dirItem->dirPath() );
     }
   }
@@ -333,7 +334,7 @@ void QgsBrowser::on_mActionSetProjection_triggered()
 
 void QgsBrowser::saveWindowState()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/Browser/state", saveState() );
   settings.setValue( "/Windows/Browser/geometry", saveGeometry() );
   settings.setValue( "/Windows/Browser/sizes/0", splitter->sizes().at( 0 ) );
@@ -342,7 +343,7 @@ void QgsBrowser::saveWindowState()
 
 void QgsBrowser::restoreWindowState()
 {
-  QSettings settings;
+  QgsSettings settings;
   if ( !restoreState( settings.value( "/Windows/Browser/state" ).toByteArray() ) )
   {
     QgsDebugMsg( "restore of UI state failed" );
@@ -527,7 +528,7 @@ void QgsBrowser::setLayer( QgsVectorLayer* vLayer )
   if ( vLayer )
   {
     // Initialize the cache
-    QSettings settings;
+    QgsSettings settings;
     int cacheSize = qMax( 1, settings.value( "/qgis/attributeTableRowCache", "10000" ).toInt() );
     QgsVectorLayerCache* layerCache = new QgsVectorLayerCache( vLayer, cacheSize, this );
     layerCache->setCacheGeometry( false );

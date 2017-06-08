@@ -22,7 +22,6 @@
 #include <QLatin1String>
 #include <QMessageBox>
 #include <QMouseEvent>
-#include <QSettings>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
@@ -35,6 +34,7 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsrasterlayer.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 #include "qgsgrass.h"
 #include "qgsgrassmodule.h"

@@ -24,13 +24,13 @@
 #include "qgsmapcanvas.h"
 #include "qgsmaprenderer.h"
 #include "qgsmaptool.h"
+#include "qgssettings.h"
 
 #include <QButtonGroup>
 #include <QColorDialog>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QRubberBand>
-#include <QSettings>
 
 
 /** Map tool which uses rubber band for changing grass region */

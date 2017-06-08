@@ -28,7 +28,7 @@ __revision__ = '$Format:%H$'
 
 import sys
 
-from qgis.PyQt.QtCore import QSettings, QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsFeature, QgsVectorFileWriter, QgsSettings
 from processing.core.ProcessingLog import ProcessingLog
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException

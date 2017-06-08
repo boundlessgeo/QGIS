@@ -22,6 +22,7 @@
 #include "qgsgeometry.h"
 #include "qgscoordinatereferencesystem.h"
 #include "qgsdistancearea.h"
+#include "qgssettings.h"
 
 // GDAL includes
 #include <gdal.h>
@@ -31,7 +32,6 @@
 //qt includes
 #include <QComboBox>
 #include <QFileDialog>
-#include <QSettings>
 #include <QMessageBox>
 
 //standard includes
@@ -102,7 +102,7 @@ HeatmapGui::HeatmapGui( QWidget* parent, Qt::WindowFlags fl, QMap<QString, QVari
     }
   }
   //Restore choice of output format from last run
-  QSettings s;
+  QgsSettings s;
   int defaultFormatIndex = s.value( "/Heatmap/lastFormat", myTiffIndex ).toInt();
   mFormatCombo->setCurrentIndex( defaultFormatIndex );
 
@@ -208,7 +208,7 @@ void HeatmapGui::restoreSettings( bool usingLastInputLayer )
 void HeatmapGui::saveSettings()
 {
   // Save persistent settings
-  QSettings s;
+  QgsSettings s;
   s.setValue( "/Heatmap/lastFormat", QVariant( mFormatCombo->currentIndex() ) );
   s.setValue( "/Heatmap/addToCanvas", mAddToCanvas->isChecked() );
 
@@ -240,7 +240,7 @@ void HeatmapGui::on_mButtonBox_helpRequested()
 
 void HeatmapGui::on_mBrowseButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastDir = s.value( "/Heatmap/lastOutputDir", QDir::homePath() ).toString();
 
   QString outputFilename = QFileDialog::getSaveFileName( nullptr, tr( "Save Heatmap as:" ), lastDir );

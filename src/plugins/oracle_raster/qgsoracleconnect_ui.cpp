@@ -14,9 +14,9 @@
  ***************************************************************************/
 
 #include "qgsoracleconnect_ui.h"
+#include "qgssettings.h"
 
 // Qt Includes
-#include <QSettings>
 #include <QMessageBox>
 
 QgsOracleConnect::QgsOracleConnect( QWidget* parent,
@@ -30,7 +30,7 @@ QgsOracleConnect::QgsOracleConnect( QWidget* parent,
     // populate the dialog with the information stored for the connection
     // populate the fields with the stored setting parameters
 
-    QSettings settings;
+    QgsSettings settings;
 
     QString key = "/Oracle/connections/" + connName;
 
@@ -66,7 +66,7 @@ void QgsOracleConnect::on_buttonBox_accepted()
 
 void QgsOracleConnect::saveConnection()
 {
-  QSettings settings;
+  QgsSettings settings;
 
   QString baseKey = "/Oracle/connections/";
 

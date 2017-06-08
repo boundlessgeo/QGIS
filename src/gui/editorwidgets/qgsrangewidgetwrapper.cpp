@@ -13,12 +13,12 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <QSettings>
-
 #include "qgsrangewidgetwrapper.h"
 #include "qgsspinbox.h"
 #include "qgsdoublespinbox.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
+
 
 QgsRangeWidgetWrapper::QgsRangeWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* editor, QWidget* parent )
     : QgsEditorWidgetWrapper( vl, fieldIdx, editor, parent )
@@ -104,7 +104,7 @@ void QgsRangeWidgetWrapper::initWidget( QWidget* editor )
         minval -= stepval;
       }
       mDoubleSpinBox->setValue( minval );
-      mDoubleSpinBox->setSpecialValueText( QSettings().value( "qgis/nullValue", "NULL" ).toString() );
+      mDoubleSpinBox->setSpecialValueText( QgsSettings().value( "qgis/nullValue", "NULL" ).toString() );
     }
     if ( min.isValid() )
       mDoubleSpinBox->setMinimum( min.toDouble() );
@@ -129,7 +129,7 @@ void QgsRangeWidgetWrapper::initWidget( QWidget* editor )
     {
       minval -= stepval;
       mIntSpinBox->setValue( minval );
-      mIntSpinBox->setSpecialValueText( QSettings().value( "qgis/nullValue", "NULL" ).toString() );
+      mIntSpinBox->setSpecialValueText( QgsSettings().value( "qgis/nullValue", "NULL" ).toString() );
     }
     if ( min.isValid() )
       mIntSpinBox->setMinimum( min.toInt() );

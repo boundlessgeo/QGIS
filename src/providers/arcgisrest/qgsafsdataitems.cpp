@@ -19,9 +19,9 @@
 #include "qgsafsprovider.h"
 #include "qgsarcgisrestutils.h"
 #include "qgsafssourceselect.h"
+#include "qgssettings.h"
 
 #include <QCoreApplication>
-#include <QSettings>
 #include <QUrl>
 
 

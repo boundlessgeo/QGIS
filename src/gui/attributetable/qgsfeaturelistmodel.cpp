@@ -18,9 +18,10 @@
 #include "qgsattributetablemodel.h"
 #include "qgsvectorlayereditbuffer.h"
 #include "qgsattributetablefiltermodel.h"
+#include "qgssettings.h"
 
 #include <QItemSelection>
-#include <QSettings>
+
 
 QgsFeatureListModel::QgsFeatureListModel( QgsAttributeTableFilterModel *sourceModel, QObject *parent )
     : QAbstractProxyModel( parent )
@@ -73,7 +74,7 @@ QVariant QgsFeatureListModel::data( const QModelIndex &index, int role ) const
   {
     if ( role == Qt::DisplayRole )
     {
-      return QSettings().value( "qgis/nullValue", "NULL" ).toString();
+      return QgsSettings().value( "qgis/nullValue", "NULL" ).toString();
     }
     else if ( role == QgsAttributeTableModel::FeatureIdRole )
     {

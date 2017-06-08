@@ -21,8 +21,8 @@
 #include "qgsapplication.h"
 #include "qgsvectorlayer.h"
 #include "qgsstatisticalsummary.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QObject>
 #include <QMouseEvent>
 

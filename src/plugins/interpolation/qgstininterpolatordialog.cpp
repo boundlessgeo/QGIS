@@ -17,8 +17,10 @@
 
 #include "qgstininterpolatordialog.h"
 #include "qgstininterpolator.h"
+#include "qgssettings.h"
+
 #include <QFileDialog>
-#include <QSettings>
+
 
 QgsTINInterpolatorDialog::QgsTINInterpolatorDialog( QWidget* parent, QgisInterface* iface ): QgsInterpolatorDialog( parent, iface )
 {
@@ -80,7 +82,7 @@ void QgsTINInterpolatorDialog::on_mExportTriangulationCheckBox_stateChanged( int
 
 void QgsTINInterpolatorDialog::on_mTriangulationFileButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   //read last triangulation directory
   QString lastTriangulationDir = s.value( "/Interpolation/lastTriangulationDir", QDir::homePath() ).toString();
   QString filename = QFileDialog::getSaveFileName( nullptr, tr( "Save triangulation to file" ), lastTriangulationDir, "*shp" );

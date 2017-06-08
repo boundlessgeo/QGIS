@@ -29,10 +29,10 @@ __revision__ = '$Format:%H$'
 # setLastUsedDir( QString *file_or_dir path )
 # -------------------------------------------------
 
-from qgis.PyQt.QtCore import QObject, QSettings, QFileInfo, QDir, QCoreApplication, pyqtSignal
+from qgis.PyQt.QtCore import QObject, QFileInfo, QDir, QCoreApplication, pyqtSignal
 from qgis.PyQt.QtWidgets import QFileDialog
 
-from qgis.core import QgsApplication, QgsMapLayerRegistry, QgsRectangle, QgsProviderRegistry, QgsLogger
+from qgis.core import QgsApplication, QgsMapLayerRegistry, QgsRectangle, QgsProviderRegistry, QgsLogger, QgsSettings
 from qgis.gui import QgsEncodingFileDialog
 
 from osgeo import gdal, ogr, osr
@@ -61,7 +61,7 @@ def escapeAndJoin(strList):
 
 
 def getLastUsedDir():
-    settings = QSettings()
+    settings = QgsSettings()
     lastProjectDir = settings.value("/UI/lastProjectDir", u".", type=unicode)
     return settings.value("/GdalTools/lastUsedDir", lastProjectDir, type=unicode)
 
@@ -69,7 +69,7 @@ def getLastUsedDir():
 
 
 def setLastUsedDir(filePath):
-    settings = QSettings()
+    settings = QgsSettings()
     fileInfo = QFileInfo(filePath)
     if fileInfo.isDir():
         dirPath = fileInfo.filePath()
@@ -81,56 +81,56 @@ def setLastUsedDir(filePath):
 
 
 def getGdalBinPath():
-    settings = QSettings()
+    settings = QgsSettings()
     return settings.value("/GdalTools/gdalPath", u"", type=unicode)
 
 # Stores GDAL binaries location
 
 
 def setGdalBinPath(path):
-    settings = QSettings()
+    settings = QgsSettings()
     settings.setValue("/GdalTools/gdalPath", path)
 
 # Retrieves GDAL python modules location
 
 
 def getGdalPymodPath():
-    settings = QSettings()
+    settings = QgsSettings()
     return settings.value("/GdalTools/gdalPymodPath", u"", type=unicode)
 
 # Stores GDAL python modules location
 
 
 def setGdalPymodPath(path):
-    settings = QSettings()
+    settings = QgsSettings()
     settings.setValue("/GdalTools/gdalPymodPath", path)
 
 # Retrieves GDAL help files location
 
 
 def getHelpPath():
-    settings = QSettings()
+    settings = QgsSettings()
     return settings.value("/GdalTools/helpPath", u"", type=unicode)
 
 # Stores GDAL help files location
 
 
 def setHelpPath(path):
-    settings = QSettings()
+    settings = QgsSettings()
     settings.setValue("/GdalTools/helpPath", path)
 
 # Retrieves last used encoding from persistent settings
 
 
 def getLastUsedEncoding():
-    settings = QSettings()
+    settings = QgsSettings()
     return settings.value("/UI/encoding", u"System", type=unicode)
 
 # Stores last used encoding in persistent settings
 
 
 def setLastUsedEncoding(encoding):
-    settings = QSettings()
+    settings = QgsSettings()
     settings.setValue("/UI/encoding", encoding)
 
 
@@ -484,12 +484,12 @@ class FileFilter:
 
     @classmethod
     def getFilter(self, typeName):
-        settings = QSettings()
+        settings = QgsSettings()
         return settings.value("/GdalTools/" + typeName + "FileFilter", u"", type=unicode)
 
     @classmethod
     def setFilter(self, typeName, aFilter):
-        settings = QSettings()
+        settings = QgsSettings()
         settings.setValue("/GdalTools/" + typeName + "FileFilter", aFilter)
 
     # stores the supported raster file filter

@@ -20,8 +20,8 @@
 #include "qgsvectorlayer.h"
 #include "qgsdatetimeedit.h"
 #include "qcalendarwidget.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 
 QgsDateTimeSearchWidgetWrapper::QgsDateTimeSearchWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* parent )
     : QgsSearchWidgetWrapper( vl, fieldIdx, parent )

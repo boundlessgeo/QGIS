@@ -28,9 +28,9 @@
 #include "qgsrectangle.h"
 #include "qgscoordinatereferencesystem.h"
 #include "qgsrasterbandstats.h"
+#include "qgssettings.h"
 
 #include <QImage>
-#include <QSettings>
 #include <QColor>
 #include <QMessageBox>
 #include <QDir>

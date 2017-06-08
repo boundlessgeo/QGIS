@@ -25,9 +25,9 @@
 #include "qgisapp.h"
 #include "qgsspinbox.h"
 #include "qgsdoublespinbox.h"
+#include "qgssettings.h"
 
 #include <QMouseEvent>
-#include <QSettings>
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QKeyEvent>

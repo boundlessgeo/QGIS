@@ -15,7 +15,6 @@
 
 #include <QLineEdit>
 #include <QMouseEvent>
-#include <QSettings>
 #include <QStyle>
 
 #include "qgsdoublespinbox.h"
@@ -23,6 +22,7 @@
 #include "qgsapplication.h"
 #include "qgslogger.h"
 #include "qgsfilterlineedit.h"
+#include "qgssettings.h"
 
 #define CLEAR_ICON_SIZE 16
 

@@ -33,6 +33,7 @@
 #include "qgsapplication.h"
 #include "qgslogger.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 #include <QKeyEvent>
 #include <QMessageBox>
@@ -308,7 +309,7 @@ void QgsRendererV2PropertiesDialog::openPanel( QgsPanelWidget *panel )
     // Show the dialog version if no one is connected
     QDialog* dlg = new QDialog();
     QString key =  QString( "/UI/paneldialog/%1" ).arg( panel->panelTitle() );
-    QSettings settings;
+    QgsSettings settings;
     dlg->restoreGeometry( settings.value( key ).toByteArray() );
     dlg->setWindowTitle( panel->panelTitle() );
     dlg->setLayout( new QVBoxLayout() );

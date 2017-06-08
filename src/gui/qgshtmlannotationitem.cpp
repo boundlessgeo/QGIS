@@ -25,6 +25,7 @@
 #include "qgsvectorlayer.h"
 #include "qgsexpression.h"
 #include "qgsnetworkaccessmanager.h"
+#include "qgssettings.h"
 
 #include <QDomElement>
 #include <QDir>
@@ -32,7 +33,6 @@
 #include <QFileInfo>
 #include <QGraphicsProxyWidget>
 #include <QPainter>
-#include <QSettings>
 #include <QWidget>
 
 

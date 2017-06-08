@@ -17,9 +17,9 @@
 #include "qgsfieldexpressionwidget.h"
 #include "qgsvectorlayer.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QCheckBox>
-#include <QSettings>
 
 
 QgsDataDefinedSymbolDialog::QgsDataDefinedSymbolDialog( const QList< DataDefinedSymbolEntry >& entries, const QgsVectorLayer* vl, QWidget * parent, const Qt::WindowFlags& f )
@@ -62,13 +62,13 @@ QgsDataDefinedSymbolDialog::QgsDataDefinedSymbolDialog( const QList< DataDefined
   for ( int c = 0; c != mTreeWidget->columnCount() - 1; c++ )
     mTreeWidget->resizeColumnToContents( c );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/QgsDataDefinedSymbolDialog/geometry" ).toByteArray() );
 }
 
 QgsDataDefinedSymbolDialog::~QgsDataDefinedSymbolDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/QgsDataDefinedSymbolDialog/geometry", saveGeometry() );
 }
 

@@ -17,8 +17,8 @@
 #include "qgsdatetimeeditconfig.h"
 #include "qgsdatetimeeditwrapper.h"
 #include "qgsdatetimesearchwidgetwrapper.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 
 QgsDateTimeEditFactory::QgsDateTimeEditFactory( const QString& name )
     : QgsEditorWidgetFactory( name )
@@ -76,7 +76,7 @@ QString QgsDateTimeEditFactory::representValue( QgsVectorLayer* vl, int fieldIdx
 
   if ( value.isNull() )
   {
-    QSettings settings;
+    QgsSettings settings;
     return settings.value( "qgis/nullValue", "NULL" ).toString();
   }
 

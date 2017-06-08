@@ -32,9 +32,9 @@
 #include "qgslogger.h"
 #include "qgsfeatureaction.h"
 #include "qgisapp.h"
+#include "qgssettings.h"
 
 #include <QMouseEvent>
-#include <QSettings>
 
 QgsMapToolAddFeature::QgsMapToolAddFeature( QgsMapCanvas* canvas, CaptureMode mode )
     : QgsMapToolCapture( canvas, QgisApp::instance()->cadDockWidget(), mode )

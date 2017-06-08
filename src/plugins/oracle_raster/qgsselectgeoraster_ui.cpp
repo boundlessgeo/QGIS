@@ -15,6 +15,7 @@
 
 #include "qgsselectgeoraster_ui.h"
 #include "qgsoracleconnect_ui.h"
+#include "qgssettings.h"
 
 //GDAL includes
 
@@ -49,7 +50,7 @@ QgsOracleSelectGeoraster::QgsOracleSelectGeoraster( QWidget* parent,
    *  Repeat last selected connection
    */
 
-  QSettings settings;
+  QgsSettings settings;
   QString selected = settings.value( "/Oracle/connections/selected" ).toString();
 
   restoreGeometry( settings.value( "/Oracle/geometry" ).toByteArray() );
@@ -63,14 +64,14 @@ QgsOracleSelectGeoraster::QgsOracleSelectGeoraster( QWidget* parent,
 
 QgsOracleSelectGeoraster::~QgsOracleSelectGeoraster()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Oracle/geometry", saveGeometry() );
   settings.setValue( "/Oracle/connections/selected", cmbConnections->currentText() );
 }
 
 void QgsOracleSelectGeoraster::populateConnectionList()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.beginGroup( "/Oracle/connections" );
   QStringList keys = settings.childGroups();
   QStringList::Iterator it = keys.begin();
@@ -126,7 +127,7 @@ void QgsOracleSelectGeoraster::on_btnEdit_clicked()
 
 void QgsOracleSelectGeoraster::on_btnDelete_clicked()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString key = "/Oracle/connections/" + cmbConnections->currentText();
   QString msg = tr( "Are you sure you want to remove the %1 connection and all associated settings?" )
                 .arg( cmbConnections->currentText() );
@@ -154,7 +155,7 @@ void QgsOracleSelectGeoraster::connectToServer()
   if ( cmbConnections->currentText().isEmpty() )
     return;
 
-  QSettings settings;
+  QgsSettings settings;
   QString key = "/Oracle/connections/" + cmbConnections->currentText();
   QString username = settings.value( key + "/username" ).toString();
   QString savepass = settings.value( key + "/savepass" ).toString();
@@ -236,7 +237,7 @@ void QgsOracleSelectGeoraster::showSelection( const QString & line )
    *  Save subdataset
    */
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Oracle/connections/" +
                      cmbConnections->currentText() + "/subdtset", identification );
 
@@ -313,7 +314,7 @@ void QgsOracleSelectGeoraster::on_listWidget_clicked( const QModelIndex& Index )
 void QgsOracleSelectGeoraster::setConnectionListPosition()
 {
   // If possible, set the item currently displayed database
-  QSettings settings;
+  QgsSettings settings;
   QString toSelect = settings.value( "/Oracle/connections/selected" ).toString();
   cmbConnections->setCurrentIndex( cmbConnections->findText( toSelect ) );
 
@@ -324,7 +325,7 @@ void QgsOracleSelectGeoraster::setConnectionListPosition()
   if ( cmbConnections->currentIndex() == -1 && cmbConnections->count() > 0 )
   {
     // If toSelect is null, then the selected connection wasn't found
-    // by QSettings, which probably means that this is the first time
+    // by QgsSettings, which probably means that this is the first time
     // the user has used qgis with database connections, so default to
     // the first in the list of connetions. Otherwise default to the last.
     if ( toSelect.isNull() )

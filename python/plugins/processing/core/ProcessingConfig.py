@@ -27,7 +27,7 @@ __revision__ = '$Format:%H$'
 
 import os
 
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QObject, pyqtSignal
+from qgis.PyQt.QtCore import QCoreApplication, QObject, pyqtSignal
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import NULL, QgsSettings
 from processing.tools.system import defaultOutputFolder

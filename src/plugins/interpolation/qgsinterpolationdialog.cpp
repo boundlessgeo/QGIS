@@ -26,17 +26,18 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
+
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 
 
 QgsInterpolationDialog::QgsInterpolationDialog( QWidget* parent, QgisInterface* iface ): QDialog( parent ), mIface( iface ), mInterpolatorDialog( nullptr )
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Interpolation/geometry" ).toByteArray() );
 
   //enter available layers into the combo box
@@ -66,7 +67,7 @@ QgsInterpolationDialog::QgsInterpolationDialog( QWidget* parent, QgisInterface* 
 
 QgsInterpolationDialog::~QgsInterpolationDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Interpolation/geometry", saveGeometry() );
   settings.setValue( "/Interpolation/lastMethod", mInterpolationMethodComboBox->currentIndex() );
 }
@@ -303,7 +304,7 @@ void QgsInterpolationDialog::on_mRemovePushButton_clicked()
 void QgsInterpolationDialog::on_mOutputFileButton_clicked()
 {
   //get last output file dir
-  QSettings s;
+  QgsSettings s;
   QString lastOutputDir = s.value( "/Interpolation/lastOutputDir", QDir::homePath() ).toString();
 
   QString rasterFileName = QFileDialog::getSaveFileName( nullptr, tr( "Save interpolated raster as..." ), lastOutputDir );

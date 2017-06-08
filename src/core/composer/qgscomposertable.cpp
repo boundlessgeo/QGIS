@@ -20,8 +20,9 @@
 #include "qgssymbollayerv2utils.h"
 #include "qgscomposerutils.h"
 #include "qgsfontutils.h"
+#include "qgssettings.h"
+
 #include <QPainter>
-#include <QSettings>
 
 
 QgsComposerTable::QgsComposerTable( QgsComposition* composition )
@@ -35,7 +36,7 @@ QgsComposerTable::QgsComposerTable( QgsComposition* composition )
     , mGridColor( QColor( 0, 0, 0 ) )
 {
   //get default composer font from settings
-  QSettings settings;
+  QgsSettings settings;
   QString defaultFontString = settings.value( "/Composer/defaultFont" ).toString();
   if ( !defaultFontString.isEmpty() )
   {

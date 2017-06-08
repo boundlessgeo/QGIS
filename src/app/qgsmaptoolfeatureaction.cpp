@@ -30,8 +30,8 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsmaplayeractionregistry.h"
 #include "qgisapp.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QMouseEvent>
 #include <QStatusBar>
 

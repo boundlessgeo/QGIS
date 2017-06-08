@@ -22,9 +22,9 @@
 #include "qgscolorswatchgrid.h"
 #include "qgscolorschemeregistry.h"
 #include "qgscolorwidgets.h"
+#include "qgssettings.h"
 
 #include <QPainter>
-#include <QSettings>
 #include <QTemporaryFile>
 #include <QMouseEvent>
 #include <QMenu>
@@ -114,7 +114,7 @@ void QgsColorButtonV2::showColorDialog()
   }
 
   QColor newColor;
-  QSettings settings;
+  QgsSettings settings;
 
   //using native color dialogs?
   bool useNative = settings.value( "/qgis/native_color_dialogs", false ).toBool();

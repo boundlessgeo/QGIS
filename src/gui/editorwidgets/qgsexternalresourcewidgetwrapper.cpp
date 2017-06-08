@@ -16,12 +16,12 @@
 #include "qgsexternalresourcewidgetwrapper.h"
 
 #include <QPushButton>
-#include <QSettings>
 #include <QLabel>
 
 
 #include "qgsexternalresourcewidget.h"
 #include "qgsfilterlineedit.h"
+#include "qgssettings.h"
 
 
 QgsExternalResourceWidgetWrapper::QgsExternalResourceWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* editor, QWidget* parent )
@@ -41,7 +41,7 @@ QVariant QgsExternalResourceWidgetWrapper::value() const
 
   if ( mLineEdit )
   {
-    if ( mLineEdit->text().isEmpty() || mLineEdit->text() == QSettings().value( "qgis/nullValue", "NULL" ).toString() )
+    if ( mLineEdit->text().isEmpty() || mLineEdit->text() == QgsSettings().value( "qgis/nullValue", "NULL" ).toString() )
     {
       return QVariant( field().type() );
     }
@@ -93,7 +93,7 @@ void QgsExternalResourceWidgetWrapper::initWidget( QWidget* editor )
     QgsFilterLineEdit* fle = qobject_cast<QgsFilterLineEdit*>( editor );
     if ( fle )
     {
-      fle->setNullValue( QSettings().value( "qgis/nullValue", "NULL" ).toString() );
+      fle->setNullValue( QgsSettings().value( "qgis/nullValue", "NULL" ).toString() );
     }
   }
   else
@@ -151,7 +151,7 @@ void QgsExternalResourceWidgetWrapper::setValue( const QVariant& value )
   {
     if ( value.isNull() )
     {
-      mLineEdit->setText( QSettings().value( "qgis/nullValue", "NULL" ).toString() );
+      mLineEdit->setText( QgsSettings().value( "qgis/nullValue", "NULL" ).toString() );
     }
     else
     {
@@ -169,7 +169,7 @@ void QgsExternalResourceWidgetWrapper::setValue( const QVariant& value )
   {
     if ( value.isNull() )
     {
-      mQgsWidget->setDocumentPath( QSettings().value( "qgis/nullValue", "NULL" ).toString() );
+      mQgsWidget->setDocumentPath( QgsSettings().value( "qgis/nullValue", "NULL" ).toString() );
     }
     else
     {

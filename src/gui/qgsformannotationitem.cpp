@@ -23,13 +23,14 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsmaptool.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
+
 #include <QDomElement>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QGraphicsProxyWidget>
 #include <QPainter>
-#include <QSettings>
 #include <QUiLoader>
 #include <QWidget>
 

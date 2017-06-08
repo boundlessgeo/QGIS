@@ -15,13 +15,14 @@
 #include "qgsrasterterrainanalysisdialog.h"
 #include "qgsmaplayerregistry.h"
 #include "qgsrasterlayer.h"
+#include "qgssettings.h"
+
 #include <QColorDialog>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMessageBox>
-#include <QSettings>
 #include <QTextStream>
 #include "cpl_string.h"
 #include "gdal.h"
@@ -30,7 +31,7 @@ QgsRasterTerrainAnalysisDialog::QgsRasterTerrainAnalysisDialog( DisplayMode mode
 {
   setupUi( this );
 
-  QSettings s;
+  QgsSettings s;
   restoreGeometry( s.value( "/RasterTerrainAnalysis/geometry" ).toByteArray() );
 
   if ( mode == HillshadeInput )
@@ -296,7 +297,7 @@ void QgsRasterTerrainAnalysisDialog::on_mImportColorsButton_clicked()
 
 void QgsRasterTerrainAnalysisDialog::on_mOutputLayerToolButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString lastDir = s.value( "/RasterTerrainAnalysis/lastOutputDir", QDir::homePath() ).toString();
   QString saveFileName = QFileDialog::getSaveFileName( nullptr, tr( "Enter result file" ), lastDir );
   if ( !saveFileName.isNull() )
@@ -407,7 +408,7 @@ void QgsRasterTerrainAnalysisDialog::on_mReliefClassTreeWidget_itemDoubleClicked
 void QgsRasterTerrainAnalysisDialog::on_mButtonBox_accepted()
 {
   // save last output format
-  QSettings s;
+  QgsSettings s;
   s.setValue( "/RasterTerrainAnalysis/lastOutputFormat", QVariant( mOutputFormatComboBox->currentText() ) );
 
   // save last output directory

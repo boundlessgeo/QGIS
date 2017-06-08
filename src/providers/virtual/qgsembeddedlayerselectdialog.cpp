@@ -18,7 +18,6 @@ email                : hugo dot mercier at oslandia dot com
 #include "qgsembeddedlayerselectdialog.h"
 
 #include <QMainWindow>
-#include <QSettings>
 
 #include <qgsvectorlayer.h>
 #include <layertree/qgslayertreeview.h>
@@ -27,6 +26,8 @@ email                : hugo dot mercier at oslandia dot com
 #include <layertree/qgslayertreelayer.h>
 #include <qgsproviderregistry.h>
 #include <qgsvectordataprovider.h>
+#include "qgssettings.h"
+
 
 QgsEmbeddedLayerSelectDialog::QgsEmbeddedLayerSelectDialog( QWidget* parent, QgsLayerTreeView* tv )
     : QDialog( parent )

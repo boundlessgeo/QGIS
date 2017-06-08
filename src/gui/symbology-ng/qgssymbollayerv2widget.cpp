@@ -38,6 +38,7 @@
 
 #include "qgslogger.h"
 #include "qgssizescalewidget.h"
+#include "qgssettings.h"
 
 #include <QAbstractButton>
 #include <QColorDialog>
@@ -45,7 +46,6 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QPainter>
-#include <QSettings>
 #include <QStandardItemModel>
 #include <QSvgRenderer>
 #include <QMessageBox>
@@ -2036,7 +2036,7 @@ void QgsSvgMarkerSymbolLayerV2Widget::setOffset()
 
 void QgsSvgMarkerSymbolLayerV2Widget::on_mFileToolButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString file = QFileDialog::getOpenFileName( nullptr,
                  tr( "Select SVG file" ),
                  s.value( "/UI/lastSVGMarkerDir", QDir::homePath() ).toString(),
@@ -3054,7 +3054,7 @@ QgsSymbolLayerV2 *QgsRasterFillSymbolLayerWidget::symbolLayer()
 
 void QgsRasterFillSymbolLayerWidget::on_mBrowseToolButton_clicked()
 {
-  QSettings s;
+  QgsSettings s;
   QString openDir;
   QString lineEditText = mImageLineEdit->text();
   if ( !lineEditText.isEmpty() )

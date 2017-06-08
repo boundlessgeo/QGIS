@@ -19,13 +19,14 @@
 #include "qgsgeometry.h"
 #include "qgslogger.h"
 #include "qgsnetworkaccessmanager.h"
+#include "qgssettings.h"
+
 #include <QBuffer>
 #include <QList>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QProgressDialog>
 #include <QSet>
-#include <QSettings>
 #include <QUrl>
 
 #include <limits>

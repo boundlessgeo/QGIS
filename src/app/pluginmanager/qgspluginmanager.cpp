@@ -73,7 +73,7 @@ QgsPluginManager::QgsPluginManager( QWidget * parent, bool pluginsAreEnabled, Qt
   mOptListWidget->setMaximumWidth( 16777215 );
 
   // Restiore UI state for widgets not handled by QgsOptionsDialogBase
-  QSettings settings;
+  QgsSettings settings;
   mPluginsDetailsSplitter->restoreState( settings.value( QString( "/Windows/PluginManager/secondSplitterState" ) ).toByteArray() );
 
   // load translated description strings from qgspluginmanager_texts
@@ -135,7 +135,7 @@ QgsPluginManager::~QgsPluginManager()
   delete mModelProxy;
   delete mModelPlugins;
 
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( QString( "/Windows/PluginManager/secondSplitterState" ), mPluginsDetailsSplitter->saveState() );
 }
 
@@ -279,7 +279,7 @@ void QgsPluginManager::savePluginState( QString id, bool state )
     return;
   }
 
-  QSettings settings;
+  QgsSettings settings;
   if ( plugin->value( "pythonic" ) == "true" )
   {
     // Python plugin
@@ -310,7 +310,7 @@ void QgsPluginManager::getCppPluginsMetadata()
   QgsProviderRegistry *pr = QgsProviderRegistry::instance();
   QStringList myPathList( pr->libraryDirectory().path() );
 
-  QSettings settings;
+  QgsSettings settings;
   QString myPaths = settings.value( "plugins/searchPathsForPlugins", "" ).toString();
   if ( !myPaths.isEmpty() )
   {
@@ -1068,7 +1068,7 @@ void QgsPluginManager::reject()
     // get the QgsSettings group from the installer
     QString settingsGroup;
     QgsPythonRunner::eval( "pyplugin_installer.instance().exportSettingsGroup()", settingsGroup );
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( settingsGroup + "/checkOnStart", QVariant( ckbCheckUpdates->isChecked() ) );
     settings.setValue( settingsGroup + "/checkOnStartInterval", QVariant( mCheckingOnStartIntervals.value( comboInterval->currentIndex() ) ) );
     QgsPythonRunner::run( "pyplugin_installer.instance().onManagerClose()" );
@@ -1378,7 +1378,7 @@ void QgsPluginManager::on_ckbExperimental_toggled( bool state )
 {
   QString settingsGroup;
   QgsPythonRunner::eval( "pyplugin_installer.instance().exportSettingsGroup()", settingsGroup );
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( settingsGroup + "/allowExperimental", QVariant( state ) );
   QgsPythonRunner::run( "pyplugin_installer.installer_data.plugins.rebuild()" );
   QgsPythonRunner::run( "pyplugin_installer.instance().exportPluginsToManager()" );
@@ -1388,7 +1388,7 @@ void QgsPluginManager::on_ckbDeprecated_toggled( bool state )
 {
   QString settingsGroup;
   QgsPythonRunner::eval( "pyplugin_installer.instance().exportSettingsGroup()", settingsGroup );
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( settingsGroup + "/allowDeprecated", QVariant( state ) );
   QgsPythonRunner::run( "pyplugin_installer.installer_data.plugins.rebuild()" );
   QgsPythonRunner::run( "pyplugin_installer.instance().exportPluginsToManager()" );
@@ -1407,7 +1407,7 @@ bool QgsPluginManager::isPluginEnabled( QString key )
     return false;
   }
 
-  QSettings mySettings;
+  QgsSettings mySettings;
   if ( plugin->value( "pythonic" ) != "true" )
   {
     // Trim "cpp:" prefix from cpp plugin id

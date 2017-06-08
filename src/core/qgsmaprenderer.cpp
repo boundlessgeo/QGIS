@@ -29,13 +29,13 @@
 #include "qgsdistancearea.h"
 #include "qgsproject.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
 #include <QDomDocument>
 #include <QDomNode>
 #include <QMutexLocker>
 #include <QPainter>
 #include <QListIterator>
-#include <QSettings>
 #include <QTime>
 #include <QCoreApplication>
 
@@ -441,7 +441,7 @@ void QgsMapRenderer::render( QPainter* painter, double* forceWidthScale )
         scaleRaster = true;
       }
 
-      QSettings mySettings;
+      QgsSettings mySettings;
 
       // If we are drawing with an alternative blending mode then we need to render to a separate image
       // before compositing this on the map. This effectively flattens the layer and prevents

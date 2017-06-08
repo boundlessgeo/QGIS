@@ -22,13 +22,13 @@ The content of this file is based on
  ***************************************************************************/
 """
 
-from PyQt4.QtCore import Qt, QObject, QSettings, QByteArray, SIGNAL, pyqtSignal
+from PyQt4.QtCore import Qt, QObject, QByteArray, SIGNAL, pyqtSignal
 from PyQt4.QtGui import QDialog, QWidget, QAction, QKeySequence, \
     QDialogButtonBox, QApplication, QCursor, QMessageBox, QClipboard, QInputDialog, QIcon, QStyledItemDelegate, QStandardItemModel, QStandardItem
 from PyQt4.Qsci import QsciAPIs
 from PyQt4.QtXml import QDomDocument
 
-from qgis.core import QgsProject, QgsDataSourceURI
+from qgis.core import QgsProject, QgsDataSourceURI, QgsSettings
 
 from .db_plugins import createDbPlugin
 from .db_plugins.plugin import BaseError

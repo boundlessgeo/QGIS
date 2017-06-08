@@ -18,8 +18,8 @@
 
 #include "qgsfield.h"
 #include "qgsfieldvalidator.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QSizePolicy>
 
 QgsValueMapSearchWidgetWrapper::QgsValueMapSearchWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* parent )

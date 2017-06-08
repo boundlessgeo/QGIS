@@ -29,11 +29,11 @@
 #include "qgsproject.h"
 #include <qgslogger.h>
 #include "qgsexpression.h"
+#include "qgssettings.h"
 
 #include <QList>
 #include <QStringList>
 #include <QDomElement>
-#include <QSettings>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QDir>

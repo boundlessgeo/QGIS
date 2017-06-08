@@ -26,7 +26,8 @@
 #include "qgscomposeritem.h"
 #include "qgsatlascomposition.h"
 #include "qgsapplication.h"
-#include <QSettings>
+#include "qgssettings.h"
+
 #include <QDir>
 
 
@@ -483,8 +484,8 @@ QgsExpressionContextScope* QgsExpressionContextUtils::globalScope()
 {
   QgsExpressionContextScope* scope = new QgsExpressionContextScope( QObject::tr( "Global" ) );
 
-  //read values from QSettings
-  QSettings settings;
+  //read values from QgsSettings
+  QgsSettings settings;
 
   //check if settings contains any variables
   if ( settings.contains( QString( "/variables/values" ) ) )
@@ -525,7 +526,7 @@ QgsExpressionContextScope* QgsExpressionContextUtils::globalScope()
 void QgsExpressionContextUtils::setGlobalVariable( const QString& name, const QVariant& value )
 {
   // save variable to settings
-  QSettings settings;
+  QgsSettings settings;
 
   QList< QVariant > customVariableVariants = settings.value( QString( "/variables/values" ) ).toList();
   QList< QVariant > customVariableNames = settings.value( QString( "/variables/names" ) ).toList();
@@ -539,7 +540,7 @@ void QgsExpressionContextUtils::setGlobalVariable( const QString& name, const QV
 
 void QgsExpressionContextUtils::setGlobalVariables( const QgsStringMap &variables )
 {
-  QSettings settings;
+  QgsSettings settings;
 
   QList< QVariant > customVariableVariants;
   QList< QVariant > customVariableNames;

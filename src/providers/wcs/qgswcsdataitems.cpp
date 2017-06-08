@@ -21,9 +21,10 @@
 #include "qgsowsconnection.h"
 #include "qgsnewhttpconnection.h"
 #include "qgscrscache.h"
+#include "qgssettings.h"
 
 #include <QFileInfo>
-#include <QSettings>
+
 
 QgsWCSConnectionItem::QgsWCSConnectionItem( QgsDataItem* parent, QString name, QString path, QString uri )
     : QgsDataCollectionItem( parent, name, path )

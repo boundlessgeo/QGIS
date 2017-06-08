@@ -22,7 +22,6 @@
 #include <QDataStream>
 #include <QStringList>
 #include <QMessageBox>
-#include <QSettings>
 #include <QRegExp>
 #include <QUrl>
 #include <QtSql/QSqlDatabase>
@@ -44,6 +43,7 @@
 #include "qgsmessageoutput.h"
 #include "qgsrectangle.h"
 #include "qgis.h"
+#include "qgssettings.h"
 
 #include "qgsmssqlsourceselect.h"
 #include "qgsmssqldataitems.h"

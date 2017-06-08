@@ -19,13 +19,14 @@
 #include "qgslogger.h"
 #include "qgscoordinatereferencesystem.h"
 #include "qgsmessagelog.h"
+#include "qgssettings.h"
 
 //qt includes
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QResizeEvent>
 #include <QMessageBox>
-#include <QSettings>
+
 
 QgsProjectionSelector::QgsProjectionSelector( QWidget* parent, const char *name, const Qt::WindowFlags& fl )
     : QWidget( parent, fl )
@@ -89,7 +90,7 @@ QgsProjectionSelector::~QgsProjectionSelector()
   }
 
   // Save to file *** Should be removed sometims in the future ***
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/UI/recentProjections", mRecentProjections );
 
   // Convert to EPSG and proj4, and save those values also

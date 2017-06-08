@@ -24,6 +24,7 @@
 #include "qgsproject.h"
 #include "qgslogger.h"
 #include "qgsdockwidget.h"
+#include "qgssettings.h"
 
 #include <QCheckBox>
 #include <QDoubleValidator>
@@ -44,7 +45,7 @@ QgsSnappingDialog::QgsSnappingDialog( QWidget* parent, QgsMapCanvas* canvas )
   mDefaultSnapToComboBox->insertItem( 2, tr( "To vertex and segment" ), "to vertex and segment" );
   mDefaultSnapToComboBox->insertItem( 3, tr( "Off" ), "off" );
 
-  QSettings myQsettings;
+  QgsSettings myQsettings;
   bool myDockFlag = myQsettings.value( "/qgis/dockSnapping", false ).toBool();
   if ( myDockFlag )
   {
@@ -104,7 +105,7 @@ void QgsSnappingDialog::reload()
   setSnappingMode();
 
   int idx;
-  QSettings settings;
+  QgsSettings settings;
   QString snapType = settings.value( "/qgis/digitizing/default_snap_mode", "off" ).toString();
   snapType = QgsProject::instance()->readEntry( "Digitizing", "/DefaultSnapType", snapType );
   if ( snapType == "to segment" )
@@ -167,7 +168,7 @@ void QgsSnappingDialog::initNewProject()
 {
   QgsProject::instance()->writeEntry( "Digitizing", "/SnappingMode", QString( "current_layer" ) );
 
-  QSettings settings;
+  QgsSettings settings;
   QString snapType = settings.value( "/qgis/digitizing/default_snap_mode", "off" ).toString();
   QgsProject::instance()->writeEntry( "Digitizing", "/DefaultSnapType", snapType );
   double tolerance = settings.value( "/qgis/digitizing/default_snapping_tolerance", 0 ).toDouble();
@@ -185,7 +186,7 @@ void QgsSnappingDialog::closeEvent( QCloseEvent* event )
 
   if ( !mDock )
   {
-    QSettings settings;
+    QgsSettings settings;
     settings.setValue( "/Windows/BetterSnapping/geometry", saveGeometry() );
   }
 }
@@ -306,7 +307,7 @@ void QgsSnappingDialog::addLayer( QgsMapLayer *theMapLayer )
   if ( !currentVectorLayer || currentVectorLayer->geometryType() == QGis::NoGeometry )
     return;
 
-  QSettings myQsettings;
+  QgsSettings myQsettings;
   bool myDockFlag = myQsettings.value( "/qgis/dockSnapping", false ).toBool();
   double defaultSnappingTolerance = myQsettings.value( "/qgis/digitizing/default_snapping_tolerance", 0 ).toDouble();
   int defaultSnappingUnit = myQsettings.value( "/qgis/digitizing/default_snapping_tolerance_unit", QgsTolerance::ProjectUnits ).toInt();

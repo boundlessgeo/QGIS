@@ -82,7 +82,7 @@ QString QgsFileWidget::filePath()
 
 void QgsFileWidget::setFilePath( QString path )
 {
-  if ( path == QSettings().value( "qgis/nullValue", "NULL" ) )
+  if ( path == QgsSettings().value( "qgis/nullValue", "NULL" ) )
   {
     path = "";
   }
@@ -286,7 +286,7 @@ QString QgsFileWidget::toUrl( const QString& path ) const
   QString rep;
   if ( path.isEmpty() )
   {
-    return QSettings().value( "qgis/nullValue", "NULL" ).toString();
+    return QgsSettings().value( "qgis/nullValue", "NULL" ).toString();
   }
 
   QString urlStr = relativePath( path, false );

@@ -22,11 +22,11 @@
 
 #include "qgshttptransaction.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 #include "qgsconfig.h"
 
 #include <QApplication>
 #include <QUrl>
-#include <QSettings>
 #include <QTimer>
 
 static int HTTP_PORT_DEFAULT = 80;
@@ -57,7 +57,7 @@ QgsHttpTransaction::QgsHttpTransaction( const QString& uri,
   Q_UNUSED( proxyType );
   Q_UNUSED( userName );
   Q_UNUSED( password );
-  QSettings s;
+  QgsSettings s;
   mNetworkTimeoutMsec = s.value( "/qgis/networkAndProxy/networkTimeout", "60000" ).toInt();
 }
 
@@ -68,7 +68,7 @@ QgsHttpTransaction::QgsHttpTransaction()
     , httpredirections( 0 )
     , mWatchdogTimer( nullptr )
 {
-  QSettings s;
+  QgsSettings s;
   mNetworkTimeoutMsec = s.value( "/qgis/networkAndProxy/networkTimeout", "60000" ).toInt();
 }
 
@@ -134,7 +134,7 @@ bool QgsHttpTransaction::getSynchronously( QByteArray &respondedContent, int red
   else
   {
     //proxy enabled, read httphost and httpport from settings
-    QSettings settings;
+    QgsSettings settings;
     httphost = settings.value( "proxy/proxyHost", "" ).toString();
     httpport = settings.value( "proxy/proxyPort", "" ).toString().toInt();
   }
@@ -505,7 +505,7 @@ QString QgsHttpTransaction::errorString()
 
 bool QgsHttpTransaction::applyProxySettings( QHttp& http, const QString& url )
 {
-  QSettings settings;
+  QgsSettings settings;
   //check if proxy is enabled
   bool proxyEnabled = settings.value( "proxy/proxyEnabled", false ).toBool();
   if ( !proxyEnabled )

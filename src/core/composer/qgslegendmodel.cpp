@@ -26,11 +26,12 @@
 #include "qgssymbollayerv2utils.h"
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
+
 #include <QApplication>
 #include <QDomDocument>
 #include <QDomElement>
 #include <QMimeData>
-#include <QSettings>
 #include <QMessageBox>
 
 QgsLegendModel::QgsLegendModel(): QStandardItemModel(), mAutoUpdate( true )

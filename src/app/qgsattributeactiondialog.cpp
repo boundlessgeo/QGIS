@@ -27,11 +27,11 @@ back to QgsVectorLayer.
 #include "qgisapp.h"
 #include "qgsproject.h"
 #include "qgsmapcanvas.h"
+#include "qgssettings.h"
 
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QSettings>
 #include <QImageWriter>
 #include <QTableWidget>
 

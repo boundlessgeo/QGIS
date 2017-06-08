@@ -18,9 +18,9 @@
 
 // Qt Designer Includes
 #include "ui_qgsselectgeorasterbase.h"
+#include "qgssettings.h"
 
 //Qt includes
-#include <QSettings>
 #include <QMessageBox>
 #include <QInputDialog>
 

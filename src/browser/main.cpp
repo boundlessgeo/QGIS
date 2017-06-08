@@ -16,7 +16,6 @@
  *                                                                         *
  ***************************************************************************/
 #include <QLocale>
-#include <QSettings>
 #include <QTranslator>
 #include <QMainWindow>
 #include <QLabel>
@@ -27,13 +26,14 @@
 #include "qgslogger.h"
 #include "qgsconfig.h"
 #include "qgsnetworkaccessmanager.h"
+#include "qgssettings.h"
 #include <qmainwindow.h>
 
 #include "qgseditorwidgetregistry.h"
 
 int main( int argc, char ** argv )
 {
-  QSettings settings;
+  QgsSettings settings;
 
   QgsApplication a( argc, argv, true );
   // update any saved setting for older themes to new default 'gis' theme (2013-04-15)
@@ -48,7 +48,7 @@ int main( int argc, char ** argv )
   a.initQgis();
   a.setWindowIcon( QIcon( QgsApplication::iconsPath() + "qbrowser-icon-60x60.png" ) );
 
-  // Set up the QSettings environment must be done after qapp is created
+  // Set up the QgsSettings environment must be done after qapp is created
   QCoreApplication::setOrganizationName( "QGIS" );
   QCoreApplication::setOrganizationDomain( "qgis.org" );
   QCoreApplication::setApplicationName( "QGIS2" );

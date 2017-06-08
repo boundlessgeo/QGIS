@@ -20,11 +20,11 @@
 #include "qgslogger.h"
 #include "qgswebview.h"
 #include "qgswebframe.h"
+#include "qgssettings.h"
 
 // Qt includes
 #include <QPoint>
 #include <QToolTip>
-#include <QSettings>
 #include <QLabel>
 #include <QDesktopServices>
 #if WITH_QTWEBKIT

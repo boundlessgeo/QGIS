@@ -19,8 +19,7 @@
 #include "qgsmaptopixel.h"
 #include "qgsrubberband.h"
 #include "qgscoordinatereferencesystem.h"
-
-#include <QSettings>
+#include "qgssettings.h"
 
 #include <QMouseEvent>
 #include <QCursor>

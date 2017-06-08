@@ -28,6 +28,7 @@
 #include "qgslogger.h"
 #include "qgsrendercontext.h"
 #include "qgsunittypes.h"
+#include "qgssettings.h"
 
 #include <QColor>
 #include <QFont>
@@ -36,7 +37,6 @@
 #include <QDomElement>
 #include <QIcon>
 #include <QPainter>
-#include <QSettings>
 #include <QRegExp>
 #include <QPicture>
 

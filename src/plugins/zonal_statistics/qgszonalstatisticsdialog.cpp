@@ -21,8 +21,8 @@
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
 #include "qgisinterface.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QListWidgetItem>
 
 QgsZonalStatisticsDialog::QgsZonalStatisticsDialog( QgisInterface* iface ): QDialog( iface->mainWindow() ), mIface( iface )
@@ -84,7 +84,7 @@ QgsZonalStatisticsDialog::QgsZonalStatisticsDialog( QgisInterface* iface ): QDia
   varietyItem->setCheckState( Qt::Unchecked );
   varietyItem->setData( Qt::UserRole, QgsZonalStatistics::Variety );
   mStatsListWidget->addItem( varietyItem );
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "Plugin-ZonalStatistics/geometry" ).toByteArray() );
 
   insertAvailableLayers();
@@ -95,13 +95,13 @@ QgsZonalStatisticsDialog::QgsZonalStatisticsDialog(): QDialog( nullptr ), mIface
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "Plugin-ZonalStatistics/geometry" ).toByteArray() );
 }
 
 QgsZonalStatisticsDialog::~QgsZonalStatisticsDialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "Plugin-ZonalStatistics/geometry", saveGeometry() );
 }
 

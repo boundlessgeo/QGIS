@@ -20,12 +20,13 @@
 
 //qt includes
 #include <qmessagebox.h>
-#include <QSettings>
 #include <QFileDialog>
 #include <QFile>
 #include <QDir>
 
 #include "qgslogger.h"
+#include "qgssettings.h"
+
 
 dxf2shpConverterGui::dxf2shpConverterGui( QWidget *parent, Qt::WindowFlags fl ):
     QDialog( parent, fl )
@@ -36,7 +37,7 @@ dxf2shpConverterGui::dxf2shpConverterGui( QWidget *parent, Qt::WindowFlags fl ):
 
 dxf2shpConverterGui::~dxf2shpConverterGui()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Plugin-DXF/geometry", saveGeometry() );
 }
 
@@ -140,7 +141,7 @@ void dxf2shpConverterGui::on_btnBrowseOutputDir_clicked()
 
 void dxf2shpConverterGui::getInputFileName()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString s = QFileDialog::getOpenFileName( this,
               tr( "Choose a DXF file to open" ),
               settings.value( "/Plugin-DXF/text_path", QDir::homePath() ).toString(),
@@ -155,7 +156,7 @@ void dxf2shpConverterGui::getInputFileName()
 
 void dxf2shpConverterGui::getOutputDir()
 {
-  QSettings settings;
+  QgsSettings settings;
   QString s = QFileDialog::getSaveFileName( this,
               tr( "Choose a file name to save to" ),
               settings.value( "/UI/lastShapefileDir", QDir::homePath() ).toString(),
@@ -174,6 +175,6 @@ void dxf2shpConverterGui::getOutputDir()
 
 void dxf2shpConverterGui::restoreState()
 {
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Plugin-DXF/geometry" ).toByteArray() );
 }

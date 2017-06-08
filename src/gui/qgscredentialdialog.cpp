@@ -19,9 +19,9 @@
 
 #include "qgsauthmanager.h"
 #include "qgslogger.h"
+#include "qgssettings.h"
 
 #include <QPushButton>
-#include <QSettings>
 #include <QThread>
 
 static QString invalidStyle_( const QString& selector = "QLineEdit" )

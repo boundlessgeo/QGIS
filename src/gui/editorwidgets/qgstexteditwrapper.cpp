@@ -18,8 +18,8 @@
 #include "qgsfield.h"
 #include "qgsfieldvalidator.h"
 #include "qgsfilterlineedit.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 
 QgsTextEditWrapper::QgsTextEditWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* editor, QWidget* parent )
     : QgsEditorWidgetWrapper( vl, fieldIdx, editor, parent )
@@ -56,7 +56,7 @@ QVariant QgsTextEditWrapper::value() const
   }
 
   if (( v.isEmpty() && ( field().type() == QVariant::Int || field().type() == QVariant::Double || field().type() == QVariant::LongLong || field().type() == QVariant::Date ) ) ||
-      v == QSettings().value( "qgis/nullValue", "NULL" ).toString() )
+      v == QgsSettings().value( "qgis/nullValue", "NULL" ).toString() )
     return QVariant( field().type() );
 
   if ( !defaultValue().isNull() && v == defaultValue().toString() )
@@ -119,7 +119,7 @@ void QgsTextEditWrapper::initWidget( QWidget* editor )
     QVariant defVal = defaultValue();
     if ( defVal.isNull() )
     {
-      defVal = QSettings().value( "qgis/nullValue", "NULL" );
+      defVal = QgsSettings().value( "qgis/nullValue", "NULL" );
     }
 
     QgsFilterLineEdit *fle = qobject_cast<QgsFilterLineEdit*>( mLineEdit );
@@ -215,7 +215,7 @@ void QgsTextEditWrapper::setWidgetValue( const QVariant& val )
   if ( val.isNull() )
   {
     if ( !( field().type() == QVariant::Int || field().type() == QVariant::Double || field().type() == QVariant::LongLong || field().type() == QVariant::Date ) )
-      v = QSettings().value( "qgis/nullValue", "NULL" ).toString();
+      v = QgsSettings().value( "qgis/nullValue", "NULL" ).toString();
   }
   else
     v = val.toString();

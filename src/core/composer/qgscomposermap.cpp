@@ -40,11 +40,11 @@
 #include "qgslabel.h"
 #include "qgslabelattributes.h"
 #include "qgssymbollayerv2utils.h" //for pointOnLineWithDistance
+#include "qgssettings.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QPainter>
-#include <QSettings>
 #include <cmath>
 
 QgsComposerMap::QgsComposerMap( QgsComposition *composition, int x, int y, int width, int height )
@@ -667,7 +667,7 @@ void QgsComposerMap::moveContent( double dx, double dy )
 
 void QgsComposerMap::zoomContent( int delta, double x, double y )
 {
-  QSettings settings;
+  QgsSettings settings;
 
   //read zoom mode
   QgsComposerItem::ZoomMode zoomMode = static_cast< QgsComposerItem::ZoomMode >( settings.value( "/qgis/wheel_action", 2 ).toInt() );

@@ -17,11 +17,11 @@
 #include "qgsexternalresourcewidget.h"
 #include "qgspixmaplabel.h"
 #include "qgsproject.h"
+#include "qgssettings.h"
 
 #include <QDir>
 #include <QGridLayout>
 #include <QVariant>
-#include <QSettings>
 #ifdef WITH_QTWEBKIT
 #include <QWebView>
 #endif

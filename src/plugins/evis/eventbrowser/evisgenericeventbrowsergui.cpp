@@ -35,11 +35,11 @@
 #include "qgspoint.h"
 #include "qgsfield.h"
 #include "qgsrectangle.h"
+#include "qgssettings.h"
 
 #include <QMessageBox>
 #include <QTreeWidgetItem>
 #include <QGraphicsScene>
-#include <QSettings>
 #include <QPainter>
 #include <QProcess>
 #include <QFileDialog>
@@ -55,7 +55,7 @@ eVisGenericEventBrowserGui::eVisGenericEventBrowserGui( QWidget* parent, QgisInt
 {
   setupUi( this );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/eVis/browser-geometry" ).toByteArray() );
 
   mCurrentFeatureIndex = 0;
@@ -113,7 +113,7 @@ eVisGenericEventBrowserGui::eVisGenericEventBrowserGui( QWidget* parent, QgsMapC
  */
 eVisGenericEventBrowserGui::~eVisGenericEventBrowserGui()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/eVis/browser-geometry", saveGeometry() );
 
   //Clean up, disconnect the highlighting routine and refesh the canvase to clear highlighting symbol
@@ -319,7 +319,7 @@ bool eVisGenericEventBrowserGui::initBrowser()
   initOptionsTab();
 
   //Load file associations into Configure External Applications tab gui items
-  QSettings myQSettings;
+  QgsSettings myQSettings;
   myQSettings.beginWriteArray( "/eVis/filetypeassociations" );
   int myTotalAssociations = myQSettings.childGroups().count();
   int myIterator = 0;
@@ -424,7 +424,7 @@ void eVisGenericEventBrowserGui::closeEvent( QCloseEvent *event )
 
 void eVisGenericEventBrowserGui::accept()
 {
-  QSettings myQSettings;
+  QgsSettings myQSettings;
 
   if ( chkboxSaveEventImagePathData->isChecked() )
   {

@@ -28,9 +28,9 @@ __revision__ = '$Format:%H$'
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QFileDialog
+from qgis.core import QgsSettings
 from processing.tools import dataobjects
 
 pluginPath = os.path.split(os.path.dirname(__file__))[0]
@@ -56,7 +56,7 @@ class InputLayerSelectorPanel(BASE, WIDGET):
         self.btnSelect.clicked.connect(self.showSelectionDialog)
 
     def showSelectionDialog(self):
-        settings = QSettings()
+        settings = QgsSettings()
         text = unicode(self.cmbText.currentText())
         if os.path.isdir(text):
             path = text

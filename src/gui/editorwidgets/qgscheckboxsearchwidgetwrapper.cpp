@@ -18,8 +18,8 @@
 #include "qgsfield.h"
 #include "qgscheckboxwidgetfactory.h"
 #include "qgsvectorlayer.h"
+#include "qgssettings.h"
 
-#include <QSettings>
 #include <QCheckBox>
 
 QgsCheckboxSearchWidgetWrapper::QgsCheckboxSearchWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* parent )

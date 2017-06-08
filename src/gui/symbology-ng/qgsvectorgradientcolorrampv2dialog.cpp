@@ -19,11 +19,11 @@
 #include "qgsdialog.h"
 #include "qgscolordialog.h"
 #include "qgscptcityarchive.h"
+#include "qgssettings.h"
 
 #include <QColorDialog>
 #include <QInputDialog>
 #include <QPainter>
-#include <QSettings>
 #include <QTableWidget>
 #include <QTextEdit>
 
@@ -85,7 +85,7 @@ QgsVectorGradientColorRampV2Dialog::QgsVectorGradientColorRampV2Dialog( QgsVecto
   connect( mColorWidget, SIGNAL( currentColorChanged( QColor ) ), this, SLOT( colorWidgetChanged( QColor ) ) );
   connect( mDeleteStopButton, SIGNAL( clicked() ), mStopEditor, SLOT( deleteSelectedStop() ) );
 
-  QSettings settings;
+  QgsSettings settings;
   restoreGeometry( settings.value( "/Windows/GradientEditor/geometry" ).toByteArray() );
 
   // hide the ugly canvas frame
@@ -146,7 +146,7 @@ QgsVectorGradientColorRampV2Dialog::QgsVectorGradientColorRampV2Dialog( QgsVecto
 
 QgsVectorGradientColorRampV2Dialog::~QgsVectorGradientColorRampV2Dialog()
 {
-  QSettings settings;
+  QgsSettings settings;
   settings.setValue( "/Windows/GradientEditor/geometry", saveGeometry() );
   settings.setValue( "/GradientEditor/plotHue", mPlotHueCheckbox->isChecked() );
   settings.setValue( "/GradientEditor/plotLightness", mPlotLightnessCheckbox->isChecked() );

@@ -18,10 +18,10 @@
 #include "qgis.h"
 #include "qgslogger.h"
 #include "qgsblendmodecombobox.h"
+#include "qgssettings.h"
 
 #include <QAbstractItemView>
 #include <QLocale>
-#include <QSettings>
 #include <QLineEdit>
 
 QgsBlendModeComboBox::QgsBlendModeComboBox( QWidget* parent ) : QComboBox( parent )

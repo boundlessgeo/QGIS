@@ -29,10 +29,11 @@
 #include "qgsfeature.h"
 #include "qgsvectorlayer.h"
 #include "qgslogger.h"
+#include "qgssettings.h" // for legend
 
 #include <QDomDocument>
 #include <QDomElement>
-#include <QSettings> // for legend
+
 
 QgsRendererCategoryV2::QgsRendererCategoryV2()
     : mRender( true )
