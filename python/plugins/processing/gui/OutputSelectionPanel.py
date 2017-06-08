@@ -35,6 +35,10 @@ from qgis.PyQt.QtGui import QCursor
 from qgis.gui import QgsEncodingFileDialog, QgsExpressionBuilderDialog
 from qgis.core import (QgsDataSourceURI,
                        QgsCredentials,
+                       QgsExpressionContext,
+                       QgsExpressionContextUtils,
+                       QgsExpression,
+                       QgsExpressionContextScope,
                        QgsSettings)
 from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.outputs import OutputVector
