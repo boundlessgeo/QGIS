@@ -302,6 +302,37 @@ bool QgsVectorLayerEditBuffer::commitChanges( QStringList& commitErrors )
   // no                 yes                   => changeAttributeValues
   // yes                yes                   => changeFeatures
 
+  // to fix https://issues.qgis.org/issues/15741
+  // first of all check if feature to add is compatible with provider type
+  // this check have to be done before all checks to avoid to clear internal
+  // buffer if some of next steps success.
+  if ( success && !mAddedFeatures.isEmpty() )
+  {
+    if ( cap & QgsVectorDataProvider::AddFeatures )
+    {
+      QgsFeatureMap::iterator featureIt = mAddedFeatures.begin();
+      for ( ; featureIt != mAddedFeatures.end(); ++featureIt )
+      {
+        if ( !featureIt->geometry() ||
+             featureIt->geometry()->isEmpty() ||
+             featureIt->geometry()->wkbType() == provider->geometryType() )
+          continue;
+
+        if ( !provider->convertToProviderType( featureIt->geometry() ) )
+        {
+          commitErrors << tr( "ERROR: %n feature(s) not added - geometry type is not compatible with the current layer.", "not added features count", mAddedFeatures.size() );
+          success = false;
+          break;
+        }
+      }
+    }
+    else
+    {
+      commitErrors << tr( "ERROR: %n feature(s) not added - provider doesn't support adding features.", "not added features count", mAddedFeatures.size() );
+      success = false;
+    }
+  }
+
   //
   // update geometries
   //
