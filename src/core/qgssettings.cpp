@@ -45,6 +45,9 @@ void QgsSettings::init()
 
 
 QgsSettings::QgsSettings( const QString &organization, const QString &application, QObject *parent )
+    : mUserSettings( nullptr )
+    , mGlobalSettings( nullptr )
+    , mUsingGlobalArray( false )
 {
   mUserSettings = new QSettings( organization, application, parent );
   init();
@@ -52,6 +55,9 @@ QgsSettings::QgsSettings( const QString &organization, const QString &applicatio
 
 QgsSettings::QgsSettings( QSettings::Scope scope, const QString &organization,
                           const QString &application, QObject *parent )
+    : mUserSettings( nullptr )
+    , mGlobalSettings( nullptr )
+    , mUsingGlobalArray( false )
 {
   mUserSettings = new QSettings( scope, organization, application, parent );
   init();
@@ -59,18 +65,27 @@ QgsSettings::QgsSettings( QSettings::Scope scope, const QString &organization,
 
 QgsSettings::QgsSettings( QSettings::Format format, QSettings::Scope scope,
                           const QString &organization, const QString &application, QObject *parent )
+    : mUserSettings( nullptr )
+    , mGlobalSettings( nullptr )
+    , mUsingGlobalArray( false )
 {
   mUserSettings = new QSettings( format, scope, organization, application, parent );
   init();
 }
 
 QgsSettings::QgsSettings( const QString &fileName, QSettings::Format format, QObject *parent )
+    : mUserSettings( nullptr )
+    , mGlobalSettings( nullptr )
+    , mUsingGlobalArray( false )
 {
   mUserSettings = new QSettings( fileName, format, parent );
   init();
 }
 
 QgsSettings::QgsSettings( QObject *parent )
+    : mUserSettings( nullptr )
+    , mGlobalSettings( nullptr )
+    , mUsingGlobalArray( false )
 {
   mUserSettings = new QSettings( parent );
   init();
@@ -107,7 +122,7 @@ QStringList QgsSettings::allKeys() const
   QStringList keys = mUserSettings->allKeys( );
   if ( mGlobalSettings )
   {
-  for ( auto &s : mGlobalSettings->allKeys() )
+    Q_FOREACH ( const QString &s, mGlobalSettings->allKeys() )
     {
       if ( ! keys.contains( s ) )
       {
@@ -124,7 +139,7 @@ QStringList QgsSettings::childKeys() const
   QStringList keys = mUserSettings->childKeys( );
   if ( mGlobalSettings )
   {
-  for ( auto &s : mGlobalSettings->childKeys() )
+    Q_FOREACH ( const QString &s, mGlobalSettings->childKeys() )
     {
       if ( ! keys.contains( s ) )
       {
@@ -140,7 +155,7 @@ QStringList QgsSettings::childGroups() const
   QStringList keys = mUserSettings->childGroups( );
   if ( mGlobalSettings )
   {
-  for ( auto &s : mGlobalSettings->childGroups() )
+    Q_FOREACH ( const QString &s, mGlobalSettings->childGroups() )
     {
       if ( ! keys.contains( s ) )
       {
@@ -187,36 +202,36 @@ void QgsSettings::remove( const QString &key )
   mUserSettings->remove( sanitizeKey( key ) );
 }
 
-QString QgsSettings::prefixedKey( const QString &key, const Section section ) const
+QString QgsSettings::prefixedKey( const QString &key, const QgsSettings::Section section ) const
 {
   QString prefix;
   switch ( section )
   {
-    case Section::Core :
+    case QgsSettings::Core :
       prefix = "core";
       break;
-    case Section::Server :
+    case QgsSettings::Server :
       prefix = "server";
       break;
-    case Section::Gui :
+    case QgsSettings::Gui :
       prefix = "gui";
       break;
-    case Section::Plugins :
+    case QgsSettings::Plugins :
       prefix = "plugins";
       break;
-    case Section::Misc :
+    case QgsSettings::Misc :
       prefix = "misc";
       break;
-    case Section::Auth :
+    case QgsSettings::Auth :
       prefix = "auth";
       break;
-    case Section::App :
+    case QgsSettings::App :
       prefix = "app";
       break;
-    case Section::Providers :
+    case QgsSettings::Providers :
       prefix = "providers";
       break;
-    case Section::NoSection:
+    case QgsSettings::NoSection:
     default:
       return sanitizeKey( key );
   }

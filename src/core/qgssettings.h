@@ -179,7 +179,7 @@ class CORE_EXPORT QgsSettings : public QObject
      * An optional Section argument can be used to get a value from a specific Section.
      */
     QVariant value( const QString &key, const QVariant &defaultValue = QVariant(),
-                    const Section section = Section::NoSection ) const;
+                    const QgsSettings::Section section = QgsSettings::NoSection ) const;
 
     //! Returns true if there exists a setting called key; returns false otherwise.
     //! If a group is set using beginGroup(), key is taken to be relative to that group.
@@ -197,7 +197,7 @@ class CORE_EXPORT QgsSettings : public QObject
     //! Removes the setting key and any sub-settings of key.
     void remove( const QString &key );
     //! Return the sanitized and prefixed key
-    QString prefixedKey( const QString &key, const Section section ) const;
+    QString prefixedKey( const QString &key, const QgsSettings::Section section ) const;
     //! Removes all entries in the user settings
     void clear();
 
@@ -206,9 +206,9 @@ class CORE_EXPORT QgsSettings : public QObject
     static QString sGlobalSettingsPath;
     void init();
     QString sanitizeKey( QString key ) const;
-    QSettings* mUserSettings = nullptr;
-    QSettings* mGlobalSettings = nullptr;
-    bool mUsingGlobalArray = false;
+    QSettings* mUserSettings;
+    QSettings* mGlobalSettings;
+    bool mUsingGlobalArray;
     Q_DISABLE_COPY( QgsSettings )
 
 };
