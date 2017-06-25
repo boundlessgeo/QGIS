@@ -879,10 +879,10 @@ bool QgsMssqlProvider::addFeatures( QgsFeatureList & flist )
       if ( mGeometryColType == "geometry" )
       {
         if ( mUseWkb )
-          values += QString( "geometry::STGeomFromWKB(%1,%2).MakeValid()" ).arg(
+          values += QString( "geometry::STGeomFromWKB(%1,%2)" ).arg(
                       QString( "?" ), QString::number( mSRId ) );
         else
-          values += QString( "geometry::STGeomFromText(%1,%2).MakeValid()" ).arg(
+          values += QString( "geometry::STGeomFromText(%1,%2)" ).arg(
                       QString( "?" ), QString::number( mSRId ) );
       }
       else
@@ -985,7 +985,12 @@ bool QgsMssqlProvider::addFeatures( QgsFeatureList & flist )
       {
         QString wkt;
         if ( geom && !geom->isEmpty() )
+        {
+          // Z and M on the end of a WKT string isn't valid for
+          // SQL Server so we have to remove it first.
           wkt = geom->exportToWkt();
+          wkt.replace( QRegExp( "[mzMZ]+\\s*\\(" ), "(" );
+        }
         query.addBindValue( wkt );
       }
     }
@@ -1309,6 +1314,9 @@ bool QgsMssqlProvider::changeGeometryValues( const QgsGeometryMap &geometry_map 
     else
     {
       QString wkt = it->exportToWkt();
+      // Z and M on the end of a WKT string isn't valid for
+      // SQL Server so we have to remove it first.
+      wkt.replace( QRegExp( "[mzMZ]+\\s*\\(" ), "(" );
       query.addBindValue( wkt );
     }
 
