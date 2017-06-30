@@ -620,7 +620,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   //////////
 
   startProfile( "Checking database" );
-  mSplash->showMessage( tr( "Checking database" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Checking database" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
   // Do this early on before anyone else opens it and prevents us copying it
   QString dbError;
@@ -631,7 +631,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   endProfile();
 
   startProfile( "Initializing authentication" );
-  mSplash->showMessage( tr( "Initializing authentication" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Initializing authentication" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
   QgsAuthManager::instance()->init( QgsApplication::pluginPath() );
   if ( !QgsAuthManager::instance()->isDisabled() )
@@ -645,10 +645,10 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   QgsApplication::createThemeFolder();
   endProfile();
 
-  mSplash->showMessage( tr( "Reading settings" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Reading settings" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
 
-  mSplash->showMessage( tr( "Setting up the GUI" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Setting up the GUI" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
 
   QgsSettings settings;
@@ -893,17 +893,17 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   qApp->processEvents();
 
   // load providers
-  mSplash->showMessage( tr( "Checking provider plugins" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Checking provider plugins" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
   QgsApplication::initQgis();
 
-  mSplash->showMessage( tr( "Starting Python" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Starting Python" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
   loadPythonSupport();
 
   // Create the plugin registry and load plugins
   // load any plugins that were running in the last session
-  mSplash->showMessage( tr( "Restoring loaded plugins" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Restoring loaded plugins" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
   QgsPluginRegistry::instance()->setQgisInterface( mQgisInterface );
   if ( restorePlugins )
@@ -945,7 +945,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   int size = settings.value( "/IconSize", QGIS_ICON_SIZE ).toInt();
   setIconSizes( size );
 
-  mSplash->showMessage( tr( "Initializing file filters" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Initializing file filters" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
 
   // now build vector and raster file filters
@@ -973,7 +973,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   // Please make sure this is the last thing the ctor does so that we can ensure the
   // widgets are all initialized before trying to restore their state.
   //
-  mSplash->showMessage( tr( "Restoring window state" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "Restoring window state" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
   qApp->processEvents();
   startProfile( "Restore window state" );
   restoreWindowState();
@@ -984,7 +984,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   QgsCustomization::instance()->updateMainWindow( mToolbarMenu );
   endProfile();
 
-  mSplash->showMessage( tr( "QGIS Ready!" ), Qt::AlignHCenter | Qt::AlignBottom );
+  mSplash->showMessage( tr( "QGIS Ready!" ), Qt::AlignLeft | Qt::AlignBottom, Qt::white );
 
   QgsMessageLog::logMessage( QgsApplication::showSettings(), QString::null, QgsMessageLog::INFO );
 
