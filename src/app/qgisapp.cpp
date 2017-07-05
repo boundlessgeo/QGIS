@@ -374,7 +374,7 @@ class QTreeWidgetItem;
   */
 static void setTitleBarText_( QWidget & qgisApp )
 {
-  QString caption = QgisApp::tr( "QGIS for Boundless Desktop" );
+  QString caption = QgisApp::tr( "QGIS for Boundless Desktop " );
 
   if ( QGis::QGIS_RELEASE_NAME == "Master" )
   {
