@@ -22,10 +22,14 @@
 #include "qgsproject.h"
 #include "qgsvectorlayer.h"
 #include "qgsrasterlayer.h"
+#include "qgsrasternuller.h"
 #include "qgsogrprovider.h"
 #include "qgsnewgeopackagelayerdialog.h"
 #include "qgsmessageoutput.h"
 #include "qgsvectorlayerexporter.h"
+#include "qgsrasterfilewritertask.h"
+#include "qgsrasterfilewriter.h"
+
 #include "gdal.h"
 
 #include <QAction>
@@ -403,10 +407,111 @@ bool QgsGeoPackageConnectionItem::handleDrop( const QMimeData *data, Qt::DropAct
     {
       // TODO: implement raster import
       QgsMessageOutput *output = QgsMessageOutput::createMessageOutput();
-      output->setTitle( tr( "Import to GeoPackage database faile" ) );
+      output->setTitle( tr( "Import to GeoPackage database failed!" ) );
       output->setMessage( tr( "Failed to import some layers!\n\n" ) + QStringLiteral( "Raster import is not yet implemented!\n" ), QgsMessageOutput::MessageText );
       output->showMessage();
+
+      // Do raster import
+      std::unique_ptr<QgsRasterLayer> rasterLayer = new QgsRasterLayer( u.uri, QStringLiteral( "gdal_tmp" ) );
+      if ( !rasterLayer )
+      {
+        output->setTitle( tr( "Import to GeoPackage database failed!" ) );
+        output->setMessage( tr( "Failed to import some layers!\n\n" ) + QStringLiteral( "Error reading raster file from URI %1!\n" ).arg( u.uri ), QgsMessageOutput::MessageText );
+        output->showMessage();
+      }
+      else
+      {
+
+        // TODO: check for existing file name!
+
+        QgsRasterFileWriter fileWriter( QStringLiteral( "GPKG:%1:%2" ).arg( path(), u.name ) );
+        /*if ( d.tileMode() )
+        {
+          fileWriter.setTiledMode( true );
+          fileWriter.setMaxTileWidth( d.maximumTileSizeX() );
+          fileWriter.setMaxTileHeight( d.maximumTileSizeY() );
+        }*/
+
+        // TODO: show error dialogs
+        // TODO: this code should go somewhere else, but probably not into QgsRasterFileWriter
+        // clone pipe/provider is not really necessary, ready for threads
+        std::unique_ptr<QgsRasterPipe> pipe( nullptr );
+
+        pipe.reset( new QgsRasterPipe() );
+        if ( !pipe->set( rasterLayer->dataProvider()->clone() ) )
+        {
+          QgsDebugMsg( "Cannot set pipe provider" );
+          return;
+        }
+
+        QgsRasterNuller *nuller = new QgsRasterNuller();
+        for ( int band = 1; band <= rasterLayer->dataProvider()->bandCount(); band ++ )
+        {
+          nuller->setNoData( band, 0 );
+        }
+        if ( !pipe->insert( 1, nuller ) )
+        {
+          QgsDebugMsg( "Cannot set pipe nuller" );
+          return;
+        }
+
+        // add projector if necessary
+        if ( d.outputCrs() != rasterLayer->crs() )
+        {
+          QgsRasterProjector *projector = new QgsRasterProjector;
+          projector->setCrs( rasterLayer->crs(), d.outputCrs() );
+          if ( !pipe->insert( 2, projector ) )
+          {
+            QgsDebugMsg( "Cannot set pipe projector" );
+            return;
+          }
+        }
+
+
+        if ( !pipe->last() )
+        {
+          return;
+        }
+        fileWriter.setCreateOptions( d.createOptions() );
+
+        fileWriter.setBuildPyramidsFlag( d.buildPyramidsFlag() );
+        fileWriter.setPyramidsList( d.pyramidsList() );
+        fileWriter.setPyramidsResampling( d.pyramidsResamplingMethod() );
+        fileWriter.setPyramidsFormat( d.pyramidsFormat() );
+        fileWriter.setPyramidsConfigOptions( d.pyramidsConfigOptions() );
+
+        bool tileMode = d.tileMode();
+        bool addToCanvas = d.addToCanvas();
+        QPointer< QgsRasterLayer > rlWeakPointer( rasterLayer );
+
+        std::unique_ptr< QgsRasterFileWriterTask > writerTask( new QgsRasterFileWriterTask( fileWriter, pipe.release(), d.nColumns(), d.nRows(),
+            d.outputRectangle(), d.outputCrs() ) );
+
+        // when writer is successful:
+
+        connect( writerTask.get(), &QgsRasterFileWriterTask::writeComplete, this, [this, tileMode, addToCanvas, rlWeakPointer ]( const QString & newFilename )
+        {
+          Q_UNUSED( newFilename );
+          // this is gross - TODO - find a way to get access to messageBar from data items
+          QMessageBox::information( nullptr, tr( "Import to GeoPackage database" ), tr( "Import was successful." ) );
+          refreshConnections();
+        } );
+
+        // when an error occurs:
+        connect( writerTask.get(), &QgsRasterFileWriterTask::errorOccurred, this, [ = ]( int error )
+        {
+          if ( error != QgsRasterFileWriter::WriteCanceled )
+          {
+            QMessageBox::warning( this, tr( "Error" ),
+                                  tr( "Cannot import raster error code: %1" ).arg( error ),
+                                  QMessageBox::Ok );
+          }
+        } );
+
+        QgsApplication::taskManager()->addTask( writerTask.release() );
+      }
     }
+
 
   }
 
