@@ -31,6 +31,7 @@
 #include "qgsrasterfilewriter.h"
 
 #include "gdal.h"
+#include "gdal_utils.h"
 
 #include <QAction>
 #include <QMessageBox>
@@ -401,20 +402,22 @@ bool QgsGeoPackageConnectionItem::handleDrop( const QMimeData *data, Qt::DropAct
       {
         importResults.append( tr( "%1: Not a valid layer!" ).arg( u.name ) );
         hasError = true;
+        delete srcLayer;  // Don't leak!
       }
     }
     else
     {
-      // TODO: implement raster import
-      QgsMessageOutput *output = QgsMessageOutput::createMessageOutput();
-      output->setTitle( tr( "Import to GeoPackage database failed!" ) );
-      output->setMessage( tr( "Failed to import some layers!\n\n" ) + QStringLiteral( "Raster import is not yet implemented!\n" ), QgsMessageOutput::MessageText );
-      output->showMessage();
-
       // Do raster import
-      std::unique_ptr<QgsRasterLayer> rasterLayer = new QgsRasterLayer( u.uri, QStringLiteral( "gdal_tmp" ) );
+      bool owner;
+      QString error;
+      QgsRasterLayer *rasterLayer = u.rasterLayer( owner, error );
+
+      // We have different exit points
+      bool hasRasterError = false;
+
       if ( !rasterLayer )
       {
+        QgsMessageOutput *output = QgsMessageOutput::createMessageOutput();
         output->setTitle( tr( "Import to GeoPackage database failed!" ) );
         output->setMessage( tr( "Failed to import some layers!\n\n" ) + QStringLiteral( "Error reading raster file from URI %1!\n" ).arg( u.uri ), QgsMessageOutput::MessageText );
         output->showMessage();
@@ -424,7 +427,11 @@ bool QgsGeoPackageConnectionItem::handleDrop( const QMimeData *data, Qt::DropAct
 
         // TODO: check for existing file name!
 
-        QgsRasterFileWriter fileWriter( QStringLiteral( "GPKG:%1:%2" ).arg( path(), u.name ) );
+        // GDALTranslate()
+
+        QgsRasterFileWriter rasterWriter( path() );
+        rasterWriter.setOutputFormat( QStringLiteral( "gpkg" ) );
+
         /*if ( d.tileMode() )
         {
           fileWriter.setTiledMode( true );
@@ -440,75 +447,96 @@ bool QgsGeoPackageConnectionItem::handleDrop( const QMimeData *data, Qt::DropAct
         pipe.reset( new QgsRasterPipe() );
         if ( !pipe->set( rasterLayer->dataProvider()->clone() ) )
         {
-          QgsDebugMsg( "Cannot set pipe provider" );
-          return;
+          importResults.append( tr( "Cannot set pipe provider for layer %1!" ).arg( u.name ) );
+          hasRasterError = true;
         }
 
-        QgsRasterNuller *nuller = new QgsRasterNuller();
-        for ( int band = 1; band <= rasterLayer->dataProvider()->bandCount(); band ++ )
+        if ( ! hasRasterError )
         {
-          nuller->setNoData( band, 0 );
-        }
-        if ( !pipe->insert( 1, nuller ) )
-        {
-          QgsDebugMsg( "Cannot set pipe nuller" );
-          return;
+
+          QgsRasterNuller *nuller = new QgsRasterNuller();
+          for ( int band = 1; band <= rasterLayer->dataProvider()->bandCount(); band ++ )
+          {
+            nuller->setNoData( band,  QgsRasterRangeList( ) << QgsRasterRange( 0.0, 0.0 ) );
+          }
+          if ( !pipe->insert( 1, nuller ) )
+          {
+            importResults.append( tr( "Cannot set pipe nuller for layer %1!" ).arg( u.name ) );
+            hasRasterError = true;
+          }
         }
 
         // add projector if necessary
-        if ( d.outputCrs() != rasterLayer->crs() )
+        /* TODO projections
+        if (! hasRasterError && ( d.outputCrs() != rasterLayer->crs() ))
+            {
+              QgsRasterProjector *projector = new QgsRasterProjector;
+              projector->setCrs( rasterLayer->crs(), d.outputCrs() );
+              if ( !pipe->insert( 2, projector ) )
+              {
+                importResults.append( tr( "Cannot set pipe projector for layer %1!" ).arg( u.name ) );
+                hasRasterError = true;
+              }
+            }
+        */
+
+        if ( ! hasRasterError && !pipe->last() )
         {
-          QgsRasterProjector *projector = new QgsRasterProjector;
-          projector->setCrs( rasterLayer->crs(), d.outputCrs() );
-          if ( !pipe->insert( 2, projector ) )
-          {
-            QgsDebugMsg( "Cannot set pipe projector" );
-            return;
-          }
+          importResults.append( tr( " Pipe is empty for layer %1!" ).arg( u.name ) );
+          hasRasterError = true;
         }
 
-
-        if ( !pipe->last() )
+        if ( ! hasRasterError )
         {
-          return;
-        }
-        fileWriter.setCreateOptions( d.createOptions() );
 
-        fileWriter.setBuildPyramidsFlag( d.buildPyramidsFlag() );
-        fileWriter.setPyramidsList( d.pyramidsList() );
-        fileWriter.setPyramidsResampling( d.pyramidsResamplingMethod() );
-        fileWriter.setPyramidsFormat( d.pyramidsFormat() );
-        fileWriter.setPyramidsConfigOptions( d.pyramidsConfigOptions() );
+          // TODO: other create options for different type of layers
+          rasterWriter.setCreateOptions( QStringList( )
+                                         << QStringLiteral( "RASTER_TABLE=%1" ).arg( u.name )
+                                         << QStringLiteral( "APPEND_SUBDATASET=YES" ) );
+          /*
 
-        bool tileMode = d.tileMode();
-        bool addToCanvas = d.addToCanvas();
-        QPointer< QgsRasterLayer > rlWeakPointer( rasterLayer );
+          fileWriter.setBuildPyramidsFlag( d.buildPyramidsFlag() );
+          fileWriter.setPyramidsList( d.pyramidsList() );
+          fileWriter.setPyramidsResampling( d.pyramidsResamplingMethod() );
+          fileWriter.setPyramidsFormat( d.pyramidsFormat() );
+          fileWriter.setPyramidsConfigOptions( d.pyramidsConfigOptions() );
+          */
 
-        std::unique_ptr< QgsRasterFileWriterTask > writerTask( new QgsRasterFileWriterTask( fileWriter, pipe.release(), d.nColumns(), d.nRows(),
-            d.outputRectangle(), d.outputCrs() ) );
+          bool tileMode = false;
+          QPointer< QgsRasterLayer > rlWeakPointer( rasterLayer );
 
-        // when writer is successful:
 
-        connect( writerTask.get(), &QgsRasterFileWriterTask::writeComplete, this, [this, tileMode, addToCanvas, rlWeakPointer ]( const QString & newFilename )
-        {
-          Q_UNUSED( newFilename );
-          // this is gross - TODO - find a way to get access to messageBar from data items
-          QMessageBox::information( nullptr, tr( "Import to GeoPackage database" ), tr( "Import was successful." ) );
-          refreshConnections();
-        } );
+          std::unique_ptr< QgsRasterFileWriterTask > writerTask( new QgsRasterFileWriterTask( rasterWriter, pipe.release(), rasterLayer->width(), rasterLayer->height(),
+              rasterLayer->extent(), rasterLayer->crs() ) );
 
-        // when an error occurs:
-        connect( writerTask.get(), &QgsRasterFileWriterTask::errorOccurred, this, [ = ]( int error )
-        {
-          if ( error != QgsRasterFileWriter::WriteCanceled )
+          // when writer is successful:
+
+          connect( writerTask.get(), &QgsRasterFileWriterTask::writeComplete, this, [this, tileMode, rlWeakPointer ]( const QString & newFilename )
           {
-            QMessageBox::warning( this, tr( "Error" ),
-                                  tr( "Cannot import raster error code: %1" ).arg( error ),
-                                  QMessageBox::Ok );
-          }
-        } );
+            Q_UNUSED( newFilename );
+            // this is gross - TODO - find a way to get access to messageBar from data items
+            QMessageBox::information( nullptr, tr( "Import to GeoPackage database" ), tr( "Import was successful." ) );
+            refreshConnections();
+          } );
 
-        QgsApplication::taskManager()->addTask( writerTask.release() );
+          // when an error occurs:
+          connect( writerTask.get(), &QgsRasterFileWriterTask::errorOccurred, this, [ = ]( int error )
+          {
+            if ( error != QgsRasterFileWriter::WriteCanceled )
+            {
+              QMessageBox::warning( nullptr, tr( "Error" ),
+                                    tr( "Cannot import raster error code: %1" ).arg( error ) );
+            }
+          } );
+
+          QgsApplication::taskManager()->addTask( writerTask.release() );
+        }
+
+        if ( hasRasterError )
+        {
+          hasError = true;
+          delete rasterLayer;
+        }
       }
     }
 
@@ -682,7 +710,7 @@ bool QgsGeoPackageRasterLayerItem::executeDeleteLayer( QString &errCause )
       else
       {
         // Remove table
-        char *errmsg = NULL;
+        char *errmsg = nullptr;
         char *sql = sqlite3_mprintf(
                       "DROP table %w;"
                       "DELETE FROM gpkg_contents WHERE table_name = '%q';"
@@ -701,20 +729,21 @@ bool QgsGeoPackageRasterLayerItem::executeDeleteLayer( QString &errCause )
                  );
         sqlite3_free( sql );
         // Remove from optional tables, may silently fail
-        for ( const auto tableName : QStringList()
-              << QStringLiteral( "gpkg_extensions" )
-              << QStringLiteral( "gpkg_metadata_reference" ) )
+        QStringList optionalTables;
+        optionalTables << QStringLiteral( "gpkg_extensions" )
+                       << QStringLiteral( "gpkg_metadata_reference" );
+        for ( const auto tableName : optionalTables )
         {
           char *sql = sqlite3_mprintf( "DELETE FROM table %w WHERE table_name = '%q",
                                        tableName.toUtf8().constData(),
                                        layerName.toUtf8().constData() );
-          status = sqlite3_exec(
-                     handle,                              /* An open database */
-                     sql,                                 /* SQL to be evaluated */
-                     NULL,                                /* Callback function */
-                     NULL,                                /* 1st argument to callback */
-                     NULL                                 /* Error msg written here */
-                   );
+          sqlite3_exec(
+            handle,                              /* An open database */
+            sql,                                 /* SQL to be evaluated */
+            NULL,                                /* Callback function */
+            NULL,                                /* 1st argument to callback */
+            NULL                                 /* Error msg written here */
+          );
           sqlite3_free( sql );
         }
         if ( status == SQLITE_OK )
@@ -723,9 +752,9 @@ bool QgsGeoPackageRasterLayerItem::executeDeleteLayer( QString &errCause )
         }
         else
         {
-          errCause = tr( "There was an error deleting the layer: %1" ).arg( errmsg );
-          sqlite3_free( errmsg );
+          errCause = tr( "There was an error deleting the layer: %1" ).arg( QString::fromUtf8( errmsg ) );
         }
+        sqlite3_free( errmsg );
       }
       sqlite3_close( handle );
     }

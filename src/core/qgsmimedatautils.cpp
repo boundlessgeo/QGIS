@@ -109,7 +109,7 @@ QgsRasterLayer *QgsMimeDataUtils::Uri::rasterLayer( bool &owner, QString &error 
     return nullptr;
   }
   owner = true;
-  return new QgsRasterLayer( uri, name, providerKey );
+  return new QgsRasterLayer( uri, name, providerKey, false );
 }
 
 // -----
