@@ -74,6 +74,7 @@ Map certificate sha1 to certificate as simple cache
 %End
 
 
+
     static QMap<QString, QgsAuthConfigSslServer> mapDigestToSslConfigs( const QList<QgsAuthConfigSslServer> &configs );
 %Docstring
  Map SSL custom configs' certificate sha1 to custom config as simple cache
