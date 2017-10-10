@@ -55,64 +55,6 @@ QMap<QString, QSslCertificate> QgsAuthCertUtils::mapDigestToCerts( const QList<Q
   return digestmap;
 }
 
-QList<QCA::CRLEntry> QgsAuthCertUtils::revokedCertsFromCrl( const QString &crlPath )
-{
-  QList<QCA::CRLEntry> crlCerts;
-  if ( QCA::isSupported( "crl", QLatin1String( "qca-ossl" ) ) )
-  {
-    QFileInfo check_file( crlPath );
-    // Check if file exists and is a file
-    if ( check_file.exists() && check_file.isFile() )
-    {
-      QCA::CRL crl;
-      QCA::ConvertResult result;
-      crl = QCA::CRL::fromPEMFile( crlPath, &result, QLatin1String( "qca-ossl" ) );
-      if ( result == QCA::ConvertGood )
-      {
-        crlCerts = crl.revoked();
-      }
-      else
-      {
-        QgsDebugMsgLevel( QString( "Warning %1 reading CRL file as PEM, trying with DER" ).arg( crlPath ), 4 );
-        // Try DER
-        if ( crlCerts.isEmpty( ) )
-        {
-          QFile crlFile( crlPath );
-          if ( crlFile.open( QIODevice::ReadOnly ) )
-          {
-            QByteArray crlText( crlFile.readAll( ) );
-
-            crl = QCA::CRL::fromDER( crlText, &result, QLatin1String( "qca-ossl" ) );
-            if ( result == QCA::ConvertGood )
-            {
-              crlCerts = crl.revoked();
-            }
-            else
-            {
-              QgsDebugMsgLevel( QString( "Error %1 reading CRL as DER: %2" ).arg( result ).arg( crlPath ), 4 );
-            }
-          }
-          else
-          {
-            QgsDebugMsgLevel( QString( "Error %1 reading CRL file as DER" ).arg( crlPath ), 4 );
-          }
-        }
-      }
-    }
-    else
-    {
-      QgsDebugMsgLevel( QString( "CRL file does not exist: %1" ).arg( crlPath ), 4 );
-    }
-    if ( crlCerts.isEmpty() )
-      QgsDebugMsgLevel( QString( "Could not find any revoked certificate in CRL: %1" ).arg( crlPath ), 4 );
-  }
-  else
-  {
-    QgsDebugMsgLevel( QString( "CRL is not supported by QCA" ), 4 );
-  }
-  return crlCerts;
-}
-
 QMap<QString, QList<QSslCertificate> > QgsAuthCertUtils::certsGroupedByOrg( const QList<QSslCertificate> &certs )
 {
   QMap< QString, QList<QSslCertificate> > orgcerts;

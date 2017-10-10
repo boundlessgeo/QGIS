@@ -79,6 +79,7 @@ SET(QGIS_CORE_SRCS
   auth/qgsauthconfig.cpp
   auth/qgsauthcrypto.cpp
   auth/qgsauthmanager.cpp
+  auth/qgsauthcrl.cpp
   auth/qgsauthmethodmetadata.cpp
   auth/qgsauthmethodregistry.cpp
 
@@ -940,6 +941,7 @@ SET(QGIS_CORE_HDRS
   auth/qgsauthcrypto.h
   auth/qgsauthmanager.h
   auth/qgsauthmethod.h
+  auth/qgsauthcrl.h
   auth/qgsauthmethodmetadata.h
   auth/qgsauthmethodregistry.h
 

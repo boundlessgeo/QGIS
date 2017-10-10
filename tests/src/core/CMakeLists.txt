@@ -76,6 +76,7 @@ SET(TESTS
  testqgsauthcrypto.cpp
  testqgsauthconfig.cpp
  testqgsauthmanager.cpp
+ testqgsauthcrl.cpp
  testqgsblendmodes.cpp
  testqgscadutils.cpp
  testqgsclipper.cpp

@@ -88,13 +88,6 @@ class CORE_EXPORT QgsAuthCertUtils
     static QMap<QString, QSslCertificate> mapDigestToCerts( const QList<QSslCertificate> &certs );
 
     /**
-     * Read revoked certificates from a CRL file
-     * \note not available in Python bindings
-     * \since QGIS 3.0
-     */
-    static QList<QCA::CRLEntry> revokedCertsFromCrl( const QString &crlPath ) SIP_SKIP;
-
-    /**
      * Map certificates to their oraganization.
      * \note not available in Python bindings
      */

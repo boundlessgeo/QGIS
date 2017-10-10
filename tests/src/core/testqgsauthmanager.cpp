@@ -28,7 +28,6 @@
 #include "qgsauthmanager.h"
 #include "qgsauthconfig.h"
 #include "qgssettings.h"
-#include "qgsauthcertutils.h"
 
 /**
  * \ingroup UnitTests
@@ -55,7 +54,6 @@ class TestQgsAuthManager: public QObject
     void testAuthConfigs();
     void testAuthMethods();
     void testPasswordHelper();
-    void testCrl();
 
   private:
     void cleanupTempDir();
@@ -471,16 +469,6 @@ void TestQgsAuthManager::testPasswordHelper()
 
 }
 
-void TestQgsAuthManager::testCrl()
-{
-  QgsAuthManager *authm = QgsAuthManager::instance();
-  QString crlPathPEM = QStringLiteral( TEST_DATA_DIR ) + "/auth_system/crl/crl.pem";
-  QList<QCA::CRLEntry> crlPEM( QgsAuthCertUtils::revokedCertsFromCrl( crlPathPEM ) );
-  QCOMPARE( crlPEM.length(), 1 );
-  QString crlPathDER = QStringLiteral( TEST_DATA_DIR ) + "/auth_system/crl/crl.der";
-  QList<QCA::CRLEntry> crlDER( QgsAuthCertUtils::revokedCertsFromCrl( crlPathDER ) );
-  QCOMPARE( crlDER.length(), 1 );
-}
 
 QGSTEST_MAIN( TestQgsAuthManager )
 #include "testqgsauthmanager.moc"
