@@ -202,6 +202,19 @@ void TestQgsAuthCrl::testToHex()
     }
     inputFile.close();
   }
+  QString bundlePath = QStringLiteral( TEST_DATA_DIR ) + "/auth_system/crl/bundle.pem";
+  for ( auto const rootCert: QSslCertificate::fromPath( bundlePath ) )
+  {
+    if ( rootCert.serialNumber( ) != "00")
+    {
+      QByteArray serial ( QByteArray::fromHex(QString( rootCert.serialNumber( ) ).remove(':').toAscii() ));
+      QgsAuthCrlEntry entry( QgsAuthCrlEntry::Reason::Unspecified, serial, QDateTime::currentDateTime() );
+      qDebug() << serial;
+      qDebug() << rootCert.serialNumber( );
+      qDebug() << entry.serialNumberAsHexArray();
+      QCOMPARE( entry.serialNumberAsHexArray(), rootCert.serialNumber( ) );
+    }
+  }
 }
 
 QGSTEST_MAIN( TestQgsAuthCrl )

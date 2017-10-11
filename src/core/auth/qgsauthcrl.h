@@ -132,6 +132,14 @@ class CORE_EXPORT QgsAuthCrl
      */
     const QgsAuthCrlEntry *certificateEntry( const QSslCertificate &certificate ) const;
 
+    /**
+     * \brief isRevoked checks is the given \a certificate is revoked
+     * \param certificate to be checked
+     * \return false if the certificate is in the CRL and the revokation time is in the past
+     */
+    bool isRevoked( const QSslCertificate &certificate ) const;
+
+
   private:
 
     QList<QgsAuthCrlEntry> mEntries;

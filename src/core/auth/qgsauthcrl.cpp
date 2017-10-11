@@ -79,7 +79,7 @@ QgsAuthCrl::QgsAuthCrl( const QString &crlPath )
         for ( const auto cert : revoked )
         {
           // TODO: use toHex when available (since Qt 5.9)
-          mEntries.append( QgsAuthCrlEntry( QgsAuthCrlEntry::reasonFromQCAReason( cert.reason() ), cert.serialNumber().toArray().toByteArray( ), cert.time( ) ) );
+          mEntries.append( QgsAuthCrlEntry( QgsAuthCrlEntry::reasonFromQCAReason( cert. cert.reason() ), cert.serialNumber().toArray().toByteArray( ), cert.time( ) ) );
         }
       }
       else
@@ -171,4 +171,14 @@ const QgsAuthCrlEntry *QgsAuthCrl::certificateEntry( const QSslCertificate &cert
     }
   }
   return nullptr;
+}
+
+bool QgsAuthCrl::isRevoked(const QSslCertificate &certificate) const
+{
+  const QgsAuthCrlEntry* entry = certificateEntry( certificate );
+  if ( entry )
+  {
+    return entry->revokationDate() <= QDateTime::currentDateTime( );
+  }
+  return true;
 }
