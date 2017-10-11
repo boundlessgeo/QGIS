@@ -173,9 +173,9 @@ const QgsAuthCrlEntry *QgsAuthCrl::certificateEntry( const QSslCertificate &cert
   return nullptr;
 }
 
-bool QgsAuthCrl::isRevoked(const QSslCertificate &certificate) const
+bool QgsAuthCrl::isRevoked( const QSslCertificate &certificate ) const
 {
-  const QgsAuthCrlEntry* entry = certificateEntry( certificate );
+  const QgsAuthCrlEntry *entry = certificateEntry( certificate );
   if ( entry )
   {
     return entry->revokationDate() <= QDateTime::currentDateTime( );
