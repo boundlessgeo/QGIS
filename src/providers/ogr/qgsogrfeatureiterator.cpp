@@ -42,6 +42,7 @@ QgsOgrFeatureIterator::QgsOgrFeatureIterator( QgsOgrFeatureSource* source, bool 
     , mConn( nullptr )
     , ogrLayer( nullptr )
     , mSubsetStringSet( false )
+    , mOrigFidAdded( false )
     , mFetchGeometry( false )
     , mExpressionCompiled( false )
     , mFilterFids( mRequest.filterFids() )
@@ -68,7 +69,7 @@ QgsOgrFeatureIterator::QgsOgrFeatureIterator( QgsOgrFeatureSource* source, bool 
 
   if ( !mSource->mSubsetString.isEmpty() )
   {
-    ogrLayer = QgsOgrProviderUtils::setSubsetString( ogrLayer, mConn->ds, mSource->mEncoding, mSource->mSubsetString );
+    ogrLayer = QgsOgrProviderUtils::setSubsetString( ogrLayer, mConn->ds, mSource->mEncoding, mSource->mSubsetString, mOrigFidAdded );
     if ( !ogrLayer )
     {
       return;
@@ -152,6 +153,7 @@ QgsOgrFeatureIterator::QgsOgrFeatureIterator( QgsOgrFeatureSource* source, bool 
     OGR_L_SetAttributeFilter( ogrLayer, nullptr );
   }
 
+
   //start with first feature
   rewind();
 }
@@ -172,7 +174,35 @@ bool QgsOgrFeatureIterator::nextFeatureFilterExpression( QgsFeature& f )
 bool QgsOgrFeatureIterator::fetchFeatureWithId( QgsFeatureId id, QgsFeature& feature ) const
 {
   feature.setValid( false );
-  OGRFeatureH fet = OGR_L_GetFeature( ogrLayer, FID_TO_NUMBER( id ) );
+  OGRFeatureH fet = 0;
+  if ( mOrigFidAdded )
+  {
+    OGR_L_ResetReading( ogrLayer );
+    OGRFeatureDefnH fdef = OGR_L_GetLayerDefn( ogrLayer );
+    int lastField = OGR_FD_GetFieldCount( fdef ) - 1;
+    if ( lastField >= 0 )
+    {
+      while (( fet = OGR_L_GetNextFeature( ogrLayer ) ) )
+      {
+        if (
+#if defined(GDAL_VERSION_NUM) && GDAL_VERSION_NUM >= 2000000
+          OGR_F_GetFieldAsInteger64
+#else
+          OGR_F_GetFieldAsInteger
+#endif
+          ( fet, lastField ) == FID_TO_NUMBER( id ) )
+        {
+          break;
+        }
+        OGR_F_Destroy( fet );
+      }
+    }
+  }
+  else
+  {
+    fet = OGR_L_GetFeature( ogrLayer, FID_TO_NUMBER( id ) );
+  }
+
   if ( !fet )
   {
     return false;
@@ -297,7 +327,23 @@ void QgsOgrFeatureIterator::getFeatureAttribute( OGRFeatureH ogrFet, QgsFeature 
 
 bool QgsOgrFeatureIterator::readFeature( OGRFeatureH fet, QgsFeature& feature ) const
 {
-  feature.setFeatureId( OGR_F_GetFID( fet ) );
+  if ( mOrigFidAdded )
+  {
+    OGRFeatureDefnH fdef = OGR_L_GetLayerDefn( ogrLayer );
+    int lastField = OGR_FD_GetFieldCount( fdef ) - 1;
+    if ( lastField >= 0 )
+#if defined(GDAL_VERSION_NUM) && GDAL_VERSION_NUM >= 2000000
+      feature.setFeatureId( OGR_F_GetFieldAsInteger64( fet, lastField ) );
+#else
+      feature.setFeatureId( OGR_F_GetFieldAsInteger( fet, lastField ) );
+#endif
+    else
+      feature.setFeatureId( OGR_F_GetFID( fet ) );
+  }
+  else
+  {
+    feature.setFeatureId( OGR_F_GetFID( fet ) );
+  }
   feature.initAttributes( mSource->mFields.count() );
   feature.setFields( mSource->mFields ); // allow name-based attribute lookups
 

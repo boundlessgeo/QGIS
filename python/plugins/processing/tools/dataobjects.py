@@ -73,8 +73,8 @@ def getSupportedOutputTableExtensions():
 
 
 def getRasterLayers(sorting=True):
-    layers = QgsProject.instance().layerTreeRoot().findLayers()
-    raster = [lay.layer() for lay in layers if lay.layer() is not None and canUseRasterLayer(lay.layer())]
+    layers = QgsMapLayerRegistry.instance().mapLayers().values()
+    raster = [lay for lay in layers if lay is not None and canUseRasterLayer(lay)]
     if sorting:
         return sorted(raster, key=lambda layer: layer.name().lower())
     else:
@@ -82,8 +82,8 @@ def getRasterLayers(sorting=True):
 
 
 def getVectorLayers(shapetype=[-1], sorting=True):
-    layers = QgsProject.instance().layerTreeRoot().findLayers()
-    vector = [lay.layer() for lay in layers if canUseVectorLayer(lay.layer(), shapetype)]
+    layers = QgsMapLayerRegistry.instance().mapLayers().values()
+    vector = [lay for lay in layers if canUseVectorLayer(lay, shapetype)]
     if sorting:
         return sorted(vector, key=lambda layer: layer.name().lower())
     else:
@@ -114,12 +114,11 @@ def getAllLayers():
 
 
 def getTables(sorting=True):
-    layers = QgsProject.instance().layerTreeRoot().findLayers()
+    layers = QgsMapLayerRegistry.instance().mapLayers().values()
     tables = []
     for layer in layers:
-        mapLayer = layer.layer()
-        if mapLayer.type() == QgsMapLayer.VectorLayer:
-            tables.append(mapLayer)
+        if layer.type() == QgsMapLayer.VectorLayer:
+            tables.append(layer)
     if sorting:
         return sorted(tables, key=lambda table: table.name().lower())
     else:

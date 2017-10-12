@@ -30,7 +30,7 @@ import webbrowser
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication, QByteArray, QUrl
-from qgis.PyQt.QtWidgets import QApplication, QDialogButtonBox
+from qgis.PyQt.QtWidgets import QApplication, QDialogButtonBox, QDesktopWidget
 from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qgis.utils import iface
@@ -89,16 +89,21 @@ class AlgorithmDialogBase(BASE, WIDGET):
 
         isText, algHelp = self.alg.help()
         if algHelp is not None:
-            algHelp = algHelp if isText else QUrl(algHelp)
             try:
                 if isText:
                     self.txtHelp.setHtml(algHelp)
                 else:
-                    html = self.tr('<p>Downloading algorithm help... Please wait.</p>')
-                    self.txtHelp.setHtml(html)
-                    rq = QNetworkRequest(algHelp)
-                    self.reply = QgsNetworkAccessManager.instance().get(rq)
-                    self.reply.finished.connect(self.requestFinished)
+                    if algHelp.startswith('http'):
+                        html = self.tr('<p>Downloading algorithm help... Please wait.</p>')
+                        self.txtHelp.setHtml(html)
+                        rq = QNetworkRequest(QUrl(algHelp))
+                        self.reply = QgsNetworkAccessManager.instance().get(rq)
+                        self.reply.finished.connect(self.requestFinished)
+                    else:
+                        if algHelp.startswith('file://'):
+                            p = os.path.dirname(algHelp[7:])
+                            self.txtHelp.setSearchPaths([p])
+                            self.txtHelp.setSource(QUrl(algHelp))
             except Exception as e:
                 self.tabWidget.removeTab(2)
         else:

@@ -116,6 +116,7 @@
 #include "qgsauthsslerrorsdialog.h"
 #endif
 #include "qgsbookmarks.h"
+#include "qgsbrowsermodel.h"
 #include "qgsbrowserdockwidget.h"
 #include "qgsadvanceddigitizingdockwidget.h"
 #include "qgsclipboard.h"
@@ -805,12 +806,14 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   mSnappingDialog->setObjectName( "SnappingOption" );
   endProfile();
 
-  mBrowserWidget = new QgsBrowserDockWidget( tr( "Browser Panel" ), this );
+  // Create the (shared) model with delayed initialization
+  mBrowserModel = new QgsBrowserModel( this, false );
+  mBrowserWidget = new QgsBrowserDockWidget( tr( "Browser Panel" ), mBrowserModel, this );
   mBrowserWidget->setObjectName( "Browser" );
   addDockWidget( Qt::LeftDockWidgetArea, mBrowserWidget );
   mBrowserWidget->hide();
 
-  mBrowserWidget2 = new QgsBrowserDockWidget( tr( "Browser Panel (2)" ), this );
+  mBrowserWidget2 = new QgsBrowserDockWidget( tr( "Browser Panel (2)" ), mBrowserModel, this );
   mBrowserWidget2->setObjectName( "Browser2" );
   addDockWidget( Qt::LeftDockWidgetArea, mBrowserWidget2 );
   mBrowserWidget2->hide();
@@ -1152,6 +1155,7 @@ QgisApp::QgisApp()
     , mPythonUtils( nullptr )
     , mUndoWidget( nullptr )
     , mUndoDock( nullptr )
+    , mBrowserModel( nullptr )
     , mBrowserWidget( nullptr )
     , mBrowserWidget2( nullptr )
     , mAdvancedDigitizingDockWidget( nullptr )
@@ -3711,7 +3715,7 @@ bool QgisApp::askUserForZipItemLayers( QString path )
   // if 1 or 0 child found, exit so a normal item is created by gdal or ogr provider
   if ( zipItem->rowCount() <= 1 )
   {
-    delete zipItem;
+    zipItem->deleteLater();
     return false;
   }
 
@@ -3723,7 +3727,7 @@ bool QgisApp::askUserForZipItemLayers( QString path )
   // exit if promptLayers=Never
   else if ( promptLayers == 2 )
   {
-    delete zipItem;
+    zipItem->deleteLater();
     return false;
   }
   else
@@ -3792,7 +3796,7 @@ bool QgisApp::askUserForZipItemLayers( QString path )
     }
   }
 
-  delete zipItem;
+  zipItem->deleteLater();
   return ok;
 }
 
@@ -5123,6 +5127,7 @@ void QgisApp::dxfExport()
     dxfExport.setSymbologyExport( d.symbologyMode() );
     dxfExport.setLayerTitleAsName( d.layerTitleAsName() );
     dxfExport.setDestinationCrs( d.crs() );
+    dxfExport.setForce2d( d.force2d() );
     if ( mapCanvas() )
     {
       dxfExport.setMapUnits( mapCanvas()->mapUnits() );
@@ -6336,7 +6341,7 @@ void QgisApp::saveAsVectorFileGeneral( QgsVectorLayer* vlayer, bool symbologyOpt
 
 void QgisApp::checkForDeprecatedLabelsInProject()
 {
-  bool ok;
+  bool ok = false;
   QgsProject::instance()->readBoolEntry( "DeprecatedLabels", "/Enabled", false, &ok );
   if ( ok ) // project already flagged (regardless of project property value)
   {
@@ -7164,7 +7169,7 @@ void QgisApp::mergeSelectedFeatures()
     if ( !isDefaultValue && !vl->fields().at( i ).convertCompatible( val ) )
     {
       messageBar()->pushMessage(
-        tr( "Invalid result" ),
+        tr( "Merge features" ),
         tr( "Could not store value '%1' in field of type %2" ).arg( attrs.at( i ).toString(), vl->fields().at( i ).typeName() ),
         QgsMessageBar::WARNING );
     }
@@ -7178,9 +7183,15 @@ void QgisApp::mergeSelectedFeatures()
     vl->deleteFeature( *feature_it );
   }
 
-  vl->addFeature( newFeature, false );
-
-  vl->endEditCommand();
+  // addFeature can fail if newFeature has no compatibile geometry
+  if ( !vl->addFeature( newFeature, false ) )
+  {
+    vl->destroyEditCommand();
+  }
+  else
+  {
+    vl->endEditCommand();
+  }
 
   if ( mapCanvas() )
   {
@@ -7535,8 +7546,14 @@ void QgisApp::editPaste( QgsMapLayer *destinationLayer )
     ++featureIt;
   }
 
-  pasteVectorLayer->addFeatures( features );
-  pasteVectorLayer->endEditCommand();
+  if ( !pasteVectorLayer->addFeatures( features ) )
+  {
+    pasteVectorLayer->destroyEditCommand();
+  }
+  else
+  {
+    pasteVectorLayer->endEditCommand();
+  }
 
   int nCopiedFeatures = features.count();
   if ( nCopiedFeatures == 0 )
@@ -7723,7 +7740,7 @@ QgsVectorLayer *QgisApp::pasteToNewMemoryVector()
       feature.geometry()->convertToMultiType();
     }
   }
-  if ( ! layer->addFeatures( features, false ) || !layer->commitChanges() )
+  if ( !layer->addFeatures( features, false ) || !layer->commitChanges() )
   {
     QgsDebugMsg( "Cannot add features or commit changes" );
     delete layer;
@@ -7992,6 +8009,18 @@ void QgisApp::saveEdits( QgsMapLayer *layer, bool leaveEditable, bool triggerRep
 
   if ( vlayer == activeLayer() )
     mSaveRollbackInProgress = true;
+
+  // stop rendering to avoid lock in case of
+  // splilte and gpkg fix #15498
+  if ( mMapCanvas->mapSettings().layers().contains( vlayer->id() ) )
+  {
+    if ( vlayer->dataProvider()->storageType().count( "SQLite" ) ||
+         vlayer->dataProvider()->storageType().count( "GPKG" ) )
+    {
+      if ( mMapCanvas->isDrawing() )
+        mMapCanvas->stopRendering();
+    }
+  }
 
   if ( !vlayer->commitChanges() )
   {

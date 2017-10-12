@@ -35,6 +35,7 @@
 #include "qgsogrutils.h"
 #include "qgsjsonutils.h"
 #include "qgssettings.h"
+#include "qgsdatumtransformdialog.h"
 
 QgsClipboard::QgsClipboard()
     : QObject()
@@ -186,8 +187,17 @@ QgsFeatureList QgsClipboard::stringToFeatureList( const QString& string, const Q
 
   Q_FOREACH ( const QString& row, values )
   {
-    // Assume that it's just WKT for now.
-    QgsGeometry* geometry = QgsGeometry::fromWkt( row );
+    // Assume that it's just WKT for now. because GeoJSON is managed by
+    // previous QgsOgrUtils::stringToFeatureList call
+    // Get the first value of a \t separated list. WKT clipboard pasted
+    // feature has first element the WKT geom.
+    // This split is to fix te following issue: https://issues.qgis.org/issues/16870
+    // Value separators are set in generateClipboardText
+    QStringList fieldValues = row.split( '\t' );
+    if ( fieldValues.isEmpty() )
+      continue;
+
+    QgsGeometry *geometry = QgsGeometry::fromWkt( fieldValues[0] );
     if ( !geometry )
       continue;
 
@@ -264,6 +274,28 @@ QgsFeatureList QgsClipboard::transformedCopyOf( const QgsCoordinateReferenceSyst
 {
   QgsFeatureList featureList = copyOf( fields );
   QgsCoordinateTransform ct( crs(), destCRS );
+
+  //ask user about datum transformation
+  QSettings settings;
+  QList< QList< int > > dt = QgsCoordinateTransform::datumTransformations( crs(), destCRS );
+  if ( dt.size() > 1 && settings.value( "Projections/showDatumTransformDialog", false ).toBool() )
+  {
+    QgsDatumTransformDialog d( tr( "Datum transformation for copied features" ), dt );
+    if ( d.exec() == QDialog::Accepted )
+    {
+      QList< int > sdt = d.selectedDatumTransform();
+      if ( !sdt.isEmpty() )
+      {
+        ct.setSourceDatumTransform( sdt.at( 0 ) );
+      }
+      if ( sdt.size() > 1 )
+      {
+        ct.setDestinationDatumTransform( sdt.at( 1 ) );
+      }
+      ct.initialise();
+    }
+  }
+
 
   QgsDebugMsg( "transforming clipboard." );
   for ( QgsFeatureList::iterator iter = featureList.begin(); iter != featureList.end(); ++iter )

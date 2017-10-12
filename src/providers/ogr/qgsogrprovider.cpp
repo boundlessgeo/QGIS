@@ -95,6 +95,8 @@ class QgsCPLErrorHandler
     }
 };
 
+static const QByteArray ORIG_OGC_FID = "orig_ogc_fid";
+
 
 bool QgsOgrProvider::convertField( QgsField &field, const QTextCodec &encoding )
 {
@@ -555,7 +557,12 @@ bool QgsOgrProvider::setSubsetString( const QString& theSQL, bool updateFeatureC
     uri += QString( "|geometrytype=%1" ).arg( ogrWkbGeometryTypeName( mOgrGeometryTypeFilter ) );
   }
 
-  setDataSourceUri( uri );
+  if ( uri != dataSourceUri() )
+  {
+    QgsOgrConnPool::instance()->unref( dataSourceUri() );
+    setDataSourceUri( uri );
+    QgsOgrConnPool::instance()->ref( dataSourceUri() );
+  }
 
   OGR_L_ResetReading( ogrLayer );
 
@@ -1025,7 +1032,11 @@ void QgsOgrProviderUtils::setRelevantFields( OGRLayerH ogrLayer, int fieldCount,
       if ( !fetchAttributes.contains( i ) )
       {
         // add to ignored fields
-        ignoredFields.append( OGR_Fld_GetNameRef( OGR_FD_GetFieldDefn( featDefn, firstAttrIsFid ? i - 1 : i ) ) );
+        const char *fieldName = OGR_Fld_GetNameRef( OGR_FD_GetFieldDefn( featDefn, firstAttrIsFid ? i - 1 : i ) );
+        if ( qstrcmp( fieldName, ORIG_OGC_FID ) != 0 )
+        {
+          ignoredFields.append( fieldName );
+        }
       }
     }
 
@@ -1169,7 +1180,7 @@ const QgsFields & QgsOgrProvider::fields() const
 }
 
 
-//TODO - add sanity check for shape file layers, to include cheking to
+//TODO - add sanity check for shape file layers, to include checking to
 //       see if the .shp, .dbf, .shx files are all present and the layer
 //       actually has features
 bool QgsOgrProvider::isValid()
@@ -1272,7 +1283,18 @@ bool QgsOgrProvider::addFeature( QgsFeature& f )
     QVariant attrVal = attrs.at( qgisAttId );
     if ( attrVal.isNull() || ( type != OFTString && attrVal.toString().isEmpty() ) )
     {
+// Starting with GDAL 2.2, there are 2 concepts: unset fields and null fields
+// whereas previously there was only unset fields. For a GeoJSON output,
+// leaving a field unset will cause it to not appear at all in the output
+// feature.
+// When all features of a layer have a field unset, this would cause the
+// field to not be present at all in the output, and thus on reading to
+// have disappeared. #16812
+#ifdef OGRNullMarker
+      OGR_F_SetFieldNull( feature, ogrAttId );
+#else
       OGR_F_UnsetField( feature, ogrAttId );
+#endif
     }
     else
     {
@@ -1650,6 +1672,7 @@ bool QgsOgrProvider::changeAttributeValues( const QgsChangedAttributesMap &attr_
       pushError( tr( "Feature %1 for attribute update not found." ).arg( fid ) );
       continue;
     }
+    OGR_L_ResetReading( ogrLayer ); // needed for SQLite-based to clear iterator
 
     QgsLocaleNumC l;
 
@@ -1683,7 +1706,18 @@ bool QgsOgrProvider::changeAttributeValues( const QgsChangedAttributesMap &attr_
 
       if ( it2->isNull() || ( type != OFTString && it2->toString().isEmpty() ) )
       {
+// Starting with GDAL 2.2, there are 2 concepts: unset fields and null fields
+// whereas previously there was only unset fields. For a GeoJSON output,
+// leaving a field unset will cause it to not appear at all in the output
+// feature.
+// When all features of a layer have a field unset, this would cause the
+// field to not be present at all in the output, and thus on reading to
+// have disappeared. #16812
+#ifdef OGRNullMarker
+        OGR_F_SetFieldNull( of, f );
+#else
         OGR_F_UnsetField( of, f );
+#endif
       }
       else
       {
@@ -1781,6 +1815,7 @@ bool QgsOgrProvider::changeGeometryValues( const QgsGeometryMap &geometry_map )
       pushError( tr( "OGR error changing geometry: feature %1 not found" ).arg( it.key() ) );
       continue;
     }
+    OGR_L_ResetReading( ogrLayer ); // needed for SQLite-based to clear iterator
 
     OGRGeometryH theNewGeometry = nullptr;
     // We might receive null geometries. It is ok, but don't go through the
@@ -3392,14 +3427,17 @@ OGRwkbGeometryType QgsOgrProvider::ogrWkbSingleFlatten( OGRwkbGeometryType type 
 
 OGRLayerH QgsOgrProvider::setSubsetString( OGRLayerH layer, OGRDataSourceH ds )
 {
-  return QgsOgrProviderUtils::setSubsetString( layer, ds, mEncoding, mSubsetString );
+  bool origFidAdded = false;
+  return QgsOgrProviderUtils::setSubsetString( layer, ds, mEncoding, mSubsetString, origFidAdded );
 }
 
-OGRLayerH QgsOgrProviderUtils::setSubsetString( OGRLayerH layer, OGRDataSourceH ds, QTextCodec* encoding, const QString& subsetString )
+OGRLayerH QgsOgrProviderUtils::setSubsetString( OGRLayerH layer, OGRDataSourceH ds, QTextCodec* encoding, const QString& subsetString, bool &origFidAdded )
 {
   QByteArray layerName = OGR_FD_GetName( OGR_L_GetLayerDefn( layer ) );
   OGRSFDriverH ogrDriver = OGR_DS_GetDriver( ds );
   QString ogrDriverName = OGR_Dr_GetName( ogrDriver );
+  bool origFidAddAttempted = false;
+  origFidAdded = false;
 
   if ( ogrDriverName == "ODBC" ) //the odbc driver does not like schema names for subset
   {
@@ -3411,17 +3449,64 @@ OGRLayerH QgsOgrProviderUtils::setSubsetString( OGRLayerH layer, OGRDataSourceH 
       layerName = encoding->fromUnicode( modifiedLayerName );
     }
   }
-  QByteArray sql;
-  if ( subsetString.startsWith( "SELECT ", Qt::CaseInsensitive ) )
-    sql = encoding->fromUnicode( subsetString );
+  OGRLayerH subsetLayer = 0;
+  if ( subsetString.startsWith( QLatin1String( "SELECT " ), Qt::CaseInsensitive ) )
+  {
+    QByteArray sql = encoding->fromUnicode( subsetString );
+
+    QgsDebugMsg( QString( "SQL: %1" ).arg( encoding->toUnicode( sql ) ) );
+    subsetLayer = OGR_DS_ExecuteSQL( ds, sql.constData(), nullptr, nullptr );
+  }
   else
   {
-    sql = "SELECT * FROM " + quotedIdentifier( layerName, ogrDriverName );
-    sql += " WHERE " + encoding->fromUnicode( subsetString );
+    QByteArray sqlPart1 = "SELECT *";
+    QByteArray sqlPart3 = " FROM " + quotedIdentifier( layerName, ogrDriverName )
+                          + " WHERE " + encoding->fromUnicode( subsetString );
+
+    origFidAddAttempted = true;
+
+    QByteArray fidColumn = OGR_L_GetFIDColumn( layer );
+    // Fallback to FID if OGR_L_GetFIDColumn returns nothing
+    if ( fidColumn.isEmpty() )
+    {
+      fidColumn = "FID";
+    }
+
+    QByteArray sql = sqlPart1 + ", " + fidColumn + " as " + ORIG_OGC_FID + sqlPart3;
+    QgsDebugMsg( QString( "SQL: %1" ).arg( encoding->toUnicode( sql ) ) );
+    subsetLayer = OGR_DS_ExecuteSQL( ds, sql.constData(), nullptr, nullptr );
+
+    // See https://lists.osgeo.org/pipermail/qgis-developer/2017-September/049802.html
+    // If execute SQL fails because it did not find the fidColumn, retry with hardcoded FID
+    if ( !subsetLayer )
+    {
+      QByteArray sql = sqlPart1 + ", " + "FID as " + ORIG_OGC_FID + sqlPart3;
+      QgsDebugMsg( QString( "SQL: %1" ).arg( encoding->toUnicode( sql ) ) );
+      subsetLayer = OGR_DS_ExecuteSQL( ds, sql.constData(), nullptr, nullptr );
+    }
+    // If that also fails, just continue without the orig_ogc_fid
+    if ( !subsetLayer )
+    {
+      QByteArray sql = sqlPart1 + sqlPart3;
+      QgsDebugMsg( QString( "SQL: %1" ).arg( encoding->toUnicode( sql ) ) );
+      subsetLayer = OGR_DS_ExecuteSQL( ds, sql.constData(), nullptr, nullptr );
+      origFidAddAttempted = false;
+    }
   }
 
-  QgsDebugMsg( QString( "SQL: %1" ).arg( encoding->toUnicode( sql ) ) );
-  return OGR_DS_ExecuteSQL( ds, sql.constData(), nullptr, nullptr );
+  // Check if last column is orig_ogc_fid
+  if ( origFidAddAttempted && subsetLayer )
+  {
+    OGRFeatureDefnH fdef = OGR_L_GetLayerDefn( subsetLayer );
+    int fieldCount = OGR_FD_GetFieldCount( fdef );
+    if ( fieldCount > 0 )
+    {
+      OGRFieldDefnH fldDef = OGR_FD_GetFieldDefn( fdef, fieldCount - 1 );
+      origFidAdded = qstrcmp( OGR_Fld_GetNameRef( fldDef ), ORIG_OGC_FID ) == 0;
+    }
+  }
+
+  return subsetLayer;
 }
 
 void QgsOgrProvider::open( OpenMode mode )
@@ -3521,7 +3606,13 @@ void QgsOgrProvider::open( OpenMode mode )
       // check that the initial encoding setting is fit for this layer
       setEncoding( encoding() );
 
-      mValid = setSubsetString( mSubsetString );
+      // Ensure subset is set (setSubsetString does nothing if the passed sql subset string is equal to mSubsetString, which is the case when reloading the dataset)
+      QString origSubsetString = mSubsetString;
+      mSubsetString = "";
+      // Block signals to avoid endless recusion reloadData -> emit dataChanged -> reloadData
+      blockSignals( true );
+      mValid = setSubsetString( origSubsetString );
+      blockSignals( false );
       if ( mValid )
       {
         if ( mode == OpenModeInitial )
