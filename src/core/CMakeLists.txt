@@ -1177,7 +1177,15 @@ INCLUDE_DIRECTORIES(SYSTEM
   ${SPATIALITE_INCLUDE_DIR}
   ${QCA_INCLUDE_DIR}
   ${QTKEYCHAIN_INCLUDE_DIR}
+  /usr/local/opt/libtasn1/include
 )
+
+IF (APPLE)
+  # Libtasn1 is for DER-encoded PKI ASN.1 parsing/extracting workarounds
+  INCLUDE_DIRECTORIES(SYSTEM
+    ${LIBTASN1_INCLUDE_DIR}
+  )
+ENDIF (APPLE)
 
 
 #for PAL classes
@@ -1249,7 +1257,7 @@ IF (WIN32)
 ENDIF (WIN32)
 
 IF (APPLE)
-  TARGET_LINK_LIBRARIES(qgis_core qgis_native)
+  TARGET_LINK_LIBRARIES(qgis_core qgis_native ${LIBTASN1_LIBRARY})
 ENDIF (APPLE)
 
 IF (NOT WITH_INTERNAL_QEXTSERIALPORT)
@@ -1278,6 +1286,7 @@ TARGET_LINK_LIBRARIES(qgis_core
   ${SQLITE3_LIBRARY}
   ${SPATIALITE_LIBRARY}
   ${LIBZIP_LIBRARY}
+  /usr/local/opt/libtasn1/lib/libtasn1.a
 )
 
 IF (Qt5Positioning_FOUND)

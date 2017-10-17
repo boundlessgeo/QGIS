@@ -23,8 +23,15 @@
 #include <QSslCertificate>
 #include <QUuid>
 
+#include "qgsapplication.h"
 #include "qgsauthmanager.h"
 #include "qgslogger.h"
+
+#ifdef Q_OS_MAC
+#include <string.h>
+#include "libtasn1.h"
+#endif
+
 
 QString QgsAuthCertUtils::getSslProtocolName( QSsl::SslProtocol protocol )
 {
@@ -94,22 +101,26 @@ QMap<QString, QList<QgsAuthConfigSslServer> > QgsAuthCertUtils::sslConfigsGroupe
   return orgconfigs;
 }
 
-static QByteArray fileData_( const QString &path, bool astext = false )
+QByteArray QgsAuthCertUtils::fileData( const QString &path, bool astext )
 {
   QByteArray data;
   QFile file( path );
-  if ( file.exists() )
+  if ( !file.exists() )
   {
-    QFile::OpenMode openflags( QIODevice::ReadOnly );
-    if ( astext )
-      openflags |= QIODevice::Text;
-    bool ret = file.open( openflags );
-    if ( ret )
-    {
-      data = file.readAll();
-    }
-    file.close();
+    QgsDebugMsg( QStringLiteral( "Read file error, file not found: %1" ).arg( path ) );
+    return data;
   }
+  // TODO: add checks for locked file, etc., to ensure it can be read
+  QFile::OpenMode openflags( QIODevice::ReadOnly );
+  if ( astext )
+    openflags |= QIODevice::Text;
+  bool ret = file.open( openflags );
+  if ( ret )
+  {
+    data = file.readAll();
+  }
+  file.close();
+
   return data;
 }
 
@@ -117,7 +128,7 @@ QList<QSslCertificate> QgsAuthCertUtils::certsFromFile( const QString &certspath
 {
   QList<QSslCertificate> certs;
   bool pem = certspath.endsWith( QLatin1String( ".pem" ), Qt::CaseInsensitive );
-  certs = QSslCertificate::fromData( fileData_( certspath, pem ), pem ? QSsl::Pem : QSsl::Der );
+  certs = QSslCertificate::fromData( QgsAuthCertUtils::fileData( certspath, pem ), pem ? QSsl::Pem : QSsl::Der );
   if ( certs.isEmpty() )
   {
     QgsDebugMsg( QString( "Parsed cert(s) EMPTY for path: %1" ).arg( certspath ) );
@@ -145,7 +156,7 @@ QSslKey QgsAuthCertUtils::keyFromFile( const QString &keypath,
                                        QString *algtype )
 {
   bool pem = keypath.endsWith( QLatin1String( ".pem" ), Qt::CaseInsensitive );
-  QByteArray keydata( fileData_( keypath, pem ) );
+  QByteArray keydata( QgsAuthCertUtils::fileData( keypath, pem ) );
 
   QSslKey clientkey;
   clientkey = QSslKey( keydata,
@@ -213,6 +224,148 @@ QStringList QgsAuthCertUtils::certKeyBundleToPem( const QString &certpath,
   return QStringList() << certpem << keypem << algtype;
 }
 
+#ifdef Q_OS_MAC
+QByteArray QgsAuthCertUtils::pkcs8PrivateKey( QByteArray &pkcs8Der )
+{
+  QByteArray pkcs1;
+
+  if ( pkcs8Der.isEmpty() )
+  {
+    QgsDebugMsg ( QStringLiteral( "ERROR, passed DER is empty" ) );
+    return pkcs1;
+  }
+  // Dump as unarmored PEM format, e.g. missing '-----BEGIN|END...' wrapper
+  //QgsDebugMsg ( QStringLiteral( "pkcs8Der: %1" ).arg( QString( pkcs8Der.toBase64() ) ) );
+
+  QFileInfo asnDefsRsrc( QgsApplication::pkgDataPath() + QStringLiteral( "/resources/pkcs8.asn" ) );
+  if ( ! asnDefsRsrc.exists() )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, pkcs.asn resource file not found: %1" ).arg( asnDefsRsrc.filePath() ) );
+    return pkcs1;
+  }
+  const char *asnDefsFile = asnDefsRsrc.absoluteFilePath().toLocal8Bit().constData();
+
+  int asn1_result = ASN1_SUCCESS, der_len = 0, oct_len = 0;
+  asn1_node definitions = NULL, structure = NULL;
+  char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE], oct_data[1024];
+  unsigned char *der = NULL;
+  unsigned int flags = 0; //TODO: see if any or all ASN1_DECODE_FLAG_* flags can be set
+  unsigned oct_etype;
+
+  // Base PKCS#8 element to decode
+  QString typeName( QStringLiteral( "PKCS-8.PrivateKeyInfo" ) );
+
+  asn1_result = asn1_parser2tree( asnDefsFile, &definitions, errorDescription );
+
+  switch ( asn1_result )
+  {
+    case ASN1_SUCCESS:
+      QgsDebugMsgLevel( QStringLiteral( "Parse: done.\n" ), 4 );
+      break;
+    case ASN1_FILE_NOT_FOUND:
+      QgsDebugMsg( QStringLiteral( "ERROR, file not found: %1" ).arg( asnDefsFile ) );
+      return pkcs1;
+    case ASN1_SYNTAX_ERROR:
+    case ASN1_IDENTIFIER_NOT_FOUND:
+    case ASN1_NAME_TOO_LONG:
+      QgsDebugMsg( QStringLiteral( "ERROR, asn1 parsing: %1" ).arg( errorDescription ) );
+      return pkcs1;
+    default:
+      QgsDebugMsg( QStringLiteral( "ERROR, libtasn1: %1" ).arg( asn1_strerror( asn1_result ) ) );
+      return pkcs1;
+  }
+
+  // Generate the ASN.1 structure
+  asn1_result = asn1_create_element( definitions, typeName.toLatin1().constData(), &structure );
+
+  //asn1_print_structure( stdout, structure, "", ASN1_PRINT_ALL);
+
+  if ( asn1_result != ASN1_SUCCESS )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, structure creation: %1" ).arg( asn1_strerror( asn1_result ) ) );
+    goto PKCS1DONE;
+  }
+
+  // Populate the ASN.1 structure with decoded DER data
+  der = reinterpret_cast<unsigned char *>( pkcs8Der.data() );
+  der_len = pkcs8Der.size();
+
+  if ( flags != 0 )
+  {
+    asn1_result = asn1_der_decoding2( &structure, der, &der_len, flags, errorDescription );
+  }
+  else
+  {
+    asn1_result = asn1_der_decoding( &structure, der, der_len, errorDescription );
+  }
+
+  if ( asn1_result != ASN1_SUCCESS )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, decoding: %1" ).arg( errorDescription ) );
+    goto PKCS1DONE;
+  }
+  else
+  {
+    QgsDebugMsgLevel( QStringLiteral( "Decoding: %1" ).arg( asn1_strerror( asn1_result ) ), 4 );
+  }
+
+  if ( QgsLogger::debugLevel() >= 4 )
+  {
+    QgsDebugMsg( QStringLiteral( "DECODING RESULT:" ) );
+    asn1_print_structure ( stdout, structure, "", ASN1_PRINT_NAME_TYPE_VALUE );
+  }
+
+  // Validate and extract privateKey value
+  QgsDebugMsgLevel( QStringLiteral( "Validating privateKey type..." ), 4 );
+  typeName.append( QStringLiteral( ".privateKey" ) );
+  QgsDebugMsgLevel( QStringLiteral( "privateKey element name: %1" ).arg( typeName ), 4 );
+
+  asn1_result = asn1_read_value_type( structure, "privateKey", NULL, &oct_len, &oct_etype );
+
+  if ( asn1_result != ASN1_MEM_ERROR ) // not sure why ASN1_MEM_ERROR = success, but it does
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, asn1 read privateKey value type: %1" ).arg( asn1_strerror( asn1_result ) ) );
+    goto PKCS1DONE;
+  }
+
+  if ( oct_etype != ASN1_ETYPE_OCTET_STRING )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, asn1 privateKey value not octet string, but type: %1" ).arg( static_cast<int>( oct_etype ) ) );
+    goto PKCS1DONE;
+  }
+
+  if ( oct_len == 0 )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, asn1 privateKey octet string empty" ) );
+    goto PKCS1DONE;
+  }
+
+  QgsDebugMsgLevel( QStringLiteral( "Reading privateKey value..." ), 4 );
+  asn1_result = asn1_read_value( structure, "privateKey", oct_data, &oct_len);
+
+  if ( asn1_result != ASN1_SUCCESS )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, asn1 read privateKey value: %1" ).arg(asn1_strerror( asn1_result ) ) );
+    goto PKCS1DONE;
+  }
+
+  if ( oct_len == 0 )
+  {
+    QgsDebugMsg( QStringLiteral( "ERROR, asn1 privateKey value octet string empty" ) );
+    goto PKCS1DONE;
+  }
+
+  pkcs1 = QByteArray( oct_data, oct_len );
+
+  QgsDebugMsgLevel( QStringLiteral( "privateKey octet data as PEM: %1" ).arg( QString( pkcs1.toBase64() ) ), 4 );
+
+PKCS1DONE:
+
+  asn1_delete_structure( &structure );
+  return pkcs1;
+}
+#endif
+
 QStringList QgsAuthCertUtils::pkcs12BundleToPem( const QString &bundlepath,
     const QString &bundlepass,
     bool reencrypt )
@@ -230,6 +383,7 @@ QStringList QgsAuthCertUtils::pkcs12BundleToPem( const QString &bundlepath,
     passarray = QCA::SecureArray( bundlepass.toUtf8() );
 
   QString algtype;
+  QSsl::KeyAlgorithm keyalg = QSsl::Rsa;
   if ( bundle.privateKey().isRSA() )
   {
     algtype = QStringLiteral( "rsa" );
@@ -237,13 +391,92 @@ QStringList QgsAuthCertUtils::pkcs12BundleToPem( const QString &bundlepath,
   else if ( bundle.privateKey().isDSA() )
   {
     algtype = QStringLiteral( "dsa" );
+    keyalg = QSsl::Dsa;
   }
   else if ( bundle.privateKey().isDH() )
   {
     algtype = QStringLiteral( "dh" );
+    keyalg = QSsl::Opaque;
+  }
+  // TODO: add support for EC keys, once QCA supports them
+
+  // can currently only support RSA and DSA between QCA and Qt
+  if ( keyalg == QSsl::Opaque )
+  {
+    QgsDebugMsg( QString( "FAILED to read PKCS#12 key (only RSA and DSA algorithms supported): %1" ).arg( bundlepath ) );
+    return empty;
   }
 
-  return QStringList() << bundle.certificateChain().primary().toPEM() << bundle.privateKey().toPEM( passarray ) << algtype;
+  QString keyPem;
+  if ( keyalg == QSsl::Rsa )
+  {
+    // if RSA, this will convert from PKCS#8 key to 'traditional' OpenSSL RSA format, which Qt prefers
+    // note: QCA uses OpenSSL, regardless of the Qt SSL backend, and 1.0.2+ OpenSSL versions return
+    //       RSA private keys as PKCS#8, which choke Qt upon QSslKey creation
+    QCA::RSAPrivateKey rsaKey = bundle.privateKey().toRSA();
+    if ( rsaKey.isNull() )
+    {
+      QgsDebugMsg( QString( "FAILED to convert PKCS#12 key to RSA format: %1" ).arg( bundlepath ) );
+      return empty;
+    }
+
+    QCA::RSAPrivateKey rsaKey2( rsaKey.n(),
+                                rsaKey.e(),
+                                rsaKey.p(),
+                                rsaKey.q(),
+                                rsaKey.d(),
+                                QStringLiteral( "qca-ossl" ) );
+
+
+
+    QCA::SecureArray rsaArray = rsaKey2.toDER();
+
+//    const char* derchar = rsaArray.data();
+
+//    QByteArray dercharArray = QByteArray( derchar );
+
+    QByteArray dercharArray = rsaArray.toByteArray();
+
+    QByteArray tmpPem( dercharArray.toBase64() );
+
+//    QgsDebugMsg( QString( "tmpPem DER toBase64:\n%1" ).arg( QString( tmpPem ) ) );
+
+    const int lineWidth = 64; // RFC 1421
+    const int newLines = tmpPem.size() / lineWidth;
+    const bool rem = tmpPem.size() % lineWidth;
+
+    // ### optimize
+    for ( int i = 0; i < newLines; ++i )
+        tmpPem.insert( ( i + 1 ) * lineWidth + i, '\n' );
+    if ( rem )
+        tmpPem.append( '\n' ); // ###
+
+    tmpPem.prepend( QByteArrayLiteral("-----BEGIN RSA PRIVATE KEY-----") + '\n' );
+    tmpPem.append( QByteArrayLiteral("-----END RSA PRIVATE KEY-----") + '\n' );
+
+
+//    QString tmpPem = bundle.privateKey().toPEM();
+
+//    tmpPem.replace( QStringLiteral( "PRIVATE KEY" ), QStringLiteral( "RSA PRIVATE KEY" ) );
+
+//    QString tmpPem = bundle.privateKey().toPEM();
+
+    QgsDebugMsg( QString( "tmpPem PEM:\n%1" ).arg( QString( tmpPem ) ) );
+
+    QSslKey qkey( tmpPem, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey );
+    if ( qkey.isNull() )
+    {
+      QgsDebugMsg( QString( "FAILED to convert PKCS#8 key to OpenSSL traditional format: %1" ).arg( bundlepath ) );
+      return empty;
+    }
+    keyPem = QString( qkey.toPem( passarray.toByteArray() ) );
+  }
+  else
+  {
+    keyPem = bundle.privateKey().toPEM( passarray );
+  }
+
+  return QStringList() << bundle.certificateChain().primary().toPEM() << keyPem << algtype;
 }
 
 QString QgsAuthCertUtils::pemTextToTempFile( const QString &name, const QByteArray &pemtext )
