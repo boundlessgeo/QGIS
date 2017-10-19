@@ -311,6 +311,15 @@ void QgsRelationReferenceWidget::setForeignKey( const QVariant& value )
 void QgsRelationReferenceWidget::deleteForeignKey()
 {
   QVariant nullValue = QgsSettings().value( "qgis/nullValue", "NULL" );
+
+  // deactivate filter comboboxes
+  if ( mChainFilters && !mFilterComboBoxes.isEmpty() )
+  {
+    QComboBox *cb = mFilterComboBoxes.first();
+    cb->setCurrentIndex( 0 );
+    disableChainedComboBoxes( cb );
+  }
+
   if ( mReadOnlySelector )
   {
     QString nullText = "";
@@ -522,6 +531,13 @@ void QgsRelationReferenceWidget::init()
             QString nf = nv.isNull() ? nullValue.toString() : nv.toString();
             mFilterCache[mFilterFields[i]][cf] << nf;
           }
+        }
+
+        if ( !mFilterComboBoxes.isEmpty() )
+        {
+          QComboBox *cb = mFilterComboBoxes.first();
+          cb->setCurrentIndex( 0 );
+          disableChainedComboBoxes( cb );
         }
       }
     }
