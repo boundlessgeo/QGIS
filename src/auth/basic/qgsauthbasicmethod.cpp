@@ -43,6 +43,7 @@ QgsAuthBasicMethod::QgsAuthBasicMethod()
                     << QStringLiteral( "wcs" )
                     << QStringLiteral( "wms" )
                     << QStringLiteral( "proxy" ) );
+
 }
 
 QString QgsAuthBasicMethod::key() const
@@ -64,7 +65,7 @@ bool QgsAuthBasicMethod::updateNetworkRequest( QNetworkRequest &request, const Q
     const QString &dataprovider )
 {
   Q_UNUSED( dataprovider )
-
+  QMutexLocker locker( mMutex );
   QgsAuthMethodConfig mconfig = getMethodConfig( authcfg );
   if ( !mconfig.isValid() )
   {
@@ -86,6 +87,7 @@ bool QgsAuthBasicMethod::updateDataSourceUriItems( QStringList &connectionItems,
     const QString &dataprovider )
 {
   Q_UNUSED( dataprovider )
+  QMutexLocker locker( mMutex );
   QgsAuthMethodConfig mconfig = getMethodConfig( authcfg );
   if ( !mconfig.isValid() )
   {
@@ -152,6 +154,7 @@ bool QgsAuthBasicMethod::updateDataSourceUriItems( QStringList &connectionItems,
 bool QgsAuthBasicMethod::updateNetworkProxy( QNetworkProxy &proxy, const QString &authcfg, const QString &dataprovider )
 {
   Q_UNUSED( dataprovider )
+  QMutexLocker locker( mMutex );
 
   QgsAuthMethodConfig mconfig = getMethodConfig( authcfg );
   if ( !mconfig.isValid() )
@@ -173,6 +176,7 @@ bool QgsAuthBasicMethod::updateNetworkProxy( QNetworkProxy &proxy, const QString
 
 void QgsAuthBasicMethod::updateMethodConfig( QgsAuthMethodConfig &mconfig )
 {
+  QMutexLocker locker( mMutex );
   if ( mconfig.hasConfig( QStringLiteral( "oldconfigstyle" ) ) )
   {
     QgsDebugMsg( "Updating old style auth method config" );
@@ -194,7 +198,7 @@ void QgsAuthBasicMethod::clearCachedConfig( const QString &authcfg )
 
 QgsAuthMethodConfig QgsAuthBasicMethod::getMethodConfig( const QString &authcfg, bool fullconfig )
 {
-  QMutexLocker locker( &mConfigMutex );
+  QMutexLocker locker( mMutex );
   QgsAuthMethodConfig mconfig;
 
   // check if it is cached
@@ -213,7 +217,6 @@ QgsAuthMethodConfig QgsAuthBasicMethod::getMethodConfig( const QString &authcfg,
   }
 
   // cache bundle
-  locker.unlock();
   putMethodConfig( authcfg, mconfig );
 
   return mconfig;
@@ -221,14 +224,14 @@ QgsAuthMethodConfig QgsAuthBasicMethod::getMethodConfig( const QString &authcfg,
 
 void QgsAuthBasicMethod::putMethodConfig( const QString &authcfg, const QgsAuthMethodConfig &mconfig )
 {
-  QMutexLocker locker( &mConfigMutex );
+  QMutexLocker locker( mMutex );
   QgsDebugMsg( QString( "Putting basic config for authcfg: %1" ).arg( authcfg ) );
   sAuthConfigCache.insert( authcfg, mconfig );
 }
 
 void QgsAuthBasicMethod::removeMethodConfig( const QString &authcfg )
 {
-  QMutexLocker locker( &mConfigMutex );
+  QMutexLocker locker( mMutex );
   if ( sAuthConfigCache.contains( authcfg ) )
   {
     sAuthConfigCache.remove( authcfg );
