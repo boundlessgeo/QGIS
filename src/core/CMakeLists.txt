@@ -76,7 +76,7 @@ SET(QGIS_CORE_SRCS
   metadata/qgslayermetadataformatter.cpp
 
   auth/qgsauthcertutils.cpp
-  auth/qgsauthconfig.cpp
+  auth/qgsauthmethodconfig.cpp
   auth/qgsauthcrypto.cpp
   auth/qgsauthmanager.cpp
   auth/qgsauthmethodmetadata.cpp
@@ -968,7 +968,7 @@ SET(QGIS_CORE_HDRS
   annotations/qgsannotationregistry.h
 
   auth/qgsauthcertutils.h
-  auth/qgsauthconfig.h
+  auth/qgsauthmethodconfig.h
   auth/qgsauthcrypto.h
   auth/qgsauthmanager.h
   auth/qgsauthmethod.h

@@ -21,7 +21,7 @@
 #include "qgsauthmethodedit.h"
 #include "ui_qgsauthpkcs12edit.h"
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 
 
 class QgsAuthPkcs12Edit : public QgsAuthMethodEdit, private Ui::QgsAuthPkcs12Edit

@@ -30,7 +30,6 @@
 class QgsAuthMethod;
 class QgsAuthMethodMetadata;
 
-
 /**
  * \ingroup core
   * A registry / canonical manager of authentication methods.
@@ -70,13 +69,13 @@ class CORE_EXPORT QgsAuthMethodRegistry
         \param authMethodKey identificator of the auth method
         \returns instance of auth method or nullptr on error
      */
-    std::unique_ptr< QgsAuthMethod > authMethod( const QString &authMethodKey );
+    std::unique_ptr< QgsAuthMethod > authMethod( const QString &authMethodKey, const QString &authcfg );
 
     /**
      * Return the auth method capabilities
         \param authMethodKey identificator of the auth method
      */
-    // int authMethodCapabilities( const QString& authMethodKey ) const;
+    int authMethodCapabilities( const QString &authMethodKey ) const;
 
     /**
      * Return the GUI edit widget associated with the auth method
@@ -103,10 +102,18 @@ class CORE_EXPORT QgsAuthMethodRegistry
     //! Return metadata of the auth method or nullptr if not found
     const QgsAuthMethodMetadata *authMethodMetadata( const QString &authMethodKey ) const;
 
-//    void registerGuis( QWidget *widget );
 
     //! Type for auth method metadata associative container
-    typedef std::map<QString, QgsAuthMethodMetadata *> AuthMethods;
+    typedef QHash<QString, QgsAuthMethodMetadata *> AuthMethods;
+
+    /**
+     * \brief authMethods optionally filtered by \a provider
+     * \param provider
+     * \return a list of available authentication methods metadata keyed with the method key
+     */
+    AuthMethods authMethods( const QString &provider = QString() ) const;
+
+//    void registerGuis( QWidget *widget );
 
   private:
     //! Ctor private since instance() creates it

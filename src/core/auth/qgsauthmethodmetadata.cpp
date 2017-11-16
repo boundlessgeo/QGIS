@@ -19,10 +19,14 @@
 
 
 QgsAuthMethodMetadata::QgsAuthMethodMetadata( QString const &_key,
-    QString const &_description,
-    QString const &_library )
+    const QString &_description,
+    const QStringList &_supportedProviders,
+    const int &_version,
+    const QString &_library )
   : key_( _key )
   , description_( _description )
+  , supportedProviders_( _supportedProviders )
+  , version_( _version )
   , library_( _library )
 {}
 
@@ -36,8 +40,18 @@ QString QgsAuthMethodMetadata::description() const
   return description_;
 }
 
+int QgsAuthMethodMetadata::version() const
+{
+  return version_;
+}
+
 QString QgsAuthMethodMetadata::library() const
 {
   return library_;
+}
+
+QStringList QgsAuthMethodMetadata::supportedProviders() const
+{
+  return supportedProviders_;
 }
 

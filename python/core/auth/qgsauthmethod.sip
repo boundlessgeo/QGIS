@@ -34,10 +34,6 @@ class QgsAuthMethod : QObject
     typedef QFlags<QgsAuthMethod::Expansion> Expansions;
 
 
-    ~QgsAuthMethod();
-%Docstring
-Destructor: delete the mutex
-%End
 
     virtual QString key() const = 0;
 %Docstring
@@ -80,65 +76,50 @@ Increment this if method is significantly updated, allow updater code to be writ
  :rtype: list of str
 %End
 
-    virtual bool updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
+    virtual bool updateNetworkRequest( QNetworkRequest &request,
                                        const QString &dataprovider = QString() );
 %Docstring
  Update a network request with authentication components
  \param request The network request to update
- \param authcfg Authentication configuration ID
  \param dataprovider Textual key for a data provider, e.g. 'postgres', that allows
  for custom updater code specific to the provider
  :return: Whether the update succeeded
  :rtype: bool
 %End
 
-    virtual bool updateNetworkReply( QNetworkReply *reply, const QString &authcfg,
+    virtual bool updateNetworkReply( QNetworkReply *reply,
                                      const QString &dataprovider = QString() );
 %Docstring
  Update a network reply with authentication components
  \param reply The network reply object to update
- \param authcfg Authentication configuration ID
  \param dataprovider Textual key for a data provider, e.g. 'postgres', that allows
  for custom updater code specific to the provider
  :return: Whether the update succeeded
  :rtype: bool
 %End
 
-    virtual bool updateDataSourceUriItems( QStringList &connectionItems, const QString &authcfg,
+    virtual bool updateDataSourceUriItems( QStringList &connectionItems,
                                            const QString &dataprovider = QString() );
 %Docstring
  Update data source connection items with authentication components
  \param connectionItems QStringlist of 'key=value' pairs, as utilized in QgsDataSourceUri.connectionInfo()
- \param authcfg Authentication configuration ID
  \param dataprovider Textual key for a data provider, e.g. 'postgres', that allows
  for custom updater code specific to the provider
  :return: Whether the update succeeded
  :rtype: bool
 %End
 
-    virtual bool updateNetworkProxy( QNetworkProxy &proxy, const QString &authcfg,
-                                     const QString &dataprovider = QString() );
+    virtual bool updateNetworkProxy( QNetworkProxy &proxy, const QString &dataprovider = QString() );
 %Docstring
  Update proxy settings with authentication components
  \param proxy
- \param authcfg Authentication configuration ID
  \param dataprovider Textual key for a data provider, e.g. 'proxy', that allows
  for custom updater code specific to the provider
  :return: Whether the update succeeded
  :rtype: bool
 %End
 
-    virtual void clearCachedConfig( const QString &authcfg ) = 0;
-%Docstring
- Clear any cached configuration. Called when the QgsAuthManager deletes an authentication configuration (authcfg).
-.. note::
-
-   It is highly recommended that a cache of authentication components (per requested authcfg)
- be implemented, to avoid excessive queries on the auth database. Such a cache could be as
- simple as a QHash or QMap of authcfg -> QgsAuthMethodConfig. See 'Basic' auth method plugin for example.
-%End
-
-    virtual void updateMethodConfig( QgsAuthMethodConfig &mconfig ) = 0;
+    virtual void updateMethodConfig( ) = 0;
 %Docstring
  Update an authentication configuration in place
 .. note::
@@ -146,9 +127,25 @@ Increment this if method is significantly updated, allow updater code to be writ
    Useful for updating previously stored authcfgs, when an authentication method has been significantly updated
 %End
 
+    void setConfig( QgsAuthMethodConfig *config );
+%Docstring
+ setConfig set ``config``
+ \param config
+.. note::
+
+   method takes ownership of the ``config``
+%End
+
+    QgsAuthMethodConfig *config();
+%Docstring
+ config
+ :return: authentication method configuration
+ :rtype: QgsAuthMethodConfig
+%End
+
   protected:
 
-    explicit QgsAuthMethod();
+    explicit QgsAuthMethod( const QString &authcfg );
 %Docstring
  Construct a default authentication method
 .. note::
@@ -182,7 +179,7 @@ Set list of data providers this auth method supports
 QFlags<QgsAuthMethod::Expansion> operator|(QgsAuthMethod::Expansion f1, QFlags<QgsAuthMethod::Expansion> f2);
 
 
-typedef QHash<QString, QgsAuthMethod *> QgsAuthMethodsMap;
+typedef QHash<QString, QgsAuthMethodMetadata *> QgsAuthMethodsMetadataMap;
 
 /************************************************************************
  * This file has been generated automatically from                      *

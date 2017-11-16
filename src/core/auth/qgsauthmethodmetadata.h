@@ -17,9 +17,8 @@
 #ifndef QGSAUTHMETHODMETADATA_H
 #define QGSAUTHMETHODMETADATA_H
 
-#define SIP_NO_FILE
-
 #include <QString>
+#include <QStringList>
 
 #include "qgis_core.h"
 
@@ -35,7 +34,6 @@
    supplies enough information to be able to later load the associated shared
    library object.
  * \note Culled from QgsProviderMetadata
- * \note not available in Python bindings
  */
 class CORE_EXPORT QgsAuthMethodMetadata
 {
@@ -45,16 +43,25 @@ class CORE_EXPORT QgsAuthMethodMetadata
      * Construct an authentication method metadata container
      * \param _key Textual key of the library plugin
      * \param _description Description of the library plugin
+     * \param _supportedProviders list of supported provider keys
+     * \param _version version number of the method
      * \param _library File name of library plugin
      */
-    QgsAuthMethodMetadata( const QString &_key, const QString &_description, const QString &_library );
+    QgsAuthMethodMetadata( const QString &_key, const QString &_description, const QStringList &_supportedProviders, const int &_version, const QString &_library );
 
     /**
      * This returns the unique key associated with the method
 
-        This key string is used for the associative container in QgsAtuhMethodRegistry
+        This key string is used for the associative container in QgsAuthMethodRegistry
      */
     QString key() const;
+
+    /**
+     * This returns the version associated with the method
+
+        This version is used for updating the authentication configuration
+     */
+    int version() const;
 
     /**
      * This returns descriptive text for the method
@@ -70,6 +77,12 @@ class CORE_EXPORT QgsAuthMethodMetadata
      */
     QString library() const;
 
+    /**
+     * \brief supportedProviders
+     * \return list of supported providers keys
+     */
+    QStringList supportedProviders() const;
+
   private:
 
     /// unique key for method
@@ -77,6 +90,12 @@ class CORE_EXPORT QgsAuthMethodMetadata
 
     /// associated terse description
     QString description_;
+
+    /// supported providers
+    QStringList supportedProviders_;
+
+    /// version
+    int version_;
 
     /// file path
     QString library_;

@@ -25,7 +25,7 @@
 #include <QSslCertificate>
 #include <QSslConfiguration>
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgis_gui.h"
 
 class QComboBox;

@@ -18,10 +18,11 @@
 
 #include <QPushButton>
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgsauthconfigidedit.h"
 #include "qgsauthmanager.h"
 #include "qgsauthmethodedit.h"
+#include "qgsauthmethodmetadata.h"
 #include "qgslogger.h"
 #include "qgsapplication.h"
 
@@ -96,22 +97,25 @@ QgsAuthConfigEdit::QgsAuthConfigEdit( QWidget *parent, const QString &authcfg, c
 
 void QgsAuthConfigEdit::populateAuthMethods()
 {
+  // sort by auth method description attribute, then populate
+  // method key -> description
+
   QStringList authMethodKeys = QgsApplication::authManager()->authMethodsKeys( mDataProvider );
 
   // sort by auth method description attribute, then populate
-  QMap<QString, QgsAuthMethod *> descmap;
+  QMap<QString, QgsAuthMethodMetadata *> descmap;
   Q_FOREACH ( const QString &authMethodKey, authMethodKeys )
   {
-    QgsAuthMethod *authmethod = QgsApplication::authManager()->authMethod( authMethodKey );
+    QgsAuthMethodMetadata *authmethod = QgsApplication::authManager()->authMethodsMap()[authMethodKey];
     if ( !authmethod )
     {
       QgsDebugMsg( QString( "Load auth method instance FAILED for auth method key (%1)" ).arg( authMethodKey ) );
       continue;
     }
-    descmap.insert( authmethod->displayDescription(), authmethod );
+    descmap.insert( authmethod->description(), authmethod );
   }
 
-  QMap<QString, QgsAuthMethod *>::iterator it = descmap.begin();
+  QMap<QString, QgsAuthMethodMetadata *>::iterator it = descmap.begin();
   for ( it = descmap.begin(); it != descmap.end(); ++it )
   {
     QgsAuthMethodEdit *editWidget = qobject_cast<QgsAuthMethodEdit *>(
@@ -144,23 +148,23 @@ void QgsAuthConfigEdit::loadConfig()
     return;
   }
 
-  QgsAuthMethodConfig mconfig;
-  if ( !QgsApplication::authManager()->loadAuthenticationConfig( mAuthCfg, mconfig, true ) )
+  QgsAuthMethodConfig *mconfig( QgsApplication::authManager()->loadAuthenticationConfig( mAuthCfg, true ) );
+  if ( ! mconfig )
   {
     QgsDebugMsg( QString( "Loading FAILED for authcfg: %1" ).arg( mAuthCfg ) );
     return;
   }
 
-  if ( !mconfig.isValid( true ) )
+  if ( !mconfig->isValid( true ) )
   {
     QgsDebugMsg( QString( "Loading FAILED for authcfg (%1): invalid config" ).arg( mAuthCfg ) );
     return;
   }
 
   // load basic info
-  leName->setText( mconfig.name() );
-  leResource->setText( mconfig.uri() );
-  authCfgEdit->setAuthConfigId( mconfig.id() );
+  leName->setText( mconfig->name() );
+  leResource->setText( mconfig->uri() );
+  authCfgEdit->setAuthConfigId( mconfig->id() );
 
   QString authMethodKey = QgsApplication::authManager()->configAuthMethodKey( mAuthCfg );
 
@@ -173,7 +177,7 @@ void QgsAuthConfigEdit::loadConfig()
     return;
   }
 
-  if ( mconfig.method() != authMethodKey )
+  if ( mconfig->methodKey() != authMethodKey )
   {
     QgsDebugMsg( QString( "Loading FAILED for authcfg (%1): auth method and key mismatch" ).arg( mAuthCfg ) );
     return;
@@ -203,7 +207,7 @@ void QgsAuthConfigEdit::loadConfig()
     return;
   }
 
-  editWidget->loadConfig( mconfig.configMap() );
+  editWidget->loadConfig( mconfig->configMap() );
 }
 
 void QgsAuthConfigEdit::resetConfig()
@@ -227,17 +231,16 @@ void QgsAuthConfigEdit::saveConfig()
     return;
   }
 
-  QgsAuthMethod *authmethod = QgsApplication::authManager()->authMethod( authMethodKey );
+  QgsAuthMethodMetadata *authmethod = QgsApplication::authManager()->authMethodsMap()[authMethodKey];
   if ( !authmethod )
   {
     QgsDebugMsg( QString( "Save auth config FAILED when loading auth method instance from key (%1)" ).arg( authMethodKey ) );
     return;
   }
 
-  QgsAuthMethodConfig mconfig;
+  QgsAuthMethodConfig mconfig( authmethod->key() );
   mconfig.setName( leName->text() );
   mconfig.setUri( leResource->text() );
-  mconfig.setMethod( authMethodKey );
   mconfig.setVersion( authmethod->version() );
   mconfig.setConfigMap( editWidget->configMap() );
 

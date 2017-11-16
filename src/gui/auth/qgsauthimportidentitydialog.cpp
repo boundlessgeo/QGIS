@@ -23,7 +23,7 @@
 
 #include "qgssettings.h"
 #include "qgsauthcertutils.h"
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgsauthguiutils.h"
 #include "qgsauthmanager.h"
 #include "qgslogger.h"

@@ -21,7 +21,7 @@
 #include <QMessageBox>
 #include <QTimer>
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgsauthguiutils.h"
 #include "qgsauthmanager.h"
 #include "qgsauthconfigedit.h"
@@ -149,7 +149,7 @@ void QgsAuthConfigSelect::populateConfigSelector()
   for ( cit = mConfigs.constBegin(); cit != mConfigs.constEnd(); ++cit )
   {
     QgsAuthMethodConfig config = cit.value();
-    sortmap.insert( QStringLiteral( "%1 (%2)" ).arg( config.name(), config.method() ), cit.key() );
+    sortmap.insert( QStringLiteral( "%1 (%2)" ).arg( config.name(), config.methodKey() ), cit.key() );
   }
 
   QgsStringMap::const_iterator sm = sortmap.constBegin();

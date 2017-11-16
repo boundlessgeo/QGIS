@@ -21,7 +21,7 @@
 #include "qgsauthmethodedit.h"
 #include "ui_qgsauthpkipathsedit.h"
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 
 
 class QgsAuthPkiPathsEdit : public QgsAuthMethodEdit, private Ui::QgsAuthPkiPathsEdit

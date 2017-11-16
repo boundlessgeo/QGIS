@@ -26,8 +26,10 @@
 #include <QMutex>
 
 #include "qgis_core.h"
+#include "qgis.h"
+#include "qgsauthmethodconfig.h"
 
-class QgsAuthMethodConfig;
+class QgsAuthMethodMetadata;
 
 /**
  * \ingroup core
@@ -59,8 +61,8 @@ class CORE_EXPORT QgsAuthMethod : public QObject
     };
     Q_DECLARE_FLAGS( Expansions, Expansion )
 
-    //! Destructor: delete the mutex
-    ~QgsAuthMethod() { delete mMutex; }
+    //! Destructor: delete the mutex and config
+    ~QgsAuthMethod() { delete mMutex;  delete mConfig; } SIP_SKIP
 
     //! A non-translated short name representing the auth method
     virtual QString key() const = 0;
@@ -90,16 +92,14 @@ class CORE_EXPORT QgsAuthMethod : public QObject
     /**
      * Update a network request with authentication components
      * \param request The network request to update
-     * \param authcfg Authentication configuration ID
      * \param dataprovider Textual key for a data provider, e.g. 'postgres', that allows
      * for custom updater code specific to the provider
      * \returns Whether the update succeeded
      */
-    virtual bool updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
+    virtual bool updateNetworkRequest( QNetworkRequest &request,
                                        const QString &dataprovider = QString() )
     {
       Q_UNUSED( request )
-      Q_UNUSED( authcfg )
       Q_UNUSED( dataprovider )
       return true; // noop
     }
@@ -107,16 +107,14 @@ class CORE_EXPORT QgsAuthMethod : public QObject
     /**
      * Update a network reply with authentication components
      * \param reply The network reply object to update
-     * \param authcfg Authentication configuration ID
      * \param dataprovider Textual key for a data provider, e.g. 'postgres', that allows
      * for custom updater code specific to the provider
      * \returns Whether the update succeeded
      */
-    virtual bool updateNetworkReply( QNetworkReply *reply, const QString &authcfg,
+    virtual bool updateNetworkReply( QNetworkReply *reply,
                                      const QString &dataprovider = QString() )
     {
       Q_UNUSED( reply )
-      Q_UNUSED( authcfg )
       Q_UNUSED( dataprovider )
       return true; // noop
     }
@@ -124,16 +122,14 @@ class CORE_EXPORT QgsAuthMethod : public QObject
     /**
      * Update data source connection items with authentication components
      * \param connectionItems QStringlist of 'key=value' pairs, as utilized in QgsDataSourceUri::connectionInfo()
-     * \param authcfg Authentication configuration ID
      * \param dataprovider Textual key for a data provider, e.g. 'postgres', that allows
      * for custom updater code specific to the provider
      * \returns Whether the update succeeded
      */
-    virtual bool updateDataSourceUriItems( QStringList &connectionItems, const QString &authcfg,
+    virtual bool updateDataSourceUriItems( QStringList &connectionItems,
                                            const QString &dataprovider = QString() )
     {
       Q_UNUSED( connectionItems )
-      Q_UNUSED( authcfg )
       Q_UNUSED( dataprovider )
       return true; // noop
     }
@@ -141,33 +137,35 @@ class CORE_EXPORT QgsAuthMethod : public QObject
     /**
      * Update proxy settings with authentication components
      * \param proxy
-     * \param authcfg Authentication configuration ID
      * \param dataprovider Textual key for a data provider, e.g. 'proxy', that allows
      * for custom updater code specific to the provider
      * \returns Whether the update succeeded
      */
-    virtual bool updateNetworkProxy( QNetworkProxy &proxy, const QString &authcfg,
-                                     const QString &dataprovider = QString() )
+    virtual bool updateNetworkProxy( QNetworkProxy &proxy, const QString &dataprovider = QString() )
     {
       Q_UNUSED( proxy )
-      Q_UNUSED( authcfg )
       Q_UNUSED( dataprovider )
       return true; // noop
     }
 
     /**
-     * Clear any cached configuration. Called when the QgsAuthManager deletes an authentication configuration (authcfg).
-     * \note It is highly recommended that a cache of authentication components (per requested authcfg)
-     * be implemented, to avoid excessive queries on the auth database. Such a cache could be as
-     * simple as a QHash or QMap of authcfg -> QgsAuthMethodConfig. See 'Basic' auth method plugin for example.
-     */
-    virtual void clearCachedConfig( const QString &authcfg ) = 0;
-
-    /**
      * Update an authentication configuration in place
      * \note Useful for updating previously stored authcfgs, when an authentication method has been significantly updated
      */
-    virtual void updateMethodConfig( QgsAuthMethodConfig &mconfig ) = 0;
+    virtual void updateMethodConfig( ) = 0;
+
+    /**
+     * \brief setConfig set \a config
+     * \param config
+     * \note method takes ownership of the \a config
+     */
+    void setConfig( QgsAuthMethodConfig *config ) { mConfig = config; }
+
+    /**
+     * \brief config
+     * \return authentication method configuration
+     */
+    QgsAuthMethodConfig *config() { return mConfig; }
 
   protected:
 
@@ -175,10 +173,11 @@ class CORE_EXPORT QgsAuthMethod : public QObject
      * Construct a default authentication method
      * \note Non-public since this is an abstract base class
      */
-    explicit QgsAuthMethod()
+    explicit QgsAuthMethod( const QString &authcfg )
       : mExpansions( QgsAuthMethod::Expansions( nullptr ) )
       , mDataProviders( QStringList() )
       , mMutex( new QMutex( QMutex::RecursionMode::Recursive ) )
+      , mAuthcfg( authcfg )
     {}
 
 
@@ -197,10 +196,12 @@ class CORE_EXPORT QgsAuthMethod : public QObject
     QStringList mDataProviders;
     int mVersion = 0;
     QMutex *mMutex;
+    QString mAuthcfg;
+    QgsAuthMethodConfig *mConfig = nullptr;
 
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS( QgsAuthMethod::Expansions )
 
-typedef QHash<QString, QgsAuthMethod *> QgsAuthMethodsMap;
+typedef QHash<QString, QgsAuthMethodMetadata *> QgsAuthMethodsMetadataMap;
 
 #endif // QGSAUTHMETHOD_H

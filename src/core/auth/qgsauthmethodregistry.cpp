@@ -21,7 +21,6 @@
 #include <QLibrary>
 
 #include "qgis.h"
-#include "qgsauthconfig.h"
 #include "qgsauthmethod.h"
 #include "qgslogger.h"
 #include "qgsmessageoutput.h"
@@ -32,7 +31,13 @@
 // typedefs for auth method plugin functions of interest
 typedef QString methodkey_t();
 typedef QString description_t();
+typedef QStringList supportedProviders_t();
 typedef bool    isauthmethod_t();
+typedef int version_t();
+
+
+// typedef for the QgsDataProvider class factory
+typedef QgsAuthMethod *classFactoryFunction_t( QString );
 
 
 QgsAuthMethodRegistry *QgsAuthMethodRegistry::instance( const QString &pluginPath )
@@ -121,14 +126,7 @@ QgsAuthMethodRegistry::QgsAuthMethodRegistry( const QString &pluginPath )
       continue;
     }
 
-    // looks like an auth method plugin. get the key and description
-    description_t *pDesc = reinterpret_cast< description_t * >( cast_to_fptr( myLib.resolve( "description" ) ) );
-    if ( !pDesc )
-    {
-      QgsDebugMsg( QString( "Checking %1: ...invalid (no description method)" ).arg( myLib.fileName() ) );
-      continue;
-    }
-
+    // looks like an auth method plugin. get the key
     methodkey_t *pKey = reinterpret_cast< methodkey_t * >( cast_to_fptr( myLib.resolve( "authMethodKey" ) ) );
     if ( !pKey )
     {
@@ -136,9 +134,24 @@ QgsAuthMethodRegistry::QgsAuthMethodRegistry( const QString &pluginPath )
       continue;
     }
 
-    // add this auth method to the method map
-    mAuthMethods[pKey()] = new QgsAuthMethodMetadata( pKey(), pDesc(), myLib.fileName() );
+    // Try to load!
+    classFactoryFunction_t *classFactory = reinterpret_cast< classFactoryFunction_t * >( cast_to_fptr( myLib.resolve( "classFactory" ) ) );
+    if ( !classFactory )
+    {
+      QgsDebugMsg( QString( "Failed to load %1: no classFactory method" ).arg( myLib.fileName() ) );
+      continue;
+    }
 
+    std::unique_ptr< QgsAuthMethod > authMethod( classFactory( QStringLiteral( "0000000" ) ) );
+    if ( !authMethod )
+    {
+      QgsMessageLog::logMessage( QObject::tr( "Unable to load the auth method plugin %1" ).arg( myLib.fileName() ) );
+      myLib.unload();
+      continue;
+    }
+
+    // add this auth method to the method map
+    mAuthMethods[pKey()] = new QgsAuthMethodMetadata( pKey(), authMethod->description(), authMethod->supportedDataProviders(), authMethod->version(), myLib.fileName() );
   }
 }
 
@@ -151,8 +164,8 @@ QgsAuthMethodRegistry::~QgsAuthMethodRegistry()
 
   while ( it != mAuthMethods.end() )
   {
-    QgsDebugMsgLevel( QString( "cleanup: %1" ).arg( it->first ), 5 );
-    QString lib = it->second->library();
+    QgsDebugMsgLevel( QString( "cleanup: %1" ).arg( it.key() ), 5 );
+    QString lib = it.value()->library();
     QLibrary myLib( lib );
     if ( myLib.isLoaded() )
     {
@@ -161,7 +174,7 @@ QgsAuthMethodRegistry::~QgsAuthMethodRegistry()
         cleanupFunc();
     }
     // clear cached QgsAuthMethodMetadata *
-    delete it->second;
+    delete it.value();
     ++it;
   }
 }
@@ -178,12 +191,11 @@ QgsAuthMethodRegistry::~QgsAuthMethodRegistry()
 static QgsAuthMethodMetadata *findMetadata_( QgsAuthMethodRegistry::AuthMethods const &metaData,
     QString const &authMethodKey )
 {
-  QgsAuthMethodRegistry::AuthMethods::const_iterator i =
-    metaData.find( authMethodKey );
+  QgsAuthMethodRegistry::AuthMethods::const_iterator i = metaData.find( authMethodKey );
 
   if ( i != metaData.end() )
   {
-    return i->second;
+    return i.value();
   }
 
   return nullptr;
@@ -225,7 +237,7 @@ QString QgsAuthMethodRegistry::pluginList( bool asHtml ) const
       list += QLatin1String( "<li>" );
     }
 
-    list += it->second->description();
+    list += it.value()->description();
 
     if ( asHtml )
     {
@@ -257,11 +269,7 @@ void QgsAuthMethodRegistry::setLibraryDirectory( const QDir &path )
   mLibraryDirectory = path;
 }
 
-
-// typedef for the QgsDataProvider class factory
-typedef QgsAuthMethod *classFactoryFunction_t();
-
-std::unique_ptr<QgsAuthMethod> QgsAuthMethodRegistry::authMethod( const QString &authMethodKey )
+std::unique_ptr<QgsAuthMethod> QgsAuthMethodRegistry::authMethod( const QString &authMethodKey, const QString &authcfg )
 {
   // load the plugin
   QString lib = library( authMethodKey );
@@ -300,7 +308,7 @@ std::unique_ptr<QgsAuthMethod> QgsAuthMethodRegistry::authMethod( const QString 
     return nullptr;
   }
 
-  std::unique_ptr< QgsAuthMethod > authMethod( classFactory() );
+  std::unique_ptr< QgsAuthMethod > authMethod( classFactory( authcfg ) );
   if ( !authMethod )
   {
     QgsMessageLog::logMessage( QObject::tr( "Unable to instantiate the auth method plugin %1" ).arg( lib ) );
@@ -358,15 +366,30 @@ std::unique_ptr<QLibrary> QgsAuthMethodRegistry::authMethodLibrary( const QStrin
 
 QStringList QgsAuthMethodRegistry::authMethodList() const
 {
-  QStringList lst;
-  for ( AuthMethods::const_iterator it = mAuthMethods.begin(); it != mAuthMethods.end(); ++it )
-  {
-    lst.append( it->first );
-  }
-  return lst;
+  return mAuthMethods.keys();
 }
 
 const QgsAuthMethodMetadata *QgsAuthMethodRegistry::authMethodMetadata( const QString &authMethodKey ) const
 {
   return findMetadata_( mAuthMethods, authMethodKey );
+}
+
+QgsAuthMethodRegistry::AuthMethods QgsAuthMethodRegistry::authMethods( const QString &provider ) const
+{
+  AuthMethods methods;
+  if ( ! provider.isEmpty( ) )
+  {
+    for ( auto const &key : mAuthMethods.keys( ) )
+    {
+      if ( mAuthMethods[key]->supportedProviders().contains( provider ) )
+      {
+        methods[key] = mAuthMethods[key];
+      }
+    }
+  }
+  else
+  {
+    methods = mAuthMethods;
+  }
+  return mAuthMethods;
 }

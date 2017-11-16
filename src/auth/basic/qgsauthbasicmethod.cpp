@@ -27,13 +27,12 @@
 
 static const QString AUTH_METHOD_KEY = QStringLiteral( "Basic" );
 static const QString AUTH_METHOD_DESCRIPTION = QStringLiteral( "Basic authentication" );
+static const int AUTH_METHOD_VERSION = 2;
 
-QMap<QString, QgsAuthMethodConfig> QgsAuthBasicMethod::sAuthConfigCache = QMap<QString, QgsAuthMethodConfig>();
-
-
-QgsAuthBasicMethod::QgsAuthBasicMethod()
+QgsAuthBasicMethod::QgsAuthBasicMethod( const QString authcfg ):
+  QgsAuthMethod( authcfg )
 {
-  setVersion( 2 );
+  setVersion( AUTH_METHOD_VERSION );
   setExpansions( QgsAuthMethod::NetworkRequest | QgsAuthMethod::DataSourceUri );
   setDataProviders( QStringList()
                     << QStringLiteral( "postgres" )
@@ -61,20 +60,19 @@ QString QgsAuthBasicMethod::displayDescription() const
   return tr( "Basic authentication" );
 }
 
-bool QgsAuthBasicMethod::updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
+bool QgsAuthBasicMethod::updateNetworkRequest( QNetworkRequest &request,
     const QString &dataprovider )
 {
   Q_UNUSED( dataprovider )
   QMutexLocker locker( mMutex );
-  QgsAuthMethodConfig mconfig = getMethodConfig( authcfg );
-  if ( !mconfig.isValid() )
+  if ( !mConfig->isValid() )
   {
-    QgsDebugMsg( QString( "Update request config FAILED for authcfg: %1: config invalid" ).arg( authcfg ) );
+    QgsDebugMsg( QString( "Update request config FAILED for authcfg: %1: config invalid" ).arg( mAuthcfg ) );
     return false;
   }
 
-  QString username = mconfig.config( QStringLiteral( "username" ) );
-  QString password = mconfig.config( QStringLiteral( "password" ) );
+  QString username = mConfig->config( QStringLiteral( "username" ) );
+  QString password = mConfig->config( QStringLiteral( "password" ) );
 
   if ( !username.isEmpty() )
   {
@@ -83,24 +81,23 @@ bool QgsAuthBasicMethod::updateNetworkRequest( QNetworkRequest &request, const Q
   return true;
 }
 
-bool QgsAuthBasicMethod::updateDataSourceUriItems( QStringList &connectionItems, const QString &authcfg,
+bool QgsAuthBasicMethod::updateDataSourceUriItems( QStringList &connectionItems,
     const QString &dataprovider )
 {
   Q_UNUSED( dataprovider )
   QMutexLocker locker( mMutex );
-  QgsAuthMethodConfig mconfig = getMethodConfig( authcfg );
-  if ( !mconfig.isValid() )
+  if ( !mConfig->isValid() )
   {
-    QgsDebugMsg( QString( "Update URI items FAILED for authcfg: %1: basic config invalid" ).arg( authcfg ) );
+    QgsDebugMsg( QString( "Update URI items FAILED for authcfg: %1: basic config invalid" ).arg( mAuthcfg ) );
     return false;
   }
 
-  QString username = mconfig.config( QStringLiteral( "username" ) );
-  QString password = mconfig.config( QStringLiteral( "password" ) );
+  QString username = mConfig->config( QStringLiteral( "username" ) );
+  QString password = mConfig->config( QStringLiteral( "password" ) );
 
   if ( username.isEmpty() )
   {
-    QgsDebugMsg( QString( "Update URI items FAILED for authcfg: %1: username empty" ).arg( authcfg ) );
+    QgsDebugMsg( QString( "Update URI items FAILED for authcfg: %1: username empty" ).arg( mAuthcfg ) );
     return false;
   }
 
@@ -151,20 +148,19 @@ bool QgsAuthBasicMethod::updateDataSourceUriItems( QStringList &connectionItems,
   return true;
 }
 
-bool QgsAuthBasicMethod::updateNetworkProxy( QNetworkProxy &proxy, const QString &authcfg, const QString &dataprovider )
+bool QgsAuthBasicMethod::updateNetworkProxy( QNetworkProxy &proxy, const QString &dataprovider )
 {
   Q_UNUSED( dataprovider )
   QMutexLocker locker( mMutex );
 
-  QgsAuthMethodConfig mconfig = getMethodConfig( authcfg );
-  if ( !mconfig.isValid() )
+  if ( !mConfig->isValid() )
   {
-    QgsDebugMsg( QString( "Update proxy config FAILED for authcfg: %1: config invalid" ).arg( authcfg ) );
+    QgsDebugMsg( QString( "Update proxy config FAILED for authcfg: %1: config invalid" ).arg( mAuthcfg ) );
     return false;
   }
 
-  QString username = mconfig.config( QStringLiteral( "username" ) );
-  QString password = mconfig.config( QStringLiteral( "password" ) );
+  QString username = mConfig->config( QStringLiteral( "username" ) );
+  QString password = mConfig->config( QStringLiteral( "password" ) );
 
   if ( !username.isEmpty() )
   {
@@ -174,70 +170,23 @@ bool QgsAuthBasicMethod::updateNetworkProxy( QNetworkProxy &proxy, const QString
   return true;
 }
 
-void QgsAuthBasicMethod::updateMethodConfig( QgsAuthMethodConfig &mconfig )
+void QgsAuthBasicMethod::updateMethodConfig( )
 {
   QMutexLocker locker( mMutex );
-  if ( mconfig.hasConfig( QStringLiteral( "oldconfigstyle" ) ) )
+  if ( mConfig->hasConfig( QStringLiteral( "oldconfigstyle" ) ) )
   {
     QgsDebugMsg( "Updating old style auth method config" );
 
-    QStringList conflist = mconfig.config( QStringLiteral( "oldconfigstyle" ) ).split( QStringLiteral( "|||" ) );
-    mconfig.setConfig( QStringLiteral( "realm" ), conflist.at( 0 ) );
-    mconfig.setConfig( QStringLiteral( "username" ), conflist.at( 1 ) );
-    mconfig.setConfig( QStringLiteral( "password" ), conflist.at( 2 ) );
-    mconfig.removeConfig( QStringLiteral( "oldconfigstyle" ) );
+    QStringList conflist = mConfig->config( QStringLiteral( "oldconfigstyle" ) ).split( QStringLiteral( "|||" ) );
+    mConfig->setConfig( QStringLiteral( "realm" ), conflist.at( 0 ) );
+    mConfig->setConfig( QStringLiteral( "username" ), conflist.at( 1 ) );
+    mConfig->setConfig( QStringLiteral( "password" ), conflist.at( 2 ) );
+    mConfig->removeConfig( QStringLiteral( "oldconfigstyle" ) );
   }
 
   // TODO: add updates as method version() increases due to config storage changes
 }
 
-void QgsAuthBasicMethod::clearCachedConfig( const QString &authcfg )
-{
-  removeMethodConfig( authcfg );
-}
-
-QgsAuthMethodConfig QgsAuthBasicMethod::getMethodConfig( const QString &authcfg, bool fullconfig )
-{
-  QMutexLocker locker( mMutex );
-  QgsAuthMethodConfig mconfig;
-
-  // check if it is cached
-  if ( sAuthConfigCache.contains( authcfg ) )
-  {
-    mconfig = sAuthConfigCache.value( authcfg );
-    QgsDebugMsg( QString( "Retrieved config for authcfg: %1" ).arg( authcfg ) );
-    return mconfig;
-  }
-
-  // else build basic bundle
-  if ( !QgsApplication::authManager()->loadAuthenticationConfig( authcfg, mconfig, fullconfig ) )
-  {
-    QgsDebugMsg( QString( "Retrieve config FAILED for authcfg: %1" ).arg( authcfg ) );
-    return QgsAuthMethodConfig();
-  }
-
-  // cache bundle
-  putMethodConfig( authcfg, mconfig );
-
-  return mconfig;
-}
-
-void QgsAuthBasicMethod::putMethodConfig( const QString &authcfg, const QgsAuthMethodConfig &mconfig )
-{
-  QMutexLocker locker( mMutex );
-  QgsDebugMsg( QString( "Putting basic config for authcfg: %1" ).arg( authcfg ) );
-  sAuthConfigCache.insert( authcfg, mconfig );
-}
-
-void QgsAuthBasicMethod::removeMethodConfig( const QString &authcfg )
-{
-  QMutexLocker locker( mMutex );
-  if ( sAuthConfigCache.contains( authcfg ) )
-  {
-    sAuthConfigCache.remove( authcfg );
-    QgsDebugMsg( QString( "Removed basic config for authcfg: %1" ).arg( authcfg ) );
-  }
-}
 
 QString QgsAuthBasicMethod::escapeUserPass( const QString &val, QChar delim ) const
 {
@@ -256,9 +205,9 @@ QString QgsAuthBasicMethod::escapeUserPass( const QString &val, QChar delim ) co
 /**
  * Required class factory to return a pointer to a newly created object
  */
-QGISEXTERN QgsAuthBasicMethod *classFactory()
+QGISEXTERN QgsAuthBasicMethod *classFactory( const QString authcfg )
 {
-  return new QgsAuthBasicMethod();
+  return new QgsAuthBasicMethod( authcfg );
 }
 
 /**
@@ -267,14 +216,6 @@ QGISEXTERN QgsAuthBasicMethod *classFactory()
 QGISEXTERN QString authMethodKey()
 {
   return AUTH_METHOD_KEY;
-}
-
-/**
- * Required description function
- */
-QGISEXTERN QString description()
-{
-  return AUTH_METHOD_DESCRIPTION;
 }
 
 /**

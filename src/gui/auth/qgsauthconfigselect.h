@@ -22,7 +22,7 @@
 #include "qgis.h"
 
 #include "ui_qgsauthconfigselect.h"
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgis_gui.h"
 
 

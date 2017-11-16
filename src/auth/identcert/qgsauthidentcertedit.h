@@ -21,7 +21,7 @@
 #include "qgsauthmethodedit.h"
 #include "ui_qgsauthidentcertedit.h"
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 
 
 class QgsAuthIdentCertEdit : public QgsAuthMethodEdit, private Ui::QgsAuthIdentCertEdit

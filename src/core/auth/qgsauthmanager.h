@@ -35,8 +35,9 @@
 #include "qgsauthcertutils.h"
 #endif
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgsauthmethod.h"
+#include "qgsauthmethodregistry.h"
 
 // Qt5KeyChain library
 #include "keychain.h"
@@ -190,9 +191,6 @@ class CORE_EXPORT QgsAuthManager : public QObject
     //! Simple text tag describing authentication system for message logs
     QString authManTag() const { return AUTH_MAN_TAG; }
 
-    //! Instantiate and register existing C++ core authentication methods from plugins
-    bool registerCoreAuthMethods();
-
     //! Get mapping of authentication config ids and their base configs (not decrypted data)
     QgsAuthMethodConfigsMap availableAuthMethodConfigs( const QString &dataprovider = QString() );
 
@@ -217,17 +215,11 @@ class CORE_EXPORT QgsAuthManager : public QObject
     QStringList authMethodsKeys( const QString &dataprovider = QString() );
 
     /**
-     * Get authentication method from the config/provider cache via its key
-     * \param authMethodKey Authentication method key
-     */
-    QgsAuthMethod *authMethod( const QString &authMethodKey );
-
-    /**
-     * Get available authentication methods mapped to their key
+     * Get available authentication method metadata mapped to their key
      * \param dataprovider Provider key filter, returning only methods that support a particular provider
      * \note not available in Python bindings
      */
-    QgsAuthMethodsMap authMethodsMap( const QString &dataprovider = QString() ) SIP_SKIP;
+    QgsAuthMethodRegistry::AuthMethods authMethodsMap( const QString &dataprovider = QString() ) SIP_SKIP;
 
     /**
      * Get authentication method edit widget via its key
@@ -282,9 +274,9 @@ class CORE_EXPORT QgsAuthManager : public QObject
      * \param authcfg Associated authentication config id
      * \param mconfig Subclassed config to load into
      * \param full Whether to decrypt and populate all sensitive data in subclass
-     * \returns Whether operation succeeded
+     * \returns an authentication configuration instance
      */
-    bool loadAuthenticationConfig( const QString &authcfg, QgsAuthMethodConfig &mconfig SIP_INOUT, bool full = false );
+    QgsAuthMethodConfig *loadAuthenticationConfig( const QString &authcfg, bool full = false );
 
     /**
      * Remove an authentication config in the database
@@ -847,7 +839,9 @@ class CORE_EXPORT QgsAuthManager : public QObject
 
     QCA::Initializer *mQcaInitializer = nullptr;
 
+    // Map an authcfg to a method key
     QHash<QString, QString> mConfigAuthMethods;
+    // Cache that maps an authcfg to an auth method instance
     QHash<QString, QgsAuthMethod *> mAuthMethods;
 
     QString mMasterPass;

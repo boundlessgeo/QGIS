@@ -1,5 +1,5 @@
 /***************************************************************************
-    qgsauthconfig.cpp
+    qgsauthmethodconfig.cpp
     ---------------------
     begin                : October 5, 2014
     copyright            : (C) 2014 by Boundless Spatial, Inc. USA
@@ -14,7 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 
 #include <QtCrypto>
 
@@ -41,9 +41,9 @@ QgsAuthMethodConfig::QgsAuthMethodConfig( const QString &method, int version )
   : mId( QString() )
   , mName( QString() )
   , mUri( QString() )
-  , mMethod( method )
+  , mMethodKey( method )
   , mVersion( version )
-  , mConfigMap( QgsStringMap() )
+  , mConfigMap( SecureMap() )
 {
 }
 
@@ -52,7 +52,7 @@ bool QgsAuthMethodConfig::operator==( const QgsAuthMethodConfig &other ) const
   return ( other.id() == id()
            && other.name() == name()
            && other.uri() == uri()
-           && other.method() == method()
+           && other.methodKey() == methodKey()
            && other.version() == version()
            && other.configMap() == configMap() );
 }
@@ -69,18 +69,17 @@ bool QgsAuthMethodConfig::isValid( bool validateid ) const
   return (
            idvalid
            && !mName.isEmpty()
-           && !mMethod.isEmpty()
+           && !mMethodKey.isEmpty()
          );
 }
 
 const QString QgsAuthMethodConfig::configString() const
 {
   QStringList confstrs;
-  QgsStringMap::const_iterator i = mConfigMap.constBegin();
-  while ( i != mConfigMap.constEnd() )
+  const QgsStringMap map(configMap());
+  for( const auto &k: map )
   {
-    confstrs << i.key() + CONFIG_KEY_SEP + i.value();
-    ++i;
+    confstrs << k + CONFIG_KEY_SEP + map[k];
   }
   return confstrs.join( CONFIG_SEP );
 }
@@ -112,7 +111,7 @@ void QgsAuthMethodConfig::loadConfigString( const QString &configstr )
 
 void QgsAuthMethodConfig::setConfig( const QString &key, const QString &value )
 {
-  mConfigMap.insert( key, value );
+  mConfigMap.insert( key, QCA::SecureArray( value.toUtf8() ) );
 }
 
 void QgsAuthMethodConfig::setConfigList( const QString &key, const QStringList &value )
@@ -127,7 +126,7 @@ int QgsAuthMethodConfig::removeConfig( const QString &key )
 
 QString QgsAuthMethodConfig::config( const QString &key, const QString &defaultvalue ) const
 {
-  return mConfigMap.value( key, defaultvalue );
+  return configMap().value( key, defaultvalue );
 }
 
 QStringList QgsAuthMethodConfig::configList( const QString &key ) const
@@ -156,6 +155,24 @@ bool QgsAuthMethodConfig::uriToResource( const QString &accessurl, QString *reso
   return ( !res.isEmpty() );
 }
 
+QgsStringMap QgsAuthMethodConfig::configMap() const
+{
+  QgsStringMap map;
+  for ( const auto &k: mConfigMap.keys() )
+  {
+    map[k] = QString( mConfigMap.value( k ).toByteArray() );
+  }
+  return map;
+}
+
+void QgsAuthMethodConfig::setConfigMap(const QgsStringMap &map)
+{
+  mConfigMap.clear();
+  for ( const auto &k: map )
+  {
+    mConfigMap[k] = QCA::SecureArray( map[k].toUtf8() );
+  }
+}
 
 #ifndef QT_NO_SSL
 

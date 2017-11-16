@@ -20,7 +20,7 @@
 #include <QObject>
 #include <QMutex>
 
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgsauthmethod.h"
 
 

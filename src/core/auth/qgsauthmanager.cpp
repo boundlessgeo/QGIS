@@ -190,12 +190,14 @@ bool QgsAuthManager::init( const QString &pluginPath, const QString &authDatabas
     return isDisabled();
   }
 
+  /* TORM
   if ( !registerCoreAuthMethods() )
   {
     mAuthDisabled = true;
     mAuthDisabledMessage = tr( "No authentication method plugins could be loaded" );
     return isDisabled();
   }
+  */
 
   mAuthDbPath = QDir::cleanPath( authDatabasePath );
   QgsDebugMsg( QString( "Auth database path: %1" ).arg( authenticationDatabasePath() ) );
@@ -786,21 +788,6 @@ void QgsAuthManager::setScheduledAuthDatabaseErase( bool scheduleErase )
   }
 }
 
-bool QgsAuthManager::registerCoreAuthMethods()
-{
-  if ( isDisabled() )
-    return false;
-
-  qDeleteAll( mAuthMethods );
-  mAuthMethods.clear();
-  const QStringList methods = QgsAuthMethodRegistry::instance()->authMethodList();
-  for ( const auto &authMethodKey : methods )
-  {
-    mAuthMethods.insert( authMethodKey, QgsAuthMethodRegistry::instance()->authMethod( authMethodKey ).release() );
-  }
-
-  return !mAuthMethods.isEmpty();
-}
 
 const QString QgsAuthManager::uniqueConfigId() const
 {
@@ -887,14 +874,14 @@ QgsAuthMethodConfigsMap QgsAuthManager::availableAuthMethodConfigs( const QStrin
     while ( query.next() )
     {
       QString authcfg = query.value( 0 ).toString();
-      QgsAuthMethodConfig config;
+      QgsAuthMethodConfig config( query.value( 3 ).toString(),  query.value( 4 ).toInt() );
       config.setId( authcfg );
       config.setName( query.value( 1 ).toString() );
       config.setUri( query.value( 2 ).toString() );
-      config.setMethod( query.value( 3 ).toString() );
-      config.setVersion( query.value( 4 ).toInt() );
+      //config.setMethod( query.value( 3 ).toString() );
+      //config.setVersion( query.value( 4 ).toInt() );
 
-      if ( !dataprovider.isEmpty() && !providerAuthMethodsKeys.contains( config.method() ) )
+      if ( !dataprovider.isEmpty() && !providerAuthMethodsKeys.contains( config.methodKey() ) )
       {
         continue;
       }
@@ -938,15 +925,31 @@ QgsAuthMethod *QgsAuthManager::configAuthMethod( const QString &authcfg )
   if ( isDisabled() )
     return nullptr;
 
-  if ( !mConfigAuthMethods.contains( authcfg ) )
+  if ( !mAuthMethods.contains( authcfg ) )
   {
-    QgsDebugMsg( QString( "No config auth method found in database for authcfg: %1" ).arg( authcfg ) );
-    return nullptr;
+    QgsDebugMsg( QString( "Trying to construct an auth method instance for authcfg: %1 ..." ).arg( authcfg ) );
+    QString methodKey( configAuthMethodKey( authcfg ) );
+    if ( methodKey.isEmpty() )
+    {
+      QgsDebugMsg( QString( "No config auth method found in database for authcfg: %1" ).arg( authcfg ) );
+      return nullptr;
+    }
+    QgsAuthMethod *method( QgsAuthMethodRegistry::instance()->authMethod( methodKey, authcfg ).release( ) );
+    if ( method )
+    {
+      QgsAuthMethodConfig *methodConfig( loadAuthenticationConfig( authcfg, true ) );
+      if ( ! methodConfig )
+      {
+        QgsDebugMsg( QString( "Could not load method configuration for authcfg: %1" ).arg( authcfg ) );
+        return nullptr;
+      }
+      method->setConfig( methodConfig );
+      mAuthMethods.insert( authcfg, method );
+    }
+    else
+      return nullptr;
   }
-
-  QString authMethodKey = mConfigAuthMethods.value( authcfg );
-
-  return authMethod( authMethodKey );
+  return mAuthMethods.value( authcfg );
 }
 
 QString QgsAuthManager::configAuthMethodKey( const QString &authcfg ) const
@@ -963,37 +966,10 @@ QStringList QgsAuthManager::authMethodsKeys( const QString &dataprovider )
   return authMethodsMap( dataprovider.toLower() ).uniqueKeys();
 }
 
-QgsAuthMethod *QgsAuthManager::authMethod( const QString &authMethodKey )
+
+QgsAuthMethodRegistry::AuthMethods QgsAuthManager::authMethodsMap( const QString &dataprovider )
 {
-  if ( !mAuthMethods.contains( authMethodKey ) )
-  {
-    QgsDebugMsg( QString( "No auth method registered for auth method key: %1" ).arg( authMethodKey ) );
-    return nullptr;
-  }
-
-  return mAuthMethods.value( authMethodKey );
-}
-
-QgsAuthMethodsMap QgsAuthManager::authMethodsMap( const QString &dataprovider )
-{
-  if ( dataprovider.isEmpty() )
-  {
-    return mAuthMethods;
-  }
-
-  QgsAuthMethodsMap filteredmap;
-  QgsAuthMethodsMap::const_iterator i = mAuthMethods.constBegin();
-  while ( i != mAuthMethods.constEnd() )
-  {
-    if ( i.value()
-         && ( i.value()->supportedDataProviders().contains( QStringLiteral( "all" ) )
-              || i.value()->supportedDataProviders().contains( dataprovider ) ) )
-    {
-      filteredmap.insert( i.key(), i.value() );
-    }
-    ++i;
-  }
-  return filteredmap;
+  return QgsAuthMethodRegistry::instance()->authMethods( dataprovider );
 }
 
 QWidget *QgsAuthManager::authMethodEditWidget( const QString &authMethodKey, QWidget *parent )
@@ -1066,7 +1042,7 @@ bool QgsAuthManager::storeAuthenticationConfig( QgsAuthMethodConfig &mconfig )
   query.bindValue( QStringLiteral( ":id" ), uid );
   query.bindValue( QStringLiteral( ":name" ), mconfig.name() );
   query.bindValue( QStringLiteral( ":uri" ), mconfig.uri() );
-  query.bindValue( QStringLiteral( ":type" ), mconfig.method() );
+  query.bindValue( QStringLiteral( ":type" ), mconfig.methodKey() );
   query.bindValue( QStringLiteral( ":version" ), mconfig.version() );
   query.bindValue( QStringLiteral( ":config" ), QgsAuthCrypto::encrypt( mMasterPass, masterPasswordCiv(), configstring ) );
 
@@ -1137,7 +1113,7 @@ bool QgsAuthManager::updateAuthenticationConfig( const QgsAuthMethodConfig &conf
   query.bindValue( QStringLiteral( ":id" ), config.id() );
   query.bindValue( QStringLiteral( ":name" ), config.name() );
   query.bindValue( QStringLiteral( ":uri" ), config.uri() );
-  query.bindValue( QStringLiteral( ":type" ), config.method() );
+  query.bindValue( QStringLiteral( ":type" ), config.methodKey() );
   query.bindValue( QStringLiteral( ":version" ), config.version() );
   query.bindValue( QStringLiteral( ":config" ), QgsAuthCrypto::encrypt( mMasterPass, masterPasswordCiv(), configstring ) );
 
@@ -1160,13 +1136,13 @@ bool QgsAuthManager::updateAuthenticationConfig( const QgsAuthMethodConfig &conf
   return true;
 }
 
-bool QgsAuthManager::loadAuthenticationConfig( const QString &authcfg, QgsAuthMethodConfig &mconfig, bool full )
+QgsAuthMethodConfig *QgsAuthManager::loadAuthenticationConfig( const QString &authcfg, bool full )
 {
   if ( isDisabled() )
-    return false;
+    return nullptr;
 
   if ( full && !setMasterPassword( true ) )
-    return false;
+    return nullptr;
 
   QSqlQuery query( authDatabaseConnection() );
   if ( full )
@@ -1184,37 +1160,28 @@ bool QgsAuthManager::loadAuthenticationConfig( const QString &authcfg, QgsAuthMe
 
   if ( !authDbQuery( &query ) )
   {
-    return false;
+    return nullptr;
   }
+
 
   if ( query.isActive() && query.isSelect() )
   {
     if ( query.first() )
     {
-      mconfig.setId( query.value( 0 ).toString() );
-      mconfig.setName( query.value( 1 ).toString() );
-      mconfig.setUri( query.value( 2 ).toString() );
-      mconfig.setMethod( query.value( 3 ).toString() );
-      mconfig.setVersion( query.value( 4 ).toInt() );
+      QgsAuthMethodConfig *mconfig( new QgsAuthMethodConfig( query.value( 3 ).toString(), query.value( 4 ).toInt() ) );
+      mconfig->setId( query.value( 0 ).toString() );
+      mconfig->setName( query.value( 1 ).toString() );
+      mconfig->setUri( query.value( 2 ).toString() );
+      //mconfig.setMethod( query.value( 3 ).toString() );
+      //mconfig.setVersion( query.value( 4 ).toInt() );
 
       if ( full )
       {
-        mconfig.loadConfigString( QgsAuthCrypto::decrypt( mMasterPass, masterPasswordCiv(), query.value( 5 ).toString() ) );
-      }
-
-      QString authMethodKey = configAuthMethodKey( authcfg );
-      QgsAuthMethod *authmethod = authMethod( authMethodKey );
-      if ( authmethod )
-      {
-        authmethod->updateMethodConfig( mconfig );
-      }
-      else
-      {
-        QgsDebugMsg( QString( "Update of authcfg %1 FAILED for auth method %2" ).arg( authcfg, authMethodKey ) );
+        mconfig->loadConfigString( QgsAuthCrypto::decrypt( mMasterPass, masterPasswordCiv(), query.value( 5 ).toString() ) );
       }
 
       QgsDebugMsg( QString( "Load %1 config SUCCESS for authcfg: %2" ).arg( full ? "full" : "base", authcfg ) );
-      return true;
+      return mconfig;
     }
     if ( query.next() )
     {
@@ -1223,7 +1190,7 @@ bool QgsAuthManager::loadAuthenticationConfig( const QString &authcfg, QgsAuthMe
     }
   }
 
-  return false;
+  return nullptr;
 }
 
 bool QgsAuthManager::removeAuthenticationConfig( const QString &authcfg )
@@ -1407,9 +1374,8 @@ bool QgsAuthManager::updateNetworkRequest( QNetworkRequest &request, const QStri
       return true;
     }
 
-    if ( !authmethod->updateNetworkRequest( request, authcfg, dataprovider.toLower() ) )
+    if ( !authmethod->updateNetworkRequest( request, dataprovider.toLower() ) )
     {
-      authmethod->clearCachedConfig( authcfg );
       return false;
     }
     return true;
@@ -1432,9 +1398,8 @@ bool QgsAuthManager::updateNetworkReply( QNetworkReply *reply, const QString &au
       return true;
     }
 
-    if ( !authmethod->updateNetworkReply( reply, authcfg, dataprovider.toLower() ) )
+    if ( !authmethod->updateNetworkReply( reply, dataprovider.toLower() ) )
     {
-      authmethod->clearCachedConfig( authcfg );
       return false;
     }
     return true;
@@ -1458,9 +1423,8 @@ bool QgsAuthManager::updateDataSourceUriItems( QStringList &connectionItems, con
       return true;
     }
 
-    if ( !authmethod->updateDataSourceUriItems( connectionItems, authcfg, dataprovider.toLower() ) )
+    if ( !authmethod->updateDataSourceUriItems( connectionItems, dataprovider.toLower() ) )
     {
-      authmethod->clearCachedConfig( authcfg );
       return false;
     }
     return true;
@@ -1483,9 +1447,8 @@ bool QgsAuthManager::updateNetworkProxy( QNetworkProxy &proxy, const QString &au
       return true;
     }
 
-    if ( !authmethod->updateNetworkProxy( proxy, authcfg, dataprovider.toLower() ) )
+    if ( !authmethod->updateNetworkProxy( proxy, dataprovider.toLower() ) )
     {
-      authmethod->clearCachedConfig( authcfg );
       return false;
     }
     QgsDebugMsg( QStringLiteral( "Proxy updated successfully from authcfg: %1" ).arg( authcfg ) );
@@ -2799,13 +2762,11 @@ void QgsAuthManager::clearAllCachedConfigs()
 
 void QgsAuthManager::clearCachedConfig( const QString &authcfg )
 {
-  if ( isDisabled() )
-    return;
-
-  QgsAuthMethod *authmethod = configAuthMethod( authcfg );
-  if ( authmethod )
+  if ( mAuthMethods.contains( authcfg ) )
   {
-    authmethod->clearCachedConfig( authcfg );
+    QgsAuthMethod *method( mAuthMethods[ authcfg ] );
+    delete method;
+    mAuthMethods.remove( authcfg );
   }
 }
 

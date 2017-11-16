@@ -1,5 +1,5 @@
 /***************************************************************************
-    qgsauthconfig.h
+    qgsauthmethodconfig.h
     ---------------------
     begin                : October 5, 2014
     copyright            : (C) 2014 by Boundless Spatial, Inc. USA
@@ -23,6 +23,7 @@
 
 #ifndef QT_NO_SSL
 #include <QSslCertificate>
+#include <QtCrypto>
 #include <QSslKey>
 #include <QSslError>
 #include <QSslSocket>
@@ -30,6 +31,7 @@
 
 #include "qgis.h"
 
+class QgsAuthMethod;
 
 /**
  * \ingroup core
@@ -39,12 +41,14 @@ class CORE_EXPORT QgsAuthMethodConfig
 {
   public:
 
+    typedef QMap<QString, QCA::SecureArray> SecureMap;
+
     /**
      * Construct a configuration for an authentication method
-     * \param method Textual key of the authentication method
+     * \param methodKey authentication method key
      * \param version Version of the configuration (for updating previously saved configs later on)
      */
-    QgsAuthMethodConfig( const QString &method = QString(), int version = 0 );
+    QgsAuthMethodConfig(const QString &methodKey = QString(), int version = 0 );
 
     //! Operator used to compare configs' equality
     bool operator==( const QgsAuthMethodConfig &other ) const;
@@ -69,9 +73,9 @@ class CORE_EXPORT QgsAuthMethodConfig
     const QString uri() const { return mUri; }
     void setUri( const QString &uri ) { mUri = uri; }
 
-    //! Textual key of the associated authentication method
-    QString method() const { return mMethod; }
-    void setMethod( const QString &method ) { mMethod = method; }
+    //! Associated authentication method name
+    QString methodKey() const { return mMethodKey; }
+    void setMethodKey(  const QString &method ) { mMethodKey = method; }
 
     //! Get version of the configuration
     int version() const { return mVersion; }
@@ -97,13 +101,13 @@ class CORE_EXPORT QgsAuthMethodConfig
     void loadConfigString( const QString &configstr );
 
     //! Get extended configuration, mapped to key/value pairs of QStrings
-    QgsStringMap configMap() const { return mConfigMap; }
+    QgsStringMap configMap() const;
 
     /**
      * Set extended configuration map
      * \param map Map to set
      */
-    void setConfigMap( const QgsStringMap &map ) { mConfigMap = map; }
+    void setConfigMap( const QgsStringMap &map );
 
     /**
      * Set a single config value per key in the map
@@ -164,10 +168,10 @@ class CORE_EXPORT QgsAuthMethodConfig
     QString mId;
     QString mName;
     QString mUri;
-    QString mMethod;
+    QString mMethodKey;
     int mVersion;
 
-    QgsStringMap mConfigMap;
+    SecureMap mConfigMap;
 
     static const QString CONFIG_SEP;
     static const QString CONFIG_KEY_SEP;

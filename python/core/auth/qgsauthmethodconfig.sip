@@ -1,7 +1,7 @@
 /************************************************************************
  * This file has been generated automatically from                      *
  *                                                                      *
- * src/core/auth/qgsauthconfig.h                                        *
+ * src/core/auth/qgsauthmethodconfig.h                                  *
  *                                                                      *
  * Do not edit manually ! Edit header and run scripts/sipify.pl again   *
  ************************************************************************/
@@ -18,7 +18,7 @@ class QgsAuthMethodConfig
 %End
 
 %TypeHeaderCode
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 %End
   public:
 
@@ -202,7 +202,7 @@ class QgsPkiBundle
 %End
 
 %TypeHeaderCode
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 %End
   public:
 
@@ -296,7 +296,7 @@ class QgsPkiConfigBundle
 %End
 
 %TypeHeaderCode
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 %End
   public:
 
@@ -424,7 +424,7 @@ class QgsAuthConfigSslServer
 %End
 
 %TypeHeaderCode
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 %End
   public:
     QgsAuthConfigSslServer();
@@ -545,7 +545,7 @@ Whether configuration is null (missing components)
 /************************************************************************
  * This file has been generated automatically from                      *
  *                                                                      *
- * src/core/auth/qgsauthconfig.h                                        *
+ * src/core/auth/qgsauthmethodconfig.h                                  *
  *                                                                      *
  * Do not edit manually ! Edit header and run scripts/sipify.pl again   *
  ************************************************************************/

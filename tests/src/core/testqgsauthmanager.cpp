@@ -251,7 +251,7 @@ void TestQgsAuthManager::testAuthConfigs()
     QVERIFY( authm->configIds().contains( configid ) );
 
     // config -> method map should have been updated and return the right method key
-    QCOMPARE( authm->configAuthMethodKey( configid ), config.method() );
+    QCOMPARE( authm->configAuthMethodKey( configid ), config.methodKey() );
 
     // loading into new base config should return same as original stored
     QgsAuthMethodConfig config2;
@@ -337,7 +337,7 @@ void TestQgsAuthManager::testAuthConfigs()
     QgsAuthMethodConfig origcfg = idcfgmap.take( cfgid );
     QCOMPARE( origcfg.id(), cfg.id() );
     QCOMPARE( origcfg.name(), cfg.name() );
-    QCOMPARE( origcfg.method(), cfg.method() );
+    QCOMPARE( origcfg.methodKey(), cfg.methodKey() );
     QCOMPARE( origcfg.uri(), cfg.uri() );
   }
   QCOMPARE( idcfgmap.size(), 0 );
@@ -363,7 +363,7 @@ void TestQgsAuthManager::testAuthMethods()
     // correct method, loaded from core auth method plugin registry, should be returned
     QgsAuthMethod *authmethod = authm->configAuthMethod( configid );
     QVERIFY( authmethod );
-    QCOMPARE( authmethod->key(), config.method() );
+    QCOMPARE( authmethod->key(), config.methodKey() );
 
 
   }

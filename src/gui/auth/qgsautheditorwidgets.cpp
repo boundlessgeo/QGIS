@@ -26,6 +26,7 @@
 #include "qgsauthcertificatemanager.h"
 #include "qgsauthguiutils.h"
 #include "qgsauthmanager.h"
+#include "qgsauthmethodmetadata.h"
 #include "qgsapplication.h"
 #include "qgsnetworkaccessmanager.h"
 
@@ -71,12 +72,13 @@ void QgsAuthMethodPlugins::setupTable()
 
 void QgsAuthMethodPlugins::populateTable()
 {
-  QgsAuthMethodsMap authmethods( QgsApplication::authManager()->authMethodsMap() );
+
+  const QgsAuthMethodsMetadataMap authmethods( QgsApplication::authManager()->authMethodsMap() );
 
   int i = 0;
-  for ( QgsAuthMethodsMap::const_iterator it = authmethods.constBegin(); it != authmethods.constEnd(); ++it, i++ )
+  for ( QgsAuthMethodsMetadataMap::const_iterator it = authmethods.constBegin(); it != authmethods.constEnd(); ++it, i++ )
   {
-    QgsAuthMethod *authmethod( it.value() );
+    QgsAuthMethodMetadata *authmethod( it.value() );
     if ( !authmethod )
     {
       continue;
@@ -86,11 +88,11 @@ void QgsAuthMethodPlugins::populateTable()
     twi->setFlags( twi->flags() & ~Qt::ItemIsEditable );
     tblAuthPlugins->setItem( i, 0, twi );
 
-    twi = new QTableWidgetItem( authmethod->displayDescription() );
+    twi = new QTableWidgetItem( authmethod->description() );
     twi->setFlags( twi->flags() & ~Qt::ItemIsEditable );
     tblAuthPlugins->setItem( i, 1, twi );
 
-    twi = new QTableWidgetItem( authmethod->supportedDataProviders().join( QStringLiteral( ", " ) ) );
+    twi = new QTableWidgetItem( authmethod->supportedProviders().join( QStringLiteral( ", " ) ) );
     twi->setFlags( twi->flags() & ~Qt::ItemIsEditable );
     tblAuthPlugins->setItem( i, 2, twi );
   }

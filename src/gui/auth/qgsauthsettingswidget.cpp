@@ -15,7 +15,7 @@
  ***************************************************************************/
 #include "qgsauthsettingswidget.h"
 #include "qgsauthmanager.h"
-#include "qgsauthconfig.h"
+#include "qgsauthmethodconfig.h"
 #include "qgsapplication.h"
 
 #include <QDateTime>

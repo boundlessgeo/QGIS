@@ -77,7 +77,7 @@ void TestQgsAuthConfig::testMethodConfig()
   mconfig.setUri( QStringLiteral( "http://example.com" ) );
 
   QCOMPARE( mconfig.name(), QString( "Some Name" ) );
-  QCOMPARE( mconfig.method(), QString( "MethodKey" ) );
+  QCOMPARE( mconfig.methodKey(), QString( "MethodKey" ) );
   QCOMPARE( mconfig.id(), QString( "0000000" ) );
   QCOMPARE( mconfig.version(), 1 );
   QCOMPARE( mconfig.uri(), QString( "http://example.com" ) );

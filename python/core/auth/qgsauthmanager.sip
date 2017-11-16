@@ -172,12 +172,6 @@ Simple text tag describing authentication system for message logs
  :rtype: str
 %End
 
-    bool registerCoreAuthMethods();
-%Docstring
-Instantiate and register existing C++ core authentication methods from plugins
- :rtype: bool
-%End
-
     QgsAuthMethodConfigsMap availableAuthMethodConfigs( const QString &dataprovider = QString() );
 %Docstring
 Get mapping of authentication config ids and their base configs (not decrypted data)
@@ -207,13 +201,6 @@ Sync the confg/authentication method cache with what is in database
 %Docstring
  Get keys of supported authentication methods
  :rtype: list of str
-%End
-
-    QgsAuthMethod *authMethod( const QString &authMethodKey );
-%Docstring
- Get authentication method from the config/provider cache via its key
- \param authMethodKey Authentication method key
- :rtype: QgsAuthMethod
 %End
 
 
@@ -280,14 +267,14 @@ Get list of authentication ids from database
  :rtype: bool
 %End
 
-    bool loadAuthenticationConfig( const QString &authcfg, QgsAuthMethodConfig &mconfig /In,Out/, bool full = false );
+    QgsAuthMethodConfig *loadAuthenticationConfig( const QString &authcfg, bool full = false );
 %Docstring
  Load an authentication config from the database into subclass
  \param authcfg Associated authentication config id
  \param mconfig Subclassed config to load into
  \param full Whether to decrypt and populate all sensitive data in subclass
- :return: Whether operation succeeded
- :rtype: bool
+ :return: an authentication configuration instance
+ :rtype: QgsAuthMethodConfig
 %End
 
     bool removeAuthenticationConfig( const QString &authcfg );
