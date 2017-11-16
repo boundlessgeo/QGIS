@@ -274,6 +274,7 @@ Get list of authentication ids from database
  \param mconfig Subclassed config to load into
  \param full Whether to decrypt and populate all sensitive data in subclass
  :return: an authentication configuration instance
+ TODO: (elpaso) remove full because the values are now stored in SecureArray
  :rtype: QgsAuthMethodConfig
 %End
 

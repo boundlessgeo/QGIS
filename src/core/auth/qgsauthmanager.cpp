@@ -922,6 +922,7 @@ void QgsAuthManager::updateConfigAuthMethods()
 
 QgsAuthMethod *QgsAuthManager::configAuthMethod( const QString &authcfg )
 {
+
   if ( isDisabled() )
     return nullptr;
 
@@ -943,6 +944,7 @@ QgsAuthMethod *QgsAuthManager::configAuthMethod( const QString &authcfg )
         QgsDebugMsg( QString( "Could not load method configuration for authcfg: %1" ).arg( authcfg ) );
         return nullptr;
       }
+      // TODO: (elpaso) maybe merge the config class with the authmethod
       method->setConfig( methodConfig );
       mAuthMethods.insert( authcfg, method );
     }
@@ -1362,10 +1364,13 @@ bool QgsAuthManager::eraseAuthenticationDatabase( bool backup, QString *backuppa
 bool QgsAuthManager::updateNetworkRequest( QNetworkRequest &request, const QString &authcfg,
     const QString &dataprovider )
 {
+  // TODO: (elpaso) check all this mutexes
+  QMutexLocker  locker( mMutex );
   if ( isDisabled() )
     return false;
-
   QgsAuthMethod *authmethod = configAuthMethod( authcfg );
+  locker.unlock();
+
   if ( authmethod )
   {
     if ( !( authmethod->supportedExpansions() & QgsAuthMethod::NetworkRequest ) )

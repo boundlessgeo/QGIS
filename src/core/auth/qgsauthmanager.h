@@ -275,6 +275,7 @@ class CORE_EXPORT QgsAuthManager : public QObject
      * \param mconfig Subclassed config to load into
      * \param full Whether to decrypt and populate all sensitive data in subclass
      * \returns an authentication configuration instance
+     * TODO: (elpaso) remove full because the values are now stored in SecureArray
      */
     QgsAuthMethodConfig *loadAuthenticationConfig( const QString &authcfg, bool full = false );
 
